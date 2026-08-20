@@ -32,7 +32,7 @@ export const NO_GATEWAY_FALLBACK_ENGINES = Object.freeze([
   'mermaid', 'bpmn', 'excalidraw',
   'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
   'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
-  'graphviz', 'erd', 'wireviz',
+  'graphviz', 'erd', 'pikchr', 'wireviz',
 ])
 
 export function requiresDedicatedRenderer(engine) {

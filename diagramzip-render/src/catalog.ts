@@ -58,6 +58,7 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
   packetdiag: 'edge-python',
   rackdiag: 'edge-python',
   graphviz: 'edge-wasm',
+  pikchr: 'edge-wasm',
   erd: 'edge-wasm',
   wireviz: 'edge-python',
 }
@@ -78,6 +79,7 @@ const versions: Partial<Record<EngineId, string>> = {
   packetdiag: 'packetdiag@3.0.0/python-worker-1',
   rackdiag: 'rackdiag@3.0.0/python-worker-1',
   graphviz: 'graphviz@15.1.1/edge-wasm-1',
+  pikchr: 'pikchr@85e65b9686/edge-wasm-1',
   erd: 'erd@0.2.1.0+graphviz@15.1.1/edge-wasm-1',
   wireviz: 'wireviz@0.3.2/python-translator-1',
 }
@@ -90,6 +92,11 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'Resource-loading attributes such as image, imagepath, shapefile, fontpath, and stylesheet are rejected because the edge unit has no filesystem or network asset loader.',
     'The edge build uses GraphViz 15.1.1 versus the compatibility image GraphViz 14.1.3; output differences are possible.',
     'The GraphViz scale option is not supported by the edge-Wasm adapter.',
+  ],
+  pikchr: [
+    'Only SVG is supported.',
+    'Pikchr image/resource loading and renderer options are not exposed in the edge unit.',
+    'The edge build is compiled from the pinned Kroki Pikchr source revision 85e65b968651b342c46e6334f4772b45d6cbb4317c5cbaa95d207779a50c6709.',
   ],
   bytefield: ['Only SVG is in the v2 rendering contract.'],
   dbml: ['The upstream package mixes ESM files into a CommonJS package and remains on the origin until it can be safely repackaged.'],

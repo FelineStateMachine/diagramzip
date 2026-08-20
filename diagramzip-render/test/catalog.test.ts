@@ -35,6 +35,12 @@ describe('engine catalog', () => {
     expect(wireviz.version).toContain('python-translator-1')
   })
 
+  it('marks Pikchr as a dedicated edge-Wasm unit', () => {
+    const pikchr = ENGINE_CATALOG.find(engine => engine.id === 'pikchr')!
+    expect(pikchr.activeRuntime).toBe('edge-wasm')
+    expect(pikchr.version).toContain('pikchr@85e65b9686')
+  })
+
   it('does not retain a silent origin fallback for any engine', () => {
     for (const engine of ENGINE_CATALOG) {
       if (engine.activeRuntime === 'origin') expect(engine.version).toBe('compatibility-origin')

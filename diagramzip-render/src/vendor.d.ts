@@ -26,3 +26,8 @@ declare module '*.wasm' {
   const module: WebAssembly.Module
   export default module
 }
+
+declare module '*pikchr-backend.js' {
+  const module: (moduleArg?: Record<string, unknown>) => Promise<any>
+  export default module
+}

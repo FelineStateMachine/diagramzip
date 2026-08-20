@@ -408,7 +408,7 @@ The origin is a compatibility bridge, not the target architecture for standardiz
 | Excalidraw | Client | Browser-render/origin |
 | GoAT | WebAssembly spike | Origin |
 | Nomnoml | Edge JavaScript | Origin |
-| Pikchr | Edge WebAssembly | Origin |
+| Pikchr | Edge WebAssembly | None after cutover |
 | Structurizr | TypeScript DSL-to-PlantUML compiler; browser PlantUML preview | Existing Structurizr/PlantUML path |
 | Svgbob | Edge WebAssembly | Origin |
 | Symbolator | Origin | Origin |
@@ -419,7 +419,7 @@ The origin is a compatibility bridge, not the target architecture for standardiz
 | WaveDrom | Edge JavaScript | Origin |
 | WireViz | Upstream Python parser/model/DOT composer → GraphViz service binding | None after cutover |
 
-The first coverage milestone puts all 30 catalog types behind one contract and keeps unsupported edge engines on the origin. Its first native cohort is Bytefield, Nomnoml, WaveDrom, Vega, and Vega-Lite. DBML remains on the origin because its published package mixes module formats. GraphViz now imports its WebAssembly as a precompiled Worker module, and ERD lowers into that same runtime. D2, Pikchr, and Svgbob move only after direct precompiled-Wasm adapters are proven. Seven engines can later move interactive preview into the browser: Mermaid, PlantUML, C4-PlantUML, BPMN, Excalidraw, diagrams.net, and UMLet.
+The first coverage milestone puts all 30 catalog types behind one contract and keeps unsupported edge engines on the origin. Its first native cohort is Bytefield, Nomnoml, WaveDrom, Vega, and Vega-Lite. DBML remains on the origin because its published package mixes module formats. GraphViz now imports its WebAssembly as a precompiled Worker module, ERD lowers into that same runtime, and Pikchr has a separate precompiled WebAssembly unit. D2 and Svgbob move only after direct precompiled-Wasm adapters are proven. Seven engines can later move interactive preview into the browser: Mermaid, PlantUML, C4-PlantUML, BPMN, Excalidraw, diagrams.net, and UMLet.
 
 The upstream-reuse milestone moves all six BlockDiag-family types into one Python Worker, moves ERD to an upstream-guided TypeScript/GraphViz implementation, and preserves WireViz coverage in a dependency-isolated Python translator that reuses GraphViz through a service binding. Structurizr remains a later PlantUML translation target.
 
@@ -559,13 +559,13 @@ Use production traffic and latency data to choose the remaining rewrites. WireVi
 
 ## Implementation status — 2026-08-20
 
-The coverage plane is implemented across dedicated renderer hostnames. Seventeen
+The coverage plane is implemented across dedicated renderer hostnames. Eighteen
 of 30 catalog engines no longer depend on Fly: five execute in JavaScript
 Workers, six share the `blockdiag-family` Python Worker, GraphViz and ERD share
-the `graphviz-family` WebAssembly Worker, and Mermaid, BPMN, and Excalidraw
+the `graphviz-family` WebAssembly Worker, Pikchr in its dedicated WebAssembly Worker, and Mermaid, BPMN, and Excalidraw
 render in sandboxed browser units. WireViz preserves its upstream Python parser
 and DOT composer, then calls GraphViz through an internal service binding. The
-remaining 13 engines use 12
+remaining 12 engines use 11
 dependency-grouped compatibility units. Repository and production smokes require
 structurally valid SVG; pixel comparison remains intentionally deferred.
 
@@ -581,13 +581,19 @@ under real workerd, including cache behavior, presentation, HTML labels and
 ports, malformed input, and unsafe image rejection. The family dry-run is about
 1.19 MB uncompressed and 0.47 MB compressed.
 
+The Pikchr unit compiles the pinned upstream C source revision into a dedicated
+precompiled Emscripten WebAssembly module. It calls the public `pikchr()` API,
+uses plaintext parser errors and bounded source input, rejects renderer options
+and assets, and frees all returned buffers. The browser fiddle's dynamic Wasm
+loader is not used; the module is statically imported by the Worker.
+
 The WireViz unit vendors the actual `yuzutech/WireViz` v0.3.3 release source,
 whose own runtime version is 0.3.2, and stops before external `dot` execution.
 It rejects filesystem images and raw GraphViz tweaks, bounds YAML expansion,
 and forwards generated DOT to `graphviz-family`. BOM, HTML, and PNG sidecars
 remain outside the SVG rendering contract.
 
-The same hard boundary now applies to all seventeen migrated engines: direct
+The same hard boundary now applies to all eighteen migrated engines: direct
 unit or client-renderer failure is surfaced to the editor, the gateway rejects
 their engine IDs before consulting its cache or origin adapter, and every
 catalog fallback is `null`.

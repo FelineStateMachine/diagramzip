@@ -60,18 +60,19 @@ catalog engine.
 | --- | --- |
 | Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
 | Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag); WireViz → DOT → GraphViz |
-| Worker WebAssembly | GraphViz family (GraphViz and ERD → DOT → GraphViz) |
+| Worker WebAssembly | GraphViz family (GraphViz and ERD → DOT → GraphViz); Pikchr |
 | Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
-| Compatibility unit | 12 dependency units covering the remaining 13 engines |
+| Compatibility unit | 11 dependency units covering the remaining 12 engines |
 
-The current split is 17/30 engines off Fly and 13/30 still dependent on it.
+The current split is 18/30 engines off Fly and 12/30 still dependent on it.
 Compatibility units are extraction seams, not final runtimes or fallbacks for
 an engine after cutover. DBML
 currently proxies because its published package mixes module formats. GraphViz
 uses a precompiled Worker module; ERD lowers its upstream-compatible source
 language to DOT and reuses the same in-process GraphViz runtime. WireViz runs
 its vendored upstream parser and DOT composer in a separate Python Worker, then
-calls that same GraphViz deployment through a service binding.
+calls that same GraphViz deployment through a service binding. Pikchr compiles
+the pinned upstream C source into a small, isolated precompiled Wasm unit.
 
 All returned SVG passes through the same sanitizer. Scripts, event handlers,
 external resources, and active embedded HTML are removed. Mermaid's
