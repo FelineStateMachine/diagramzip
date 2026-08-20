@@ -2,8 +2,8 @@ const CHANNEL = 'diagram.zip:renderer:v1'
 const RENDER_TIMEOUT = 20_000
 
 export const CLIENT_RENDERERS = Object.freeze({
-  mermaid: Object.freeze({ frameUrl: '/diagram.zip/renderer-frame.html?v=2' }),
-  bpmn: Object.freeze({ frameUrl: '/diagram.zip/renderer-frame.html?v=2' }),
+  mermaid: Object.freeze({ frameUrl: 'https://mermaid.render.diagram.zip/index.html?v=1' }),
+  bpmn: Object.freeze({ frameUrl: 'https://bpmn.render.diagram.zip/index.html?v=1' }),
   excalidraw: Object.freeze({ frameUrl: 'https://excalidraw.render.diagram.zip/index.html?v=3' }),
 })
 
@@ -71,7 +71,13 @@ export class RendererFrame {
     this.pending.delete(event.data.requestId)
     pending.finish()
     if (event.data.ok && typeof event.data.svg === 'string') {
-      pending.resolve({ body: event.data.svg, version: event.data.version, runtime: 'client' })
+      pending.resolve({
+        body: event.data.svg,
+        version: event.data.version,
+        build: event.data.build,
+        pipeline: event.data.pipeline,
+        runtime: 'client',
+      })
     } else {
       pending.reject(new Error(event.data.error || 'Client rendering failed.'))
     }

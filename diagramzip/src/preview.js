@@ -24,6 +24,7 @@ export class PreviewController {
     this.renderLoop = null
     this.latestRenderKey = null
     this.latestSvgBlob = null
+    this.latestRendererIdentity = null
     this.imageFallbackUrl = null
     this.activeImageUrl = null
     this.drag = null
@@ -83,24 +84,32 @@ export class PreviewController {
 
     try {
       const clientAdapter = clientAdapterFor(type)
-      let sourceSvg
+      let rendered
       if (clientAdapter) {
         try {
-          const rendered = await clientAdapter.render({ type, source, options }, abortController.signal)
-          sourceSvg = sanitizeAndDecorateSvg(rendered.body, meta, presentation, type)
+          const clientRender = await clientAdapter.render({ type, source, options }, abortController.signal)
+          rendered = {
+            body: sanitizeAndDecorateSvg(clientRender.body, meta, presentation, type),
+            identity: {
+              unit: type,
+              build: clientRender.build || clientRender.version,
+              pipeline: Array.isArray(clientRender.pipeline) ? clientRender.pipeline : [type],
+            },
+          }
           this.status.dataset.cache = 'browser'
-          this.status.dataset.renderer = rendered.runtime
+          this.status.dataset.renderer = type
         } catch (error) {
           if (error.name === 'AbortError') throw error
-          sourceSvg = await this.renderThroughGateway({ type, source, options, meta, presentation }, abortController.signal)
+          rendered = await this.renderThroughGateway({ type, source, options, meta, presentation }, abortController.signal)
         }
       } else {
-        sourceSvg = await this.renderThroughGateway({ type, source, options, meta, presentation }, abortController.signal)
+        rendered = await this.renderThroughGateway({ type, source, options, meta, presentation }, abortController.signal)
       }
       if (requestNumber !== this.requestNumber) return
-      const { blob, background } = this.normalizedSvgBlob(sourceSvg)
+      const { blob, background } = this.normalizedSvgBlob(rendered.body)
       this.latestRenderKey = renderKey
       this.latestSvgBlob = blob
+      this.latestRendererIdentity = rendered.identity
       this.imageFallbackUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(await blob.text())}`
       this.stage.style.setProperty('--render-background', background)
       const nextObjectUrl = URL.createObjectURL(blob)
@@ -129,7 +138,7 @@ export class PreviewController {
           { source, format: 'svg', options, metadata: meta, presentation },
           signal,
         )
-        if (response.ok || response.status < 500) return await this.renderResponse(response)
+        if (response.ok || response.status < 500) return await this.renderResponse(response, type)
         await response.body?.cancel()
       } catch (error) {
         if (error.name === 'AbortError') throw error
@@ -144,7 +153,7 @@ export class PreviewController {
       metadata: meta,
       presentation,
     }, signal)
-    return this.renderResponse(response)
+    return this.renderResponse(response, type)
   }
 
   renderRequest(endpoint, body, signal) {
@@ -156,13 +165,23 @@ export class PreviewController {
     })
   }
 
-  async renderResponse(response) {
+  async renderResponse(response, fallbackUnit) {
     if (!response.ok) throw new Error(await this.errorMessage(response))
     this.status.dataset.cache = response.headers.get('X-Diagram-Cache')?.toLowerCase() ?? 'miss'
     this.status.dataset.renderer = response.headers.get('X-Diagram-Unit')?.toLowerCase()
       ?? response.headers.get('X-Diagram-Renderer')?.toLowerCase()
       ?? 'gateway'
-    return response.text()
+    const unit = response.headers.get('X-Diagram-Unit')?.toLowerCase()
+      ?? response.headers.get('X-Diagram-Engine')?.toLowerCase()
+      ?? fallbackUnit
+    const build = response.headers.get('X-Renderer-Build')
+      ?? response.headers.get('X-Diagram-Engine-Version')
+      ?? `${unit}-unknown`
+    const pipeline = (response.headers.get('X-Diagram-Pipeline') ?? unit)
+      .split(',')
+      .map(value => value.trim().toLowerCase())
+      .filter(Boolean)
+    return { body: await response.text(), identity: { unit, build, pipeline } }
   }
 
   retryBlockedImage() {
@@ -184,6 +203,12 @@ export class PreviewController {
     const { type, source, options = {}, meta = {}, presentation = {} } = state
     const renderKey = JSON.stringify({ type, source, options, meta, presentation })
     return this.latestRenderKey === renderKey ? this.latestSvgBlob : null
+  }
+
+  rendererIdentityFor(state) {
+    const { type, source, options = {}, meta = {}, presentation = {} } = state
+    const renderKey = JSON.stringify({ type, source, options, meta, presentation })
+    return this.latestRenderKey === renderKey ? this.latestRendererIdentity : null
   }
 
   async errorMessage(response) {

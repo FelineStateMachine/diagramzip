@@ -97,3 +97,10 @@ export function diagramTypeFromQuery(search = '') {
   const type = params.get('type')
   return isKnownDiagramType(type) ? type : null
 }
+
+export function urlWithDiagramType(url, type) {
+  if (!isKnownDiagramType(type)) throw new Error('Unsupported diagram type.')
+  const next = new URL(url, 'https://diagram.zip')
+  next.searchParams.set('type', type)
+  return `${next.pathname}${next.search}${next.hash}`
+}

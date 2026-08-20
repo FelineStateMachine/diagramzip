@@ -4,6 +4,11 @@ import { beforeAll, describe, expect, it } from 'vitest'
 
 const capability = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 const otherCapability = 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBA'
+const rendererHeaders = {
+  'X-Renderer-Unit': 'd2',
+  'X-Renderer-Build': 'd2-compat-unit-1',
+  'X-Renderer-Pipeline': 'd2',
+}
 const worker = (exports as unknown as {
   default: { fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> }
 }).default
@@ -291,6 +296,7 @@ describe('open aliases', () => {
         'Content-Type': 'image/svg+xml',
         'If-Match': '"1"',
         'X-Render-Id': renderId,
+        ...rendererHeaders,
       },
       body: svg,
     })
@@ -300,7 +306,18 @@ describe('open aliases', () => {
     expect(render.status).toBe(200)
     expect(render.headers.get('Content-Type')).toBe('image/svg+xml')
     expect(render.headers.get('Cache-Control')).toContain('max-age=60')
+    expect(render.headers.get('X-Renderer-Unit')).toBe('d2')
+    expect(render.headers.get('X-Renderer-Build')).toBe('d2-compat-unit-1')
+    expect(render.headers.get('X-Renderer-Pipeline')).toBe('d2')
     expect(await render.text()).toBe(svg)
+
+    const head = await env.CONTENT.get(`render-heads/open/${renderId}.svg.json`)
+    expect(await head?.json()).toEqual({
+      unit: 'd2',
+      build: 'd2-compat-unit-1',
+      pipeline: ['d2'],
+      objectKey: `renders/open/d2/d2-compat-unit-1/${renderId}.svg`,
+    })
   })
 
   it('stores locked renders opaquely and refuses an embed response', async () => {
@@ -314,6 +331,7 @@ describe('open aliases', () => {
         'Content-Type': 'application/json',
         'If-Match': '"1"',
         'X-Render-Id': renderId,
+        ...rendererHeaders,
       },
       body: JSON.stringify(encryptedRender),
     })
@@ -349,6 +367,7 @@ describe('open aliases', () => {
         'Content-Type': 'image/svg+xml',
         'If-Match': '"1"',
         'X-Render-Id': renderId,
+        ...rendererHeaders,
       },
       body: '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
     })

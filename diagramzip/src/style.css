@@ -73,11 +73,12 @@ button { cursor: pointer; }
 
 .app-shell {
   display: grid;
-  grid-template-rows: 58px minmax(0, 1fr);
+  grid-template-rows: 58px auto minmax(0, 1fr);
   height: 100%;
 }
 
 .app-header {
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -111,6 +112,24 @@ button { cursor: pointer; }
   gap: 9px;
   min-width: 0;
 }
+
+.draft-bar {
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 46px;
+  padding: 7px 14px 7px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--soft);
+}
+
+.draft-bar[hidden] { display: none; }
+.draft-bar p { margin: 0; font-size: 13px; }
+.draft-bar div { display: flex; flex: 0 0 auto; gap: 7px; }
+
+.workspace { grid-row: 3; }
 
 .render-status {
   max-width: min(38vw, 420px);
@@ -460,7 +479,7 @@ dialog::backdrop {
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 @media (max-width: 760px) {
-  .app-shell { grid-template-rows: 58px 42px minmax(0, 1fr); }
+  .app-shell { grid-template-rows: 58px auto 42px minmax(0, 1fr); }
   .render-status { display: none; }
   .render-status[data-state="error"] {
     position: fixed;
@@ -482,6 +501,10 @@ dialog::backdrop {
   .app-header { padding-left: 14px; }
   .brand span:last-child { display: none; }
   .header-meta { flex: 1; justify-content: flex-end; gap: 6px; }
+  .draft-bar { align-items: stretch; flex-direction: column; gap: 7px; padding: 9px 14px; }
+  .draft-bar div { display: grid; grid-template-columns: 1fr 1fr; }
+  .mobile-tabs { grid-row: 3; }
+  .workspace { grid-row: 4; }
   .type-picker { flex: 0 1 142px; min-width: 0; }
   .type-picker select { width: 100%; max-width: 142px; }
   .mobile-tabs {

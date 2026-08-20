@@ -8,9 +8,6 @@
     "enabled": true,
     "head_sampling_rate": 1
   },
-  "vars": {
-    "RENDERER_BUILD": "kroki-0.32.1"
-  },
   "routes": [
     {
       "pattern": "diagram.zip/api/v1/*",

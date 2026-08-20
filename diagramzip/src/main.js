@@ -3,7 +3,7 @@ import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
-import { diagramTypeFromQuery, diagramTypes, isKnownDiagramType, languageFor } from './diagram-types.js'
+import { diagramTypeFromQuery, diagramTypes, isKnownDiagramType, languageFor, urlWithDiagramType } from './diagram-types.js'
 import { exampleStateFor } from './examples.js'
 import { stateForTypeChange } from './type-drafts.js'
 import {
@@ -82,6 +82,14 @@ document.querySelector('#app').innerHTML = `
         <button class="primary-action" id="share" type="button">Share</button>
       </div>
     </header>
+
+    <aside class="draft-bar" id="draft-bar" aria-live="polite" hidden>
+      <p>This device has changes that are not part of the saved share link.</p>
+      <div>
+        <button class="secondary-action" id="restore-saved" type="button">Restore saved</button>
+        <button class="primary-action" id="make-copy" type="button">Make a copy</button>
+      </div>
+    </aside>
 
     <div class="mobile-tabs" role="tablist" aria-label="Workspace panel">
       <button type="button" role="tab" aria-selected="true" data-panel="editor">Edit</button>
@@ -282,6 +290,7 @@ const preview = new PreviewController({
 
 typePicker.addEventListener('change', () => {
   const type = typePicker.value
+  history.replaceState(null, '', urlWithDiagramType(location.href, type))
   applyState(stateForTypeChange(typeDrafts, activeType, type, currentState(), exampleStateFor))
 })
 
@@ -301,6 +310,8 @@ document.querySelector('#lock-diagram').addEventListener('click', lockDiagram)
 document.querySelector('#change-password').addEventListener('click', changeDiagramPassword)
 document.querySelector('#unlock-diagram').addEventListener('click', unlockDiagram)
 document.querySelector('#save').addEventListener('click', () => saveDiagram())
+document.querySelector('#restore-saved').addEventListener('click', restoreSavedDiagram)
+document.querySelector('#make-copy').addEventListener('click', makeDraftCopy)
 document.querySelector('#share').addEventListener('click', openShareDialog)
 document.querySelector('#share-save').addEventListener('click', async () => {
   await saveDiagram()
@@ -416,8 +427,11 @@ async function loadInitialState() {
   }
   if (location.hash) history.replaceState(null, '', `${location.pathname}${location.search}`)
   const requestedType = diagramTypeFromQuery(location.search)
-  if (requestedType) return exampleStateFor(requestedType)
   const draft = loadDraft(LOCAL_DRAFT_KEY)
+  if (requestedType) {
+    if (draft?.state.type === requestedType) return draft.state
+    return exampleStateFor(requestedType)
+  }
   if (draft) return draft.state
   return exampleStateFor(DEFAULT_DIAGRAM_TYPE)
 }
@@ -572,7 +586,7 @@ async function createNewAlias(state) {
   setRemoteAlias(alias, alias.writeCapability, state, remote.mode === 'locked' ? bundleKey : null)
   storeWriteCapability(alias.aliasId, alias.writeCapability)
   removeDraft(previousDraftKey)
-  history.pushState(null, '', `/d/${alias.aliasId}`)
+  history.pushState(null, '', urlWithDiagramType(`/d/${alias.aliasId}`, state.type))
   await cacheSavedRenders(state)
 }
 
@@ -599,7 +613,8 @@ async function cacheSavedRenders(state) {
   if (!remote.aliasId || !remote.writeCapability) return
   await preview.render(state)
   const svg = preview.svgBlobFor(state)
-  if (!svg) return
+  const renderer = preview.rendererIdentityFor(state)
+  if (!svg || !renderer) return
 
   const renders = [['svg', svg]]
   try {
@@ -620,6 +635,7 @@ async function cacheSavedRenders(state) {
       format,
       mode: remote.mode,
       render,
+      renderer,
     })
   })
   const results = await Promise.allSettled(uploads)
@@ -919,6 +935,7 @@ function setRemoteAlias(alias, writeCapability, state, bundleKey = null) {
 
 function updateSaveButton() {
   const button = document.querySelector('#save')
+  updateDraftControls()
   if (saving) {
     button.textContent = 'Saving…'
     button.disabled = true
@@ -931,6 +948,47 @@ function updateSaveButton() {
   }
   button.textContent = remote.aliasId && !remote.writeCapability ? 'Save copy' : 'Save'
   button.disabled = false
+}
+
+function updateDraftControls() {
+  const bar = document.querySelector('#draft-bar')
+  const hasLocalOverlay = Boolean(remote.aliasId && remote.savedState && remote.dirty)
+  bar.hidden = !hasLocalOverlay
+  document.querySelector('#restore-saved').disabled = saving
+  document.querySelector('#make-copy').disabled = saving
+}
+
+function restoreSavedDiagram() {
+  if (!remote.aliasId || !remote.savedState || !remote.dirty) return
+  clearTimeout(renderTimer)
+  clearTimeout(commitDetails.timeout)
+  remote.mode = remote.savedMode
+  remote.keyEnvelopeDirty = false
+  remote.dirty = false
+  removeDraft(`${ALIAS_DRAFT_PREFIX}${remote.aliasId}`)
+  typeDrafts.clear()
+  applyState(remote.savedState, false)
+  history.replaceState(null, '', urlWithDiagramType(location.href, remote.savedState.type))
+  updatePrivacyControls()
+  updateSaveButton()
+  showToast('Restored saved diagram')
+}
+
+async function makeDraftCopy() {
+  if (saving || !remote.aliasId || !remote.dirty) return
+  commitState(false)
+  const state = currentState()
+  saving = true
+  updateSaveButton()
+  try {
+    await createNewAlias(state)
+    showToast('Saved as a new diagram')
+  } catch (error) {
+    showToast(error instanceof Error ? error.message : 'Could not make a copy.')
+  } finally {
+    saving = false
+    updateSaveButton()
+  }
 }
 
 function updatePrivacyControls() {
@@ -963,7 +1021,7 @@ function startNewDiagram() {
     dirty: true,
   }
   typeDrafts.clear()
-  history.pushState(null, '', '/')
+  history.pushState(null, '', urlWithDiagramType('/', DEFAULT_DIAGRAM_TYPE))
   applyState(exampleStateFor(DEFAULT_DIAGRAM_TYPE))
 }
 

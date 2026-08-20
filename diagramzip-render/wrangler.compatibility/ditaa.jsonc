@@ -1,0 +1,1 @@
+{"$schema":"../node_modules/wrangler/config-schema.json","name":"diagramzip-render-ditaa","main":"../src/units/compatibility.ts","compatibility_date":"2026-08-20","define":{"__ENGINE_ID__":"\"ditaa\""},"observability":{"enabled":true},"vars":{"RENDERER_BUILD":"ditaa-compat-unit-1"},"routes":[{"pattern":"ditaa.render.diagram.zip","custom_domain":true}]}

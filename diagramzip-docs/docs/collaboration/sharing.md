@@ -54,6 +54,11 @@ locked diagram, you cannot decrypt it.
 You can edit a diagram after opening a read link. These edits stay local until
 you save them.
 
+If this browser already has unsaved changes for the link, a local-changes bar
+offers **Restore saved** and **Make a copy**. Restore returns to the shared
+revision. Make a copy forks the local state to a new alias, even when this
+browser also holds write access to the original.
+
 The Save button becomes **Save copy** because you do not have write access to
 the original alias. Save the copy to create a new alias and a new edit link.
 The original diagram does not change.

@@ -13,6 +13,11 @@ import {
 
 const aliasId = 'AbCdEfGhIjKlMnOp'
 const writeCapability = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+const renderer = {
+  unit: 'vegalite',
+  build: 'vegalite-6.4.3-vega-6.3.1-unit-1',
+  pipeline: ['vegalite', 'vega'],
+}
 const state = {
   type: 'd2',
   source: 'a -> b',
@@ -168,10 +173,14 @@ test('uploads an open content-addressed render', async () => {
     format: 'svg',
     mode: 'open',
     render: svg,
+    renderer,
   })
   assert.equal(captured.url, `http://localhost/api/v1/aliases/${aliasId}/renders/svg`)
   assert.equal(captured.init.headers['If-Match'], '"2"')
   assert.equal(captured.init.headers['X-Render-Id'], writeCapability)
+  assert.equal(captured.init.headers['X-Renderer-Unit'], 'vegalite')
+  assert.equal(captured.init.headers['X-Renderer-Build'], 'vegalite-6.4.3-vega-6.3.1-unit-1')
+  assert.equal(captured.init.headers['X-Renderer-Pipeline'], 'vegalite,vega')
   assert.equal(captured.init.headers['Content-Type'], 'image/svg+xml')
   assert.equal(captured.init.body, svg)
 })
@@ -193,6 +202,7 @@ test('uploads and retrieves an opaque locked render', async () => {
     format: 'png',
     mode: 'locked',
     render: encryptedBlob,
+    renderer,
   })
   assert.equal(requests[0].init.headers['Content-Type'], 'application/json')
   assert.deepEqual(JSON.parse(requests[0].init.body), encryptedBlob)

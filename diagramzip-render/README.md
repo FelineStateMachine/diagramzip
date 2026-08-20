@@ -1,13 +1,14 @@
 # diagramzip-render
 
-Cloudflare Worker rendering gateway for diagram.zip. The editor sends one
-bounded JSON request to `/render/v1/svg`; the gateway selects an edge adapter or
-the existing Fly compatibility origin, sanitizes and decorates the SVG, and
-returns a uniform response.
+Cloudflare Worker rendering plane for diagram.zip. Every catalog engine owns
+`https://{engine}.render.diagram.zip`. The editor talks to that unit and never
+sends an engine selector to it. The older `/render/v1/svg` gateway remains only
+as a migration fallback.
 
 The catalog deliberately contains all 30 diagram types. An engine does not
-disappear while its replacement is incomplete: it remains routed to the origin
-and its known migration loss is exposed by `/render/v1/catalog`.
+disappear while its replacement is incomplete: its small compatibility unit
+proxies only the corresponding Fly endpoint. Known migration loss is exposed
+by the unit's `/v1/capabilities` response and the gateway catalog.
 
 ```sh
 npm install
@@ -15,6 +16,7 @@ npm run cf-typegen
 npm run check
 npm test
 npm run deploy:dry
+npm run deploy:compatibility-units
 npm run dev -- --port 8788
 npm run smoke
 ```
@@ -22,17 +24,37 @@ npm run smoke
 The smoke command sends one existing repository fixture for every engine and
 checks only structural SVG coverage. It does not perform pixel comparisons.
 
+## Unit contract
+
+Server-rendered units expose `GET /v1/health`, `GET /v1/capabilities`, and
+`POST /v1/svg`. The POST body contains source, options, metadata, and
+presentation, but never an engine field. Responses identify the exact unit,
+build, and pipeline with `X-Diagram-Unit`, `X-Renderer-Build`, and
+`X-Diagram-Pipeline`.
+
+Browser-rendered units expose the same health and capability routes plus one
+sandboxed frame. The frame accepts only its own engine over the versioned
+postMessage protocol. Mermaid, BPMN, and Excalidraw have separate packages,
+bundles, CSPs, deployments, and subdomains.
+
+A unit may translate into another renderer. Translation is private to that
+unit and is declared as an ordered pipeline. Vega-Lite therefore owns
+Vega-Lite input and reports `vegalite,vega`; callers still address only the
+Vega-Lite unit.
+
 ## Current runtime split
 
 | Runtime | Engines |
 | --- | --- |
-| Worker JavaScript | Bytefield, Nomnoml, Vega, Vega-Lite, WaveDrom |
-| Compatibility origin | The remaining 25 engines |
+| Worker JavaScript | Bytefield, Nomnoml, Vega, Vega-Lite → Vega, WaveDrom |
+| Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
+| One-engine compatibility unit | The remaining 22 engines |
 
-DBML remains on the origin because its published package mixes module formats.
-GraphViz remains on the origin because the published Viz.js wrapper performs
-runtime WebAssembly instantiation; the Worker target needs a direct precompiled
-module adapter.
+Compatibility units are the replacement seam, not the final runtime. DBML
+currently proxies because its published package mixes module formats. GraphViz
+currently proxies because the published Viz.js wrapper performs runtime
+WebAssembly instantiation; its unit still needs a direct precompiled module
+adapter.
 
 All returned SVG passes through the same sanitizer. Scripts, event handlers,
 external resources, and active embedded HTML are removed. Mermaid's

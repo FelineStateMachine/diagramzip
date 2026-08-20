@@ -1,0 +1,1 @@
+{"$schema":"../node_modules/wrangler/config-schema.json","name":"diagramzip-render-seqdiag","main":"../src/units/compatibility.ts","compatibility_date":"2026-08-20","define":{"__ENGINE_ID__":"\"seqdiag\""},"observability":{"enabled":true},"vars":{"RENDERER_BUILD":"seqdiag-compat-unit-1"},"routes":[{"pattern":"seqdiag.render.diagram.zip","custom_domain":true}]}

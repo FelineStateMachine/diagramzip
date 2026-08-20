@@ -69,14 +69,18 @@ Cloudflare R2 owns immutable bytes:
 ```text
 contents/open/{content_id}.json
 contents/locked/{content_id}.enc
-renders/open/{renderer_build}/{render_id}.svg
-renders/open/{renderer_build}/{render_id}.png
-renders/locked/{renderer_build}/{render_id}.svg.enc
-renders/locked/{renderer_build}/{render_id}.png.enc
+renders/open/{renderer_unit}/{renderer_build}/{render_id}.svg
+renders/open/{renderer_unit}/{renderer_build}/{render_id}.png
+renders/locked/{renderer_unit}/{renderer_build}/{render_id}.svg.enc
+renders/locked/{renderer_unit}/{renderer_build}/{render_id}.png.enc
+render-heads/open/{render_id}.{svg|png}.json
+render-heads/locked/{render_id}.{svg|png}.json
 ```
 
-R2 object existence is the render-cache source of truth; there is no D1 row per
-render. Draft previews remain transient and use the current renderer. Only an
+Each small render-head manifest records the owning unit, exact build, explicit
+translation pipeline, and immutable object key. R2 object existence is the
+render-cache source of truth; there is no D1 row per render. Draft previews
+remain transient and use the current renderer. Only an
 explicit alias create or save writes immutable content.
 
 The schema is executable in
@@ -153,6 +157,9 @@ PUT /api/v1/aliases/{alias_id}/renders/{svg|png}
 Authorization: Bearer {write_capability}
 If-Match: "{revision}"
 X-Render-Id: {render_id}
+X-Renderer-Unit: vegalite
+X-Renderer-Build: vegalite-6.4.3-vega-6.3.1-unit-1
+X-Renderer-Pipeline: vegalite,vega
 ```
 
 The revision and render ID prevent a slow render from being attached after the
@@ -208,6 +215,7 @@ transiently to produce an image, but durable storage receives only ciphertext.
 - Rate limiting belongs on the same-origin Worker route before broad launch.
 - Logs must not include `Authorization`, request bodies, passwords, key
   envelopes, or fragments.
-- Render keys include a renderer-build identifier so upgrades never serve stale
+- Render keys include the owning unit and renderer-build identifier, while the
+  render-head records translated pipelines, so upgrades never serve stale
   output under a current key.
 - Direct R2 public access remains disabled; reads go through controlled routes.

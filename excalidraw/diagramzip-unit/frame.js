@@ -1,6 +1,7 @@
 const CHANNEL = 'diagram.zip:renderer:v1'
 const ENGINE = 'excalidraw'
 const VERSION = '@excalidraw/excalidraw@0.18.1'
+const BUILD = 'excalidraw-0.18.1-client-unit-1'
 const MAX_SOURCE_LENGTH = 524_288
 
 // The frame has an opaque origin because diagram.zip omits allow-same-origin.
@@ -42,6 +43,8 @@ window.addEventListener('message', event => {
         ok: true,
         svg: svg.outerHTML,
         version: VERSION,
+        build: BUILD,
+        pipeline: [ENGINE],
       }, '*')
     } catch (error) {
       parent.postMessage({
@@ -55,4 +58,4 @@ window.addEventListener('message', event => {
   })
 })
 
-parent.postMessage({ channel: CHANNEL, type: 'ready', engine: ENGINE, version: VERSION }, '*')
+parent.postMessage({ channel: CHANNEL, type: 'ready', engine: ENGINE, version: VERSION, build: BUILD }, '*')

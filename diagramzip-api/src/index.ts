@@ -23,6 +23,18 @@ const encoder = new TextEncoder()
 const aliasPathPattern = /^\/api\/v1\/aliases\/([A-Za-z0-9_-]{16})\/?$/
 const renderPathPattern = /^\/api\/v1\/aliases\/([A-Za-z0-9_-]{16})\/renders\/(svg|png)\/?$/
 const MAX_RENDER_BYTES = 12 * 1024 * 1024
+const rendererUnitPattern = /^[a-z][a-z0-9-]{0,31}$/
+const rendererBuildPattern = /^[A-Za-z0-9][A-Za-z0-9._@+-]{0,127}$/
+
+interface RendererIdentity {
+  unit: string
+  build: string
+  pipeline: string[]
+}
+
+interface RenderHead extends RendererIdentity {
+  objectKey: string
+}
 
 function responseHeaders(extra?: HeadersInit): Headers {
   const headers = new Headers(extra)
@@ -324,9 +336,56 @@ async function updateAlias(request: Request, env: Env, aliasId: string): Promise
   ), { headers: { ETag: `"${revision}"` } })
 }
 
-function renderObjectKey(env: Env, record: AliasRecord, format: 'svg' | 'png'): string {
+function rendererIdentity(request: Request): RendererIdentity {
+  const unit = request.headers.get('X-Renderer-Unit')?.trim() ?? ''
+  const build = request.headers.get('X-Renderer-Build')?.trim() ?? ''
+  const pipeline = (request.headers.get('X-Renderer-Pipeline') ?? '')
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean)
+  if (!rendererUnitPattern.test(unit)
+    || !rendererBuildPattern.test(build)
+    || pipeline.length < 1
+    || pipeline.length > 8
+    || pipeline[0] !== unit
+    || pipeline.some(value => !rendererUnitPattern.test(value))) {
+    throw new RequestError(400, 'invalid_renderer_identity', 'Renderer unit, build, and pipeline headers are required.')
+  }
+  return { unit, build, pipeline }
+}
+
+function renderObjectKey(record: AliasRecord, format: 'svg' | 'png', renderer: RendererIdentity): string {
   const extension = record.mode === 'locked' ? `${format}.enc` : format
-  return `renders/${record.mode}/${env.RENDERER_BUILD}/${record.render_id}.${extension}`
+  return `renders/${record.mode}/${renderer.unit}/${renderer.build}/${record.render_id}.${extension}`
+}
+
+function renderHeadKey(record: AliasRecord, format: 'svg' | 'png'): string {
+  return `render-heads/${record.mode}/${record.render_id}.${format}.json`
+}
+
+function normalizeRenderHead(value: unknown, record: AliasRecord, format: 'svg' | 'png'): RenderHead {
+  if (!value || typeof value !== 'object') throw new Error(`Invalid render head for ${record.render_id}.`)
+  const candidate = value as Record<string, unknown>
+  const identity = {
+    unit: candidate.unit,
+    build: candidate.build,
+    pipeline: candidate.pipeline,
+  }
+  if (typeof identity.unit !== 'string'
+    || typeof identity.build !== 'string'
+    || !Array.isArray(identity.pipeline)
+    || identity.pipeline.some(value => typeof value !== 'string')
+    || !rendererUnitPattern.test(identity.unit)
+    || !rendererBuildPattern.test(identity.build)
+    || identity.pipeline.length < 1
+    || identity.pipeline.length > 8
+    || identity.pipeline[0] !== identity.unit
+    || identity.pipeline.some(value => typeof value !== 'string' || !rendererUnitPattern.test(value))) {
+    throw new Error(`Invalid render head for ${record.render_id}.`)
+  }
+  const expectedKey = renderObjectKey(record, format, identity as RendererIdentity)
+  if (candidate.objectKey !== expectedKey) throw new Error(`Invalid render head for ${record.render_id}.`)
+  return { ...(identity as RendererIdentity), objectKey: expectedKey }
 }
 
 async function readRenderBody(request: Request): Promise<Uint8Array> {
@@ -390,6 +449,7 @@ async function putRender(
   format: 'svg' | 'png',
 ): Promise<Response> {
   const record = await authorizeRenderWrite(request, env, aliasId)
+  const renderer = rendererIdentity(request)
   const mediaType = format === 'svg' ? 'image/svg+xml' : 'image/png'
   const bytes = await readRenderBody(request)
   if (bytes.byteLength === 0) throw new RequestError(400, 'invalid_render', 'Rendered image is empty.')
@@ -412,7 +472,8 @@ async function putRender(
     throw new RequestError(415, 'unsupported_media_type', `Render must use ${mediaType}.`)
   }
 
-  await env.CONTENT.put(renderObjectKey(env, record, format), storedBytes, {
+  const objectKey = renderObjectKey(record, format, renderer)
+  await env.CONTENT.put(objectKey, storedBytes, {
     onlyIf: { etagDoesNotMatch: '*' },
     httpMetadata: { contentType },
     customMetadata: {
@@ -420,8 +481,15 @@ async function putRender(
       renderId: record.render_id,
       mode: record.mode,
       format,
-      rendererBuild: env.RENDERER_BUILD,
+      rendererUnit: renderer.unit,
+      rendererBuild: renderer.build,
+      rendererPipeline: renderer.pipeline.join(','),
     },
+  })
+  const head: RenderHead = { ...renderer, objectKey }
+  await env.CONTENT.put(renderHeadKey(record, format), canonicalJson(head), {
+    httpMetadata: { contentType: 'application/json; charset=utf-8' },
+    customMetadata: { renderId: record.render_id, mode: record.mode, format },
   })
   return new Response(null, { status: 204, headers: responseHeaders() })
 }
@@ -441,7 +509,10 @@ async function getRender(
   if (record.mode === 'open' && encryptedRequest) {
     throw new RequestError(400, 'render_not_encrypted', 'This diagram render is not encrypted.')
   }
-  const object = await env.CONTENT.get(renderObjectKey(env, record, format))
+  const headObject = await env.CONTENT.get(renderHeadKey(record, format))
+  if (headObject === null) throw new RequestError(404, 'render_not_found', 'Saved render not found.')
+  const head = normalizeRenderHead(await headObject.json<unknown>(), record, format)
+  const object = await env.CONTENT.get(head.objectKey)
   if (object === null) throw new RequestError(404, 'render_not_found', 'Saved render not found.')
   if (request.headers.get('If-None-Match') === object.httpEtag) {
     return new Response(null, { status: 304, headers: { ETag: object.httpEtag } })
@@ -451,6 +522,9 @@ async function getRender(
   headers.set('ETag', object.httpEtag)
   headers.set('X-Content-Type-Options', 'nosniff')
   headers.set('Content-Security-Policy', "default-src 'none'; sandbox")
+  headers.set('X-Renderer-Unit', head.unit)
+  headers.set('X-Renderer-Build', head.build)
+  headers.set('X-Renderer-Pipeline', head.pipeline.join(','))
   headers.set('Cache-Control', record.mode === 'open'
     ? 'public, max-age=60, stale-while-revalidate=300'
     : 'no-store')

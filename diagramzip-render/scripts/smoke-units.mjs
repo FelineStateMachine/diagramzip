@@ -3,11 +3,33 @@ import { resolve } from 'node:path'
 
 const fixtureDirectory = resolve(import.meta.dirname, '../../ci/tests/diagrams')
 const fixtures = {
+  plantuml: 'architecture.puml',
+  graphviz: 'hello.dot',
+  d2: 'connections.d2',
+  c4plantuml: 'banking-system.puml',
+  blockdiag: 'kroki.diag',
+  seqdiag: 'sequence.diag',
+  actdiag: 'actions.diag',
+  nwdiag: 'network.diag',
+  packetdiag: 'packet.diag',
+  rackdiag: 'rack.diag',
   bytefield: 'bytefield.bf',
+  dbml: 'dbml.dbml',
+  diagramsnet: 'diagramsnet-venn.xml',
+  ditaa: 'components.ditaa',
+  erd: 'schema.erd',
+  goat: 'components.goat',
   nomnoml: 'pirate.nomnoml',
+  pikchr: 'diamond.pikchr',
+  structurizr: 'gettingstarted.structurizr',
+  svgbob: 'cloud.bob',
+  symbolator: 'component.sv',
+  tikz: 'periodic-table.tex',
+  umlet: 'umlet.xml',
   vega: 'bar-chart.vega',
   vegalite: 'discretizing-scale.vlite',
   wavedrom: 'wavedrom.json5',
+  wireviz: 'wireviz.yaml',
 }
 
 async function smoke([engine, filename]) {
@@ -35,6 +57,10 @@ async function smoke([engine, filename]) {
   return `${engine.padEnd(10)} ${response.headers.get('X-Diagram-Cache')?.padEnd(4)} ${body.length} bytes`
 }
 
-const results = await Promise.all(Object.entries(fixtures).map(smoke))
+const entries = Object.entries(fixtures)
+const results = []
+for (let index = 0; index < entries.length; index += 4) {
+  results.push(...await Promise.all(entries.slice(index, index + 4).map(smoke)))
+}
 for (const result of results) console.log(result)
 console.log(`${results.length}/${results.length} independent renderer units returned SVG`)

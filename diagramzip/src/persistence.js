@@ -204,13 +204,19 @@ export class PersistenceClient {
   }
 
 
-  async uploadRender({ aliasId, renderId, revision, writeCapability, format, mode, render }) {
+  async uploadRender({ aliasId, renderId, revision, writeCapability, format, mode, render, renderer }) {
     if (!ALIAS_ID_PATTERN.test(aliasId)) throw new Error('Invalid diagram alias.')
     if (!WRITE_CAPABILITY_PATTERN.test(renderId)) throw new Error('Invalid render ID.')
     if (!Number.isSafeInteger(revision) || revision < 1) throw new Error('Invalid alias revision.')
     if (!WRITE_CAPABILITY_PATTERN.test(writeCapability)) throw new Error('Invalid write capability.')
     if (format !== 'svg' && format !== 'png') throw new Error('Invalid render format.')
     if (mode !== 'open' && mode !== 'locked') throw new Error('Invalid diagram mode.')
+    if (!renderer || !/^[a-z][a-z0-9-]{0,31}$/.test(renderer.unit)
+      || typeof renderer.build !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._@+-]{0,127}$/.test(renderer.build)
+      || !Array.isArray(renderer.pipeline) || renderer.pipeline.length < 1
+      || renderer.pipeline.some(value => !/^[a-z][a-z0-9-]{0,31}$/.test(value))) {
+      throw new Error('Invalid renderer identity.')
+    }
     const contentType = mode === 'locked'
       ? 'application/json'
       : format === 'svg' ? 'image/svg+xml' : 'image/png'
@@ -222,6 +228,9 @@ export class PersistenceClient {
         'Content-Type': contentType,
         'If-Match': `"${revision}"`,
         'X-Render-Id': renderId,
+        'X-Renderer-Unit': renderer.unit,
+        'X-Renderer-Build': renderer.build,
+        'X-Renderer-Pipeline': renderer.pipeline.join(','),
       },
       body,
     })

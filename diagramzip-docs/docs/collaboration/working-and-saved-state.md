@@ -22,6 +22,11 @@ For an open diagram, diagram.zip stores the working state as a local browser
 draft. This draft supports recovery on the same browser. It is not a saved
 diagram and other people cannot read it.
 
+When a saved link opens with a different local draft, the editor marks that
+draft as a device-only overlay. Choose **Restore saved** to discard the overlay
+and return to the alias revision, or **Make a copy** to preserve it under a new
+alias. Neither action silently changes the original share link.
+
 For a locked diagram, the editor does not store the working state as plaintext
 in browser storage. Save a locked diagram explicitly to persist it.
 

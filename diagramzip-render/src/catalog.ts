@@ -43,7 +43,10 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
 }
 
 const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
+  mermaid: 'client',
+  bpmn: 'client',
   bytefield: 'edge-js',
+  excalidraw: 'client',
   nomnoml: 'edge-js',
   vega: 'edge-js',
   vegalite: 'edge-js',
@@ -51,7 +54,10 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
 }
 
 const versions: Partial<Record<EngineId, string>> = {
+  mermaid: 'mermaid@11.17.0',
+  bpmn: 'bpmn-js@18.25.1',
   bytefield: 'bytefield-svg@1.11.0',
+  excalidraw: '@excalidraw/excalidraw@0.18.1',
   nomnoml: 'nomnoml@1.7.0',
   vega: 'vega@6.3.1',
   vegalite: 'vega-lite@6.4.3',
@@ -60,12 +66,17 @@ const versions: Partial<Record<EngineId, string>> = {
 
 const losses: Partial<Record<EngineId, readonly string[]>> = {
   mermaid: ['External links and resource-loading elements are removed; XHTML labels retain only safe text formatting.'],
+  bpmn: ['External links and resource-loading elements are removed from exported SVG.'],
   graphviz: [
     'The published Viz.js wrapper performs runtime WebAssembly instantiation, which Workers prohibit; GraphViz remains on the origin until a precompiled module adapter is built.',
     'External links and resources are rejected during SVG sanitization.',
   ],
   bytefield: ['Only SVG is in the v2 rendering contract.'],
   dbml: ['The upstream package mixes ESM files into a CommonJS package and remains on the origin until it can be safely repackaged.'],
+  excalidraw: [
+    'External resources are blocked; image data must be embedded in the scene.',
+    'Font subsetting is disabled by the sandbox policy, so exports embed the complete self-hosted font.',
+  ],
   nomnoml: ['Only SVG is in the v2 rendering contract.'],
   symbolator: ['External links are removed during SVG sanitization.'],
   vega: ['URL-backed data and images are rejected; data must be embedded as values.', 'Only SVG is in the v2 rendering contract.'],

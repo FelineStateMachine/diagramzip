@@ -1,0 +1,1 @@
+{"$schema":"../node_modules/wrangler/config-schema.json","name":"diagramzip-render-goat","main":"../src/units/compatibility.ts","compatibility_date":"2026-08-20","define":{"__ENGINE_ID__":"\"goat\""},"observability":{"enabled":true},"vars":{"RENDERER_BUILD":"goat-compat-unit-1"},"routes":[{"pattern":"goat.render.diagram.zip","custom_domain":true}]}

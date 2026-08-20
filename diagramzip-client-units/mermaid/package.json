@@ -1,0 +1,17 @@
+{
+  "name": "@diagramzip/renderer-mermaid",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "deploy": "../../diagramzip-render/node_modules/.bin/wrangler deploy --config wrangler.jsonc"
+  },
+  "dependencies": {
+    "mermaid": "11.17.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  }
+}

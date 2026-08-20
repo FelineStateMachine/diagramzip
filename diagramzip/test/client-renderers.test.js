@@ -11,7 +11,16 @@ function fakeBrowser() {
     postMessage(message) {
       queueMicrotask(() => listener({
         source: contentWindow,
-        data: { channel: CHANNEL, type: 'result', requestId: message.requestId, ok: true, svg: '<svg/>', version: 'mermaid@test' },
+        data: {
+          channel: CHANNEL,
+          type: 'result',
+          requestId: message.requestId,
+          ok: true,
+          svg: '<svg/>',
+          version: 'mermaid@test',
+          build: 'mermaid-test-unit-1',
+          pipeline: ['mermaid'],
+        },
       }))
     },
   }
@@ -31,6 +40,8 @@ function fakeBrowser() {
 
 test('registers the first client-native renderer cohort', () => {
   assert.deepEqual(CLIENT_RENDERER_IDS, ['mermaid', 'bpmn', 'excalidraw'])
+  assert.equal(CLIENT_RENDERERS.mermaid.frameUrl, 'https://mermaid.render.diagram.zip/index.html?v=1')
+  assert.equal(CLIENT_RENDERERS.bpmn.frameUrl, 'https://bpmn.render.diagram.zip/index.html?v=1')
   assert.equal(CLIENT_RENDERERS.excalidraw.frameUrl, 'https://excalidraw.render.diagram.zip/index.html?v=3')
   assert.equal(clientAdapterFor('graphviz'), null)
 })
@@ -42,6 +53,8 @@ test('renders through a script-only unique-origin frame', async () => {
   assert.equal(result.body, '<svg/>')
   assert.equal(result.runtime, 'client')
   assert.equal(result.version, 'mermaid@test')
+  assert.equal(result.build, 'mermaid-test-unit-1')
+  assert.deepEqual(result.pipeline, ['mermaid'])
   assert.equal(browser.attributes.get('sandbox'), 'allow-scripts')
   assert.equal(browser.attributes.has('allow-same-origin'), false)
 })
