@@ -1,7 +1,11 @@
 import mermaid from 'mermaid'
+import BpmnViewer from 'bpmn-js/lib/Viewer'
 
 const CHANNEL = 'diagram.zip:renderer:v1'
-const VERSION = 'mermaid@11.17.0'
+const VERSIONS = {
+  mermaid: 'mermaid@11.17.0',
+  bpmn: 'bpmn-js@18.25.1',
+}
 
 mermaid.initialize({
   startOnLoad: false,
@@ -14,11 +18,33 @@ mermaid.initialize({
 
 let queue = Promise.resolve()
 
-async function render(message) {
-  if (message.engine !== 'mermaid') throw new Error(`No client renderer for ${message.engine}.`)
+async function renderMermaid(message) {
   const id = `diagramzip-${message.requestId.replace(/[^a-zA-Z0-9_-]/g, '')}`
   const { svg } = await mermaid.render(id, message.source)
-  return { svg, version: VERSION }
+  return svg
+}
+
+async function renderBpmn(message) {
+  const container = document.createElement('div')
+  Object.assign(container.style, { width: '1280px', height: '800px' })
+  document.body.append(container)
+  const viewer = new BpmnViewer({ container })
+  try {
+    await viewer.importXML(message.source)
+    const { svg } = await viewer.saveSVG()
+    return svg
+  } finally {
+    viewer.destroy()
+    container.remove()
+  }
+}
+
+async function render(message) {
+  let svg
+  if (message.engine === 'mermaid') svg = await renderMermaid(message)
+  else if (message.engine === 'bpmn') svg = await renderBpmn(message)
+  else throw new Error(`No client renderer for ${message.engine}.`)
+  return { svg, version: VERSIONS[message.engine] }
 }
 
 window.addEventListener('message', event => {

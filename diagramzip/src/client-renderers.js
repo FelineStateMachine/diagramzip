@@ -1,8 +1,8 @@
 const CHANNEL = 'diagram.zip:renderer:v1'
-const FRAME_URL = '/diagram.zip/renderer-frame.html'
+const FRAME_URL = '/diagram.zip/renderer-frame.html?v=2'
 const RENDER_TIMEOUT = 20_000
 
-export const CLIENT_RENDERER_IDS = Object.freeze(['mermaid'])
+export const CLIENT_RENDERER_IDS = Object.freeze(['mermaid', 'bpmn'])
 
 function abortError(reason) {
   if (reason?.name === 'AbortError') return reason

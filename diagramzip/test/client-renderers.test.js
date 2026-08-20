@@ -29,8 +29,8 @@ function fakeBrowser() {
   return { attributes, documentObject, frame, windowObject }
 }
 
-test('registers Mermaid as the first client-native renderer', () => {
-  assert.deepEqual(CLIENT_RENDERER_IDS, ['mermaid'])
+test('registers the first client-native renderer cohort', () => {
+  assert.deepEqual(CLIENT_RENDERER_IDS, ['mermaid', 'bpmn'])
   assert.equal(clientAdapterFor('graphviz'), null)
 })
 

@@ -9,7 +9,7 @@ export default defineConfig({
       entry: resolve(import.meta.dirname, 'src/renderer-frame.js'),
       name: 'DiagramZipRendererFrame',
       formats: ['iife'],
-      fileName: () => 'renderer-frame.js',
+      fileName: () => 'renderer-frame-v2.js',
     },
     rollupOptions: {
       output: { inlineDynamicImports: true },

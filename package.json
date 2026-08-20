@@ -25,6 +25,7 @@
     "@codemirror/language": "^6.12.4",
     "@lezer/highlight": "^1.2.3",
     "blocked-at": "^1.2.0",
+    "bpmn-js": "18.25.1",
     "codemirror": "^6.0.2",
     "mermaid": "11.17.0",
     "pako": "^3.0.1",
