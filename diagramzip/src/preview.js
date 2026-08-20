@@ -1,3 +1,6 @@
+import { clientAdapterFor } from './client-renderers.js'
+import { sanitizeAndDecorateSvg } from './client-svg.js'
+
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), maximum)
 }
@@ -78,18 +81,23 @@ export class PreviewController {
     this.stage.style.setProperty('--render-background', 'var(--preview-bg)')
 
     try {
-      const response = await fetch('/render/v1/svg', {
-        method: 'POST',
-        headers: { Accept: 'image/svg+xml', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ engine: type, source, format: 'svg', options, metadata: meta, presentation }),
-        signal: abortController.signal,
-      })
-      if (requestNumber !== this.requestNumber) return
-      if (!response.ok) {
-        throw new Error(await this.errorMessage(response))
+      const clientAdapter = clientAdapterFor(type)
+      let sourceSvg
+      if (clientAdapter) {
+        try {
+          const rendered = await clientAdapter.render({ type, source, options }, abortController.signal)
+          sourceSvg = sanitizeAndDecorateSvg(rendered.body, meta, presentation, type)
+          this.status.dataset.cache = 'browser'
+          this.status.dataset.renderer = rendered.runtime
+        } catch (error) {
+          if (error.name === 'AbortError') throw error
+          sourceSvg = await this.renderThroughGateway({ type, source, options, meta, presentation }, abortController.signal)
+        }
+      } else {
+        sourceSvg = await this.renderThroughGateway({ type, source, options, meta, presentation }, abortController.signal)
       }
-      this.status.dataset.cache = response.headers.get('X-Diagram-Cache')?.toLowerCase() ?? 'browser'
-      const { blob, background } = this.normalizedSvgBlob(await response.text())
+      if (requestNumber !== this.requestNumber) return
+      const { blob, background } = this.normalizedSvgBlob(sourceSvg)
       this.latestRenderKey = renderKey
       this.latestSvgBlob = blob
       this.imageFallbackUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(await blob.text())}`
@@ -109,6 +117,19 @@ export class PreviewController {
     } finally {
       if (this.abortController === abortController) this.abortController = null
     }
+  }
+
+  async renderThroughGateway({ type, source, options, meta, presentation }, signal) {
+    const response = await fetch('/render/v1/svg', {
+      method: 'POST',
+      headers: { Accept: 'image/svg+xml', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ engine: type, source, format: 'svg', options, metadata: meta, presentation }),
+      signal,
+    })
+    if (!response.ok) throw new Error(await this.errorMessage(response))
+    this.status.dataset.cache = response.headers.get('X-Diagram-Cache')?.toLowerCase() ?? 'miss'
+    this.status.dataset.renderer = response.headers.get('X-Diagram-Renderer')?.toLowerCase() ?? 'gateway'
+    return response.text()
   }
 
   retryBlockedImage() {
