@@ -66,7 +66,7 @@ async function render(request: RenderRequest, env: Env, signal: AbortSignal): Pr
     rendered = await adapter.render(request, signal)
   }
   if (signal.aborted) throw signal.reason
-  const body = sanitizeAndDecorateSvg(rendered.body, request.metadata, request.presentation)
+  const body = sanitizeAndDecorateSvg(rendered.body, request.metadata, request.presentation, request.engine)
   return new Response(body, {
     headers: {
       'Access-Control-Allow-Origin': '*',

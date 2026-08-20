@@ -37,10 +37,20 @@ const fixtures = {
   wireviz: 'wireviz.yaml',
 }
 
+const expectedLabels = {
+  mermaid: 'How to contribute?',
+  d2: 'dogs',
+  ditaa: 'Kroki',
+  symbolator: 'Clocking',
+  tikz: 'Hydrogen',
+}
+
+const canvasEngines = new Set(['graphviz', 'd2', 'ditaa', 'svgbob', 'symbolator'])
+
 async function render([engine, filename]) {
   const source = await readFile(resolve(fixtureDirectory, filename), 'utf8')
-  const presentation = engine === 'svgbob'
-    ? { background: '#f3f3f3', padding: 256, frame: true }
+  const presentation = canvasEngines.has(engine)
+    ? { background: '#f3f3f3', padding: engine === 'svgbob' ? 256 : 24, frame: true }
     : { background: '', padding: 0, frame: false }
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -58,6 +68,26 @@ async function render([engine, filename]) {
   if (!response.ok) throw new Error(`${engine}: HTTP ${response.status}: ${body.slice(0, 240)}`)
   if (!/<svg[\s>]/i.test(body)) throw new Error(`${engine}: response is not SVG`)
   if (!/\bviewBox\s*=|\bwidth\s*=.*\bheight\s*=/is.test(body)) throw new Error(`${engine}: SVG has no usable dimensions`)
+  if (expectedLabels[engine] && !body.includes(expectedLabels[engine])) {
+    throw new Error(`${engine}: expected label was removed from the SVG`)
+  }
+  if (engine === 'tikz' && !body.includes('data:application/x-font-woff;base64')) {
+    throw new Error('tikz: embedded font stylesheet was removed from the SVG')
+  }
+  if (engine === 'd2' && (!body.includes('@keyframes dashdraw') || !body.includes('animation: dashdraw'))) {
+    throw new Error('d2: animated connection stylesheet was removed from the SVG')
+  }
+  if (engine === 'symbolator' && !body.includes('.fnt1')) {
+    throw new Error('symbolator: embedded stylesheet was removed from the SVG')
+  }
+  if (canvasEngines.has(engine)) {
+    if (!body.includes('background-color:#f3f3f3') || !body.includes('fill="#f3f3f3"')) {
+      throw new Error(`${engine}: selected canvas background was not applied`)
+    }
+    if (/class="backdrop"|<rect[^>]*width="100%"[^>]*height="100%"[^>]*fill="white"|<polygon fill="white" stroke="none"/i.test(body)) {
+      throw new Error(`${engine}: renderer backdrop still masks the selected canvas`)
+    }
+  }
   if (engine === 'svgbob') {
     const root = body.match(/<svg\b[^>]*>/i)?.[0] ?? ''
     if (!/viewBox="-256 -256 /.test(root) || !/width="\d+(?:\.\d+)?"/.test(root) || !/height="\d+(?:\.\d+)?"/.test(root)) {

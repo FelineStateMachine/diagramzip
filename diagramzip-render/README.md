@@ -35,6 +35,7 @@ runtime WebAssembly instantiation; the Worker target needs a direct precompiled
 module adapter.
 
 All returned SVG passes through the same sanitizer. Scripts, event handlers,
-external resources, and embedded HTML (`foreignObject`) are removed. This is an
-intentional security constraint and may reduce label fidelity for an engine that
-emits HTML-backed SVG; any observed engine-specific loss belongs in the catalog.
+external resources, and active embedded HTML are removed. Mermaid's
+`foreignObject` labels retain only a narrow formatting allowlist, with links and
+resource-loading elements stripped. Any observed engine-specific loss belongs
+in the catalog.

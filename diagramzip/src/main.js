@@ -5,6 +5,7 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
 import { diagramTypes, isKnownDiagramType, languageFor } from './diagram-types.js'
 import { exampleStateFor } from './examples.js'
+import { stateForTypeChange } from './type-drafts.js'
 import {
   DEFAULT_DIAGRAM_TYPE,
   normalizeMetadata,
@@ -274,9 +275,8 @@ const preview = new PreviewController({
 })
 
 typePicker.addEventListener('change', () => {
-  typeDrafts.set(activeType, currentState())
   const type = typePicker.value
-  applyState(typeDrafts.get(type) ?? exampleStateFor(type))
+  applyState(stateForTypeChange(typeDrafts, activeType, type, currentState(), exampleStateFor))
 })
 
 document.querySelector('#details').addEventListener('click', () => {

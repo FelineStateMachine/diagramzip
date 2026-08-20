@@ -535,6 +535,8 @@ The first coverage plane is implemented in `diagramzip-render`. Its catalog cont
 
 The first feasibility findings are already reflected in routing and the loss ledger: DBML's package cannot currently be imported cleanly in the Worker runtime, and Viz.js attempts runtime WebAssembly compilation. Both remain fully covered through the origin rather than blocking the migration. The current dry-run bundle is approximately 4.4 MB uncompressed and 0.85 MB compressed.
 
+The SVG compatibility boundary preserves CDATA-backed text and embedded font styles used by Ditaa, Symbolator, diagrams.net, and TikZ. Mermaid retains a narrow allowlist of XHTML label formatting inside `foreignObject`, while scripts, event handlers, external links, and resource-loading elements remain blocked. When a user selects a canvas color, known full-size white renderer backdrops are removed before the chosen background is applied; internal white diagram shapes are left intact.
+
 ## Primary implementation references
 
 - [Cloudflare Workers TypeScript](https://developers.cloudflare.com/workers/languages/typescript/)

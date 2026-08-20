@@ -11,7 +11,7 @@
   },
   "vars": {
     "ORIGIN_URL": "https://diagram-zip.fly.dev",
-    "RENDERER_BUILD": "diagramzip-render-0.2.0"
+    "RENDERER_BUILD": "diagramzip-render-0.2.1"
   },
   "routes": [
     {

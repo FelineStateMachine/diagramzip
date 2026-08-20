@@ -59,6 +59,7 @@ const versions: Partial<Record<EngineId, string>> = {
 }
 
 const losses: Partial<Record<EngineId, readonly string[]>> = {
+  mermaid: ['External links and resource-loading elements are removed; XHTML labels retain only safe text formatting.'],
   graphviz: [
     'The published Viz.js wrapper performs runtime WebAssembly instantiation, which Workers prohibit; GraphViz remains on the origin until a precompiled module adapter is built.',
     'External links and resources are rejected during SVG sanitization.',
@@ -66,6 +67,7 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
   bytefield: ['Only SVG is in the v2 rendering contract.'],
   dbml: ['The upstream package mixes ESM files into a CommonJS package and remains on the origin until it can be safely repackaged.'],
   nomnoml: ['Only SVG is in the v2 rendering contract.'],
+  symbolator: ['External links are removed during SVG sanitization.'],
   vega: ['URL-backed data and images are rejected; data must be embedded as values.', 'Only SVG is in the v2 rendering contract.'],
   vegalite: ['URL-backed data and images are rejected; data must be embedded as values.', 'Only SVG is in the v2 rendering contract.'],
   wavedrom: ['Only the six bundled Kroki skins are accepted.', 'Only SVG is in the v2 rendering contract.'],
