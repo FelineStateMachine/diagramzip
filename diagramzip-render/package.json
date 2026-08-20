@@ -18,6 +18,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@viz-js/viz": "3.29.0",
     "bytefield-svg": "1.11.0",
     "json5": "2.2.3",
     "nomnoml": "1.7.0",

@@ -2,8 +2,8 @@ import { spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 
 const units = [
-  'plantuml-family', 'graphviz', 'd2',
-  'dbml', 'diagramsnet', 'ditaa', 'erd', 'goat', 'pikchr',
+  'plantuml-family', 'd2',
+  'dbml', 'diagramsnet', 'ditaa', 'goat', 'pikchr',
   'structurizr', 'svgbob', 'symbolator', 'tikz', 'umlet', 'wireviz',
 ]
 const wrangler = resolve(import.meta.dirname, '../node_modules/.bin/wrangler')

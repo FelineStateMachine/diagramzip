@@ -26,7 +26,7 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
   dbml: 'edge-js',
   diagramsnet: 'client',
   ditaa: 'origin',
-  erd: 'edge-js',
+  erd: 'edge-wasm',
   excalidraw: 'client',
   goat: 'edge-wasm',
   nomnoml: 'edge-js',
@@ -57,6 +57,8 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
   nwdiag: 'edge-python',
   packetdiag: 'edge-python',
   rackdiag: 'edge-python',
+  graphviz: 'edge-wasm',
+  erd: 'edge-wasm',
 }
 
 const versions: Partial<Record<EngineId, string>> = {
@@ -74,14 +76,18 @@ const versions: Partial<Record<EngineId, string>> = {
   nwdiag: 'nwdiag@3.0.0/python-worker-1',
   packetdiag: 'packetdiag@3.0.0/python-worker-1',
   rackdiag: 'rackdiag@3.0.0/python-worker-1',
+  graphviz: 'graphviz@15.1.1/edge-wasm-1',
+  erd: 'erd@0.2.1.0+graphviz@15.1.1/edge-wasm-1',
 }
 
 const losses: Partial<Record<EngineId, readonly string[]>> = {
   mermaid: ['External links and resource-loading elements are removed; XHTML labels retain only safe text formatting.'],
   bpmn: ['External links and resource-loading elements are removed from exported SVG.'],
   graphviz: [
-    'The published Viz.js wrapper performs runtime WebAssembly instantiation, which Workers prohibit; GraphViz remains on the origin until a precompiled module adapter is built.',
-    'External links and resources are rejected during SVG sanitization.',
+    'Only SVG is in the rendering contract.',
+    'Resource-loading attributes such as image, imagepath, shapefile, fontpath, and stylesheet are rejected because the edge unit has no filesystem or network asset loader.',
+    'The edge build uses GraphViz 15.1.1 versus the compatibility image GraphViz 14.1.3; output differences are possible.',
+    'The GraphViz scale option is not supported by the edge-Wasm adapter.',
   ],
   bytefield: ['Only SVG is in the v2 rendering contract.'],
   dbml: ['The upstream package mixes ESM files into a CommonJS package and remains on the origin until it can be safely repackaged.'],
@@ -100,6 +106,10 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
   nwdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
   packetdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
   rackdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
+  erd: [
+    'Only the source language and Kroki rendering mode are supported; ERD CLI and filesystem configuration modes are not exposed.',
+    'The translated graph uses GraphViz 15.1.1 versus the compatibility image GraphViz 14.1.3; output differences are possible.',
+  ],
 }
 
 export const ENGINE_CATALOG: readonly EngineCatalogEntry[] = ENGINE_IDS.map(id => ({

@@ -20,6 +20,15 @@ describe('engine catalog', () => {
     }
   })
 
+  it('marks GraphViz and ERD as one edge-Wasm family', () => {
+    const family = ENGINE_CATALOG.filter(engine => ['graphviz', 'erd'].includes(engine.id))
+    expect(family).toHaveLength(2)
+    for (const engine of family) {
+      expect(engine.activeRuntime).toBe('edge-wasm')
+      expect(engine.version).toContain('graphviz@15.1.1')
+    }
+  })
+
   it('does not retain a silent origin fallback for any engine', () => {
     for (const engine of ENGINE_CATALOG) {
       if (engine.activeRuntime === 'origin') expect(engine.version).toBe('compatibility-origin')

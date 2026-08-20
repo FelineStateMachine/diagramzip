@@ -54,15 +54,29 @@ test('keeps the compatibility gateway fallback for a residual engine', async () 
   })
 
   const response = await controller.renderThroughGateway(
-    { ...request, type: 'graphviz' },
+    { ...request, type: 'd2' },
     new AbortController().signal,
   )
 
   assert.equal(response.status, 200)
   assert.deepEqual(endpoints, [
-    'https://graphviz.render.diagram.zip/v1/svg',
+    'https://d2.render.diagram.zip/v1/svg',
     '/render/v1/svg',
   ])
+})
+
+test('does not send a GraphViz-family failure to the gateway', async () => {
+  const endpoints = []
+  const controller = controllerWith(async endpoint => {
+    endpoints.push(endpoint)
+    return new Response('unavailable', { status: 503 })
+  })
+
+  await assert.rejects(
+    controller.renderThroughGateway({ ...request, type: 'erd' }, new AbortController().signal),
+    /erd renderer unit is unavailable/,
+  )
+  assert.deepEqual(endpoints, ['https://erd.render.diagram.zip/v1/svg'])
 })
 
 test('does not send a failed client renderer to the gateway', async () => {

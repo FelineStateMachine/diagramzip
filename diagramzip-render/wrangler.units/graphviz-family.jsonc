@@ -1,0 +1,16 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-graphviz-family",
+  "main": "../src/units/graphviz-family.ts",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "rules": [
+    { "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": false }
+  ],
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
+  "vars": { "RENDERER_BUILD": "graphviz-15.1.1-family-edge-wasm-1" },
+  "routes": [
+    { "pattern": "erd.render.diagram.zip", "custom_domain": true },
+    { "pattern": "graphviz.render.diagram.zip", "custom_domain": true }
+  ]
+}

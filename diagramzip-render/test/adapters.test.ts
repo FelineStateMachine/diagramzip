@@ -3,6 +3,8 @@ import { edgeAdapter } from '../src/adapters/edge'
 import type { RenderRequest } from '../src/types'
 
 const fixtures = {
+  graphviz: 'digraph { a -> b }',
+  erd: '[Person]\n*name\n\n[Place]\n*id\n\nPerson *--1 Place',
   nomnoml: '[Alice]->[Bob]',
   bytefield: '[{:bits 8 :name "field"}]',
   vega: '{"width":100,"height":50,"marks":[{"type":"rect","encode":{"enter":{"x":{"value":0},"y":{"value":0},"width":{"value":100},"height":{"value":50}}}}]}',

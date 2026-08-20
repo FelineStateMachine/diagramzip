@@ -1,5 +1,7 @@
 import type { EngineId, RendererAdapter } from '../types'
 import { bytefieldAdapter } from './edge/bytefield'
+import { erdAdapter } from './edge/erd'
+import { graphvizAdapter } from './edge/graphviz'
 import { nomnomlAdapter } from './edge/nomnoml'
 import { vegaAdapter } from './edge/vega'
 import { vegaliteAdapter } from './edge/vegalite'
@@ -8,6 +10,8 @@ import type { EdgeEngineId } from './edge/types'
 
 const adapters: Record<EdgeEngineId, RendererAdapter> = {
   bytefield: bytefieldAdapter,
+  erd: erdAdapter,
+  graphviz: graphvizAdapter,
   nomnoml: nomnomlAdapter,
   vega: vegaAdapter,
   vegalite: vegaliteAdapter,

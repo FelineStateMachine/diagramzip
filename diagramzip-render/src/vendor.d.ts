@@ -21,3 +21,8 @@ declare module 'wavedrom/skins/lowkey.js' { const skins: { lowkey: unknown }; ex
 declare module 'wavedrom/skins/narrow.js' { const skins: { narrow: unknown }; export default skins }
 declare module 'wavedrom/skins/narrower.js' { const skins: { narrower: unknown }; export default skins }
 declare module 'wavedrom/skins/narrowerer.js' { const skins: { narrowerer: unknown }; export default skins }
+
+declare module '*.wasm' {
+  const module: WebAssembly.Module
+  export default module
+}

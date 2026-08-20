@@ -31,7 +31,7 @@ For each diagram family, choose the closest maintained rendering path in this or
 6. Use a narrowly scoped compatibility unit only until that engine's replacement
    is live, then remove its origin path instead of retaining a silent fallback.
 
-Workers should own routing, decoding, request validation, SVG sanitization, presentation, caching, and the edge-native engines. The browser should own interactive rendering wherever practical. Fly.io or Cloudflare Containers should temporarily retain engines whose real responsibility is a native toolchain, a JVM, Graphviz composition that cannot yet move to WebAssembly, or TeX. Python alone is no longer a reason to require an origin now that Cloudflare has Python Workers, but each dependency still needs a compatibility and performance spike.
+Workers should own routing, decoding, request validation, SVG sanitization, presentation, caching, and the edge-native engines. The browser should own interactive rendering wherever practical. Fly.io or Cloudflare Containers should temporarily retain engines whose real responsibility is a native toolchain, a JVM, an unproven WebAssembly port, or TeX. Python alone is no longer a reason to require an origin now that Cloudflare has Python Workers, but each dependency still needs a compatibility and performance spike.
 
 This gives v2 a coherent product during the extraction: all engines remain
 available through a runtime adapter, while each completed cutover permanently
@@ -90,7 +90,8 @@ Suggested deployable units:
   that accepts only residual origin engines.
 - dependency-grouped JavaScript units: Bytefield, Nomnoml, WaveDrom, Vega,
   and Vega-Lite, each reached only through its engine hostname.
-- `diagram-zip-render-wasm`: GraphViz, D2, Pikchr, and Svgbob after compatibility spikes.
+- `graphviz-family`: GraphViz and translators that lower to DOT, currently ERD and potentially WireViz after its own compatibility spike.
+- additional dependency-grouped WebAssembly units for D2, Pikchr, Svgbob, and GoAT only after their separate compatibility spikes.
 - `diagram-zip-render-python`: the upstream BlockDiag suite, isolated because Pyodide, Pillow, fonts, and the Python package graph have a different bundle and startup profile.
 - `diagram-zip-render-origin`: the remaining native/JVM/TeX renderers, initially consolidated in one Fly app or equivalent container group.
 
@@ -151,7 +152,7 @@ Kroki does not contain a separate ERD or BlockDiag renderer:
 
 - `Erd.java` invokes the upstream `erd` executable with `--fmt=<format>`.
 - `Blockdiag.java` invokes one bundled executable with `--module=blockdiag|seqdiag|actdiag|nwdiag|packetdiag|rackdiag`.
-- The server image takes ERD 0.2.3 from `ghcr.io/yuzutech/erd`.
+- The current Docker image's `erd` binary reports 0.2.1.0; the extraction tests use that containerized binary as the behavior reference.
 - The server image downloads `yuzutech/blockdiag` 3.4.2, a maintained packaging/compatibility fork of the Apache-licensed BlockDiag core. Its release workflow installs the upstream SeqDiag, ActDiag, and NwDiag packages and compiles all six commands into one Nuitka binary.
 
 The existing Java code is therefore a process adapter. V2 can remove the Java/subprocess/container boundary while retaining the upstream parsers, models, layout, and SVG behavior.
@@ -417,7 +418,7 @@ The origin is a compatibility bridge, not the target architecture for standardiz
 | WaveDrom | Edge JavaScript | Origin |
 | WireViz | Origin; rewrite candidate | Origin |
 
-The first coverage milestone puts all 30 catalog types behind one contract and keeps unsupported edge engines on the origin. Its first native cohort is Bytefield, Nomnoml, WaveDrom, Vega, and Vega-Lite. DBML remains on the origin because its published package mixes module formats; GraphViz remains there because the published Viz.js wrapper instantiates WebAssembly at runtime. D2, Pikchr, and Svgbob move only after direct precompiled-Wasm adapters are proven. Seven engines can later move interactive preview into the browser: Mermaid, PlantUML, C4-PlantUML, BPMN, Excalidraw, diagrams.net, and UMLet.
+The first coverage milestone puts all 30 catalog types behind one contract and keeps unsupported edge engines on the origin. Its first native cohort is Bytefield, Nomnoml, WaveDrom, Vega, and Vega-Lite. DBML remains on the origin because its published package mixes module formats. GraphViz now imports its WebAssembly as a precompiled Worker module, and ERD lowers into that same runtime. D2, Pikchr, and Svgbob move only after direct precompiled-Wasm adapters are proven. Seven engines can later move interactive preview into the browser: Mermaid, PlantUML, C4-PlantUML, BPMN, Excalidraw, diagrams.net, and UMLet.
 
 The upstream-reuse milestone then moves all six BlockDiag-family types into one Python Worker, moves ERD to an upstream-guided TypeScript/GraphViz implementation, and compiles Structurizr to PlantUML in TypeScript. At that point the target split is 17 edge-rendered types, eight client/pipeline-rendered types, and five types requiring a compatibility origin: Ditaa, GoAT, Symbolator, TikZ, and WireViz. A successful GoAT WebAssembly adapter reduces the origin set to four.
 
@@ -513,7 +514,7 @@ one dependency-family cutover.
 
 ### Phase 4: upstream-guided ERD port
 
-Port the upstream ERD grammar, model, defaults, validation, and DOT mapping to TypeScript. Import its tests and examples, compare generated DOT and SVG semantics with ERD 0.2.3, and render through the GraphViz WebAssembly adapter. Do not broaden the language during the compatibility phase.
+Port the upstream ERD grammar, model, defaults, validation, and DOT mapping to TypeScript. Import its tests and examples, compare generated DOT and SVG semantics with the containerized ERD 0.2.1.0 reference, and render through the GraphViz WebAssembly adapter. Do not broaden the language during the compatibility phase.
 
 ### Phase 5: client-native preview
 
@@ -544,6 +545,9 @@ Use production traffic and latency data to choose the remaining rewrites. WireVi
 - Vendored upstream renderer code records its exact version or commit, license, local patches, and imported upstream test corpus.
 - The BlockDiag-family Worker passes structural coverage for all six hostnames,
   declares its losses, and has no gateway/origin fallback.
+- The GraphViz-family Worker passes structural GraphViz and ERD fixtures under
+  real workerd, declares its version drift and unsupported asset-loading modes,
+  and has no gateway/origin fallback.
 
 ## Open design questions
 
@@ -554,10 +558,11 @@ Use production traffic and latency data to choose the remaining rewrites. WireVi
 
 ## Implementation status — 2026-08-20
 
-The coverage plane is implemented across dedicated renderer hostnames. Fourteen
+The coverage plane is implemented across dedicated renderer hostnames. Sixteen
 of 30 catalog engines no longer depend on Fly: five execute in JavaScript
-Workers, six share the `blockdiag-family` Python Worker, and Mermaid, BPMN, and
-Excalidraw render in sandboxed browser units. The remaining 16 engines use 15
+Workers, six share the `blockdiag-family` Python Worker, GraphViz and ERD share
+the `graphviz-family` WebAssembly Worker, and Mermaid, BPMN, and Excalidraw
+render in sandboxed browser units. The remaining 14 engines use 13
 dependency-grouped compatibility units. Repository and production smokes require
 structurally valid SVG; pixel comparison remains intentionally deferred.
 
@@ -566,12 +571,19 @@ drawer/node/plugin registration, a bundled DejaVu Serif font, bounded streaming
 input, Cache API storage, SVG sanitization, and explicit remote/filesystem image
 rejection. All six production hostnames report `edge-python` and the
 `blockdiag-family` unit, and none can fall back through the gateway.
-The same hard boundary now applies to all fourteen migrated engines: direct
+The GraphViz family imports GraphViz 15.1.1 as a precompiled Worker module. ERD
+uses an upstream-guided TypeScript grammar/model/DOT lowering and calls the same
+in-process runtime rather than a second deployment. Both hostnames were checked
+under real workerd, including cache behavior, presentation, HTML labels and
+ports, malformed input, and unsafe image rejection. The family dry-run is about
+1.19 MB uncompressed and 0.47 MB compressed.
+
+The same hard boundary now applies to all sixteen migrated engines: direct
 unit or client-renderer failure is surfaced to the editor, the gateway rejects
 their engine IDs before consulting its cache or origin adapter, and every
 catalog fallback is `null`.
 
-The first feasibility findings are already reflected in routing and the loss ledger: DBML's package cannot currently be imported cleanly in the Worker runtime, and Viz.js attempts runtime WebAssembly compilation. Both remain fully covered through the origin rather than blocking the migration. The current dry-run bundle is approximately 4.4 MB uncompressed and 0.85 MB compressed.
+The first feasibility findings are already reflected in routing and the loss ledger: DBML's package cannot currently be imported cleanly in the Worker runtime. GraphViz's published wrapper required a small vendored backend change so Wrangler could bind the binary as a precompiled module; the renderer no longer depends on Fly. GraphViz version drift, unsupported `scale`, and the lack of an image asset loader are explicit losses rather than hidden fallbacks.
 
 The SVG compatibility boundary preserves CDATA-backed text and embedded font styles used by Ditaa, Symbolator, diagrams.net, and TikZ. Mermaid retains a narrow allowlist of XHTML label formatting inside `foreignObject`, while scripts, event handlers, external links, and resource-loading elements remain blocked. When a user selects a canvas color, known full-size white renderer backdrops are removed before the chosen background is applied; internal white diagram shapes are left intact.
 

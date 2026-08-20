@@ -41,9 +41,10 @@ bundles, CSPs, deployments, and subdomains.
 
 A unit may expose multiple catalog hostnames when those engines share the same
 dependency stack. BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, and RackDiag
-share `blockdiag-family`; PlantUML and C4 PlantUML share `plantuml-family`;
-Vega and Vega-Lite share `vega-family`. Requests are still selected only by a
-dedicated hostname, so a caller cannot choose an unrelated engine in the body.
+share `blockdiag-family`; GraphViz and the ERD-to-DOT translator share
+`graphviz-family`; PlantUML and C4 PlantUML share `plantuml-family`; Vega and
+Vega-Lite share `vega-family`. Requests are still selected only by a dedicated
+hostname, so a caller cannot choose an unrelated engine in the body.
 
 A unit may translate into another renderer. Translation is declared as an
 ordered pipeline whose first stage is the deployable unit. Vega-Lite therefore
@@ -55,16 +56,16 @@ reports `vega-family,vega`; `X-Diagram-Engine` still reports `vegalite`.
 | --- | --- |
 | Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
 | Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag) |
+| Worker WebAssembly | GraphViz family (GraphViz and ERD → DOT → GraphViz) |
 | Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
-| Compatibility unit | 15 dependency units covering the remaining 16 engines |
+| Compatibility unit | 13 dependency units covering the remaining 14 engines |
 
-The current split is 14/30 engines off Fly and 16/30 still dependent on it.
+The current split is 16/30 engines off Fly and 14/30 still dependent on it.
 Compatibility units are extraction seams, not final runtimes or fallbacks for
 an engine after cutover. DBML
 currently proxies because its published package mixes module formats. GraphViz
-currently proxies because the published Viz.js wrapper performs runtime
-WebAssembly instantiation; its unit still needs a direct precompiled module
-adapter.
+uses a precompiled Worker module; ERD lowers its upstream-compatible source
+language to DOT and reuses the same in-process GraphViz runtime.
 
 All returned SVG passes through the same sanitizer. Scripts, event handlers,
 external resources, and active embedded HTML are removed. Mermaid's

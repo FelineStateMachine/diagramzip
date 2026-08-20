@@ -41,11 +41,14 @@ const sharedUnits = {
   nwdiag: 'blockdiag-family',
   packetdiag: 'blockdiag-family',
   rackdiag: 'blockdiag-family',
+  graphviz: 'graphviz-family',
+  erd: 'graphviz-family',
   vega: 'vega-family',
   vegalite: 'vega-family',
 }
 
 const pythonEngines = new Set(['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag'])
+const graphvizEngines = new Set(['graphviz', 'erd'])
 
 async function smoke([engine, filename]) {
   const source = await readFile(resolve(fixtureDirectory, filename), 'utf8')
@@ -69,7 +72,13 @@ async function smoke([engine, filename]) {
     throw new Error(`${engine}: expected unit ${expectedUnit}, received ${response.headers.get('X-Diagram-Unit')}`)
   }
   const pipeline = response.headers.get('X-Diagram-Pipeline')
-  const expectedPipeline = engine === 'vegalite' ? `${expectedUnit},vega` : expectedUnit
+  const expectedPipeline = engine === 'vegalite'
+    ? `${expectedUnit},vega`
+    : engine === 'graphviz'
+      ? `${expectedUnit},graphviz`
+      : engine === 'erd'
+        ? `${expectedUnit},erd,graphviz`
+        : expectedUnit
   if (pipeline !== expectedPipeline) {
     throw new Error(`${engine}: unexpected pipeline ${pipeline}`)
   }
@@ -79,6 +88,14 @@ async function smoke([engine, filename]) {
     }
     if (!response.headers.get('X-Renderer-Build')?.startsWith('blockdiag-3.4.2-family-python-')) {
       throw new Error(`${engine}: unexpected Python Worker build ${response.headers.get('X-Renderer-Build')}`)
+    }
+  }
+  if (graphvizEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-wasm') {
+      throw new Error(`${engine}: expected edge-wasm renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    }
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('graphviz-15.1.1-family-edge-wasm-')) {
+      throw new Error(`${engine}: unexpected GraphViz-family Worker build ${response.headers.get('X-Renderer-Build')}`)
     }
   }
   return `${engine.padEnd(10)} ${response.headers.get('X-Diagram-Cache')?.padEnd(4)} ${body.length} bytes`
