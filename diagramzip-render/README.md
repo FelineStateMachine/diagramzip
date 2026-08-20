@@ -17,7 +17,7 @@ npm run cf-typegen
 npm run check
 npm test
 npm run deploy:dry
-npm run deploy:compatibility-units
+npm run deploy:worker-units
 npm run dev -- --port 8788
 npm run smoke
 ```

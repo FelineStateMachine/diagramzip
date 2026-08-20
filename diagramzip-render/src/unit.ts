@@ -4,6 +4,18 @@ import type { EngineId, RendererAdapter, RenderRequest } from './types'
 import { parseUnitRenderRequest } from './validation'
 
 const CACHE_MAX_AGE = 1_800
+const CACHE_SCHEMA = '2'
+const EXPOSED_RESPONSE_HEADERS = [
+  'Cache-Control',
+  'Content-Type',
+  'X-Diagram-Cache',
+  'X-Diagram-Engine',
+  'X-Diagram-Engine-Version',
+  'X-Diagram-Pipeline',
+  'X-Diagram-Renderer',
+  'X-Diagram-Unit',
+  'X-Renderer-Build',
+].join(', ')
 
 export interface RendererUnitDescriptor {
   readonly id: EngineId
@@ -45,7 +57,7 @@ function base64Url(bytes: Uint8Array): string {
 
 async function cacheRequestFor(request: RenderRequest, build: string): Promise<Request> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalRequest(request)))
-  return new Request(`https://diagramzip-unit-cache.invalid/${encodeURIComponent(request.engine)}/${encodeURIComponent(build)}/${base64Url(new Uint8Array(digest))}`)
+  return new Request(`https://diagramzip-unit-cache.invalid/${CACHE_SCHEMA}/${encodeURIComponent(request.engine)}/${encodeURIComponent(build)}/${base64Url(new Uint8Array(digest))}`)
 }
 
 function responseWithCacheStatus(response: Response, status: 'HIT' | 'MISS'): Response {
@@ -67,6 +79,7 @@ async function render(
   return new Response(body, {
     headers: {
       'Access-Control-Allow-Origin': '*',
+      'Access-Control-Expose-Headers': EXPOSED_RESPONSE_HEADERS,
       'Cache-Control': `public, max-age=${CACHE_MAX_AGE}`,
       'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; sandbox",
       'Content-Type': 'image/svg+xml; charset=utf-8',

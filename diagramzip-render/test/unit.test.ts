@@ -39,6 +39,8 @@ describe('renderer unit protocol', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('X-Diagram-Unit')).toBe('vegalite')
     expect(response.headers.get('X-Diagram-Pipeline')).toBe('vegalite,vega')
+    expect(response.headers.get('Access-Control-Expose-Headers')).toContain('X-Diagram-Unit')
+    expect(response.headers.get('Access-Control-Expose-Headers')).toContain('X-Renderer-Build')
     expect(await response.text()).toContain('<text x="1" y="8">ok</text>')
   })
 
