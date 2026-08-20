@@ -3,7 +3,6 @@ import bytefield from '../../ci/tests/diagrams/bytefield.bf?raw'
 import d2 from '../../ci/tests/diagrams/connections.d2?raw'
 import dbml from '../../ci/tests/diagrams/dbml.dbml?raw'
 import diagramsnet from '../../ci/tests/diagrams/diagramsnet-venn.xml?raw'
-import ditaa from '../../ci/tests/diagrams/components.ditaa?raw'
 import erd from '../../ci/tests/diagrams/schema.erd?raw'
 import excalidraw from '../../ci/tests/diagrams/venn.excalidraw?raw'
 import goat from '../../ci/tests/diagrams/components.goat?raw'
@@ -124,6 +123,35 @@ Rel(bob, tandem, "Completes tasks")
     theme default
   }
 }`,
+  ditaa: `+-------------+                       +-------------+
+|             |                       |             |
+|    Alice    |                       |     Bob     |
+|             |                       |             |
++------+------+                       +------+------+
+       | product idea                        | implementation
+       v                                     v
++------+------+                       +------+------+
+|             |                       |             |
+| Alice Agent |                       |  Bob Agent  |
+|             |                       |             |
++------+------+                       +------+------+
+       | task flow                           | tested build
+       |                                     |
+       +------------------+   +--------------+
+                          |   |
+                          v   v
+                   +------+---+------+
+                   |                 |
+                   |   Tandem App    |
+                   |                 |
+                   +--------+--------+
+                            |
+                            | persist and sync
+                            v
+                   +--------+--------+
+                   |  Shared Tasks   |
+                   |      {s}        |
+                   +-----------------+`,
 
   // Domain-specific examples stay intact so they remain useful references for
   // packet layouts, hardware, data visualization, wiring, and renderer syntax.
@@ -141,7 +169,6 @@ Rel(bob, tandem, "Completes tasks")
   bytefield,
   dbml,
   diagramsnet,
-  ditaa,
   erd,
   excalidraw,
   goat,
