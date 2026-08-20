@@ -52,6 +52,7 @@ const config = {
       logo: {
         alt: 'diagram.zip',
         src: 'img/icon.svg',
+        srcDark: 'img/icon-dark.svg',
       },
       items: [
         { to: '/create/', label: 'Create', position: 'left' },
