@@ -1,9 +1,10 @@
 # diagramzip-render
 
 Cloudflare Worker rendering plane for diagram.zip. Every catalog engine owns
-`https://{engine}.render.diagram.zip`. The editor talks to that unit and never
-sends an engine selector to it. The older `/render/v1/svg` gateway remains only
-as a migration fallback.
+`https://{engine}.render.diagram.zip`. The hostname selects the engine; the
+editor never sends an engine selector. Engines that ship as one dependency or
+runtime share a Worker deployment while retaining distinct hostnames. The older
+`/render/v1/svg` gateway remains only as a migration fallback.
 
 The catalog deliberately contains all 30 diagram types. An engine does not
 disappear while its replacement is incomplete: its small compatibility unit
@@ -28,7 +29,7 @@ checks only structural SVG coverage. It does not perform pixel comparisons.
 
 Server-rendered units expose `GET /v1/health`, `GET /v1/capabilities`, and
 `POST /v1/svg`. The POST body contains source, options, metadata, and
-presentation, but never an engine field. Responses identify the exact unit,
+presentation, but never an engine field. Responses identify the dependency unit,
 build, and pipeline with `X-Diagram-Unit`, `X-Renderer-Build`, and
 `X-Diagram-Pipeline`.
 
@@ -37,18 +38,23 @@ sandboxed frame. The frame accepts only its own engine over the versioned
 postMessage protocol. Mermaid, BPMN, and Excalidraw have separate packages,
 bundles, CSPs, deployments, and subdomains.
 
-A unit may translate into another renderer. Translation is private to that
-unit and is declared as an ordered pipeline. Vega-Lite therefore owns
-Vega-Lite input and reports `vegalite,vega`; callers still address only the
-Vega-Lite unit.
+A unit may expose multiple catalog hostnames when those engines share the same
+dependency stack. BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, and RackDiag
+share `blockdiag-family`; PlantUML and C4 PlantUML share `plantuml-family`;
+Vega and Vega-Lite share `vega-family`. Requests are still selected only by a
+dedicated hostname, so a caller cannot choose an unrelated engine in the body.
+
+A unit may translate into another renderer. Translation is declared as an
+ordered pipeline whose first stage is the deployable unit. Vega-Lite therefore
+reports `vega-family,vega`; `X-Diagram-Engine` still reports `vegalite`.
 
 ## Current runtime split
 
 | Runtime | Engines |
 | --- | --- |
-| Worker JavaScript | Bytefield, Nomnoml, Vega, Vega-Lite → Vega, WaveDrom |
+| Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
 | Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
-| One-engine compatibility unit | The remaining 22 engines |
+| Compatibility unit | 16 dependency units covering the remaining 22 engines |
 
 Compatibility units are the replacement seam, not the final runtime. DBML
 currently proxies because its published package mixes module formats. GraphViz

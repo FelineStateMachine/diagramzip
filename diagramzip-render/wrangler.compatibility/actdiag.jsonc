@@ -1,1 +1,0 @@
-{"$schema":"../node_modules/wrangler/config-schema.json","name":"diagramzip-render-actdiag","main":"../src/units/compatibility.ts","compatibility_date":"2026-08-20","define":{"__ENGINE_ID__":"\"actdiag\""},"observability":{"enabled":true},"vars":{"RENDERER_BUILD":"actdiag-compat-unit-1"},"routes":[{"pattern":"actdiag.render.diagram.zip","custom_domain":true}]}

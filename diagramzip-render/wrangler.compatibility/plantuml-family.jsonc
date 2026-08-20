@@ -1,0 +1,16 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-plantuml-family",
+  "main": "../src/units/compatibility-group.ts",
+  "compatibility_date": "2026-08-20",
+  "define": {
+    "__UNIT_ID__": "\"plantuml-family\"",
+    "__ENGINE_IDS__": "[\"plantuml\",\"c4plantuml\"]"
+  },
+  "observability": { "enabled": true },
+  "vars": { "RENDERER_BUILD": "plantuml-family-compat-unit-1" },
+  "routes": [
+    { "pattern": "plantuml.render.diagram.zip", "custom_domain": true },
+    { "pattern": "c4plantuml.render.diagram.zip", "custom_domain": true }
+  ]
+}

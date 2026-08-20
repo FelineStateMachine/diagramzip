@@ -1,0 +1,20 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-blockdiag-family",
+  "main": "../src/units/compatibility-group.ts",
+  "compatibility_date": "2026-08-20",
+  "define": {
+    "__UNIT_ID__": "\"blockdiag-family\"",
+    "__ENGINE_IDS__": "[\"blockdiag\",\"seqdiag\",\"actdiag\",\"nwdiag\",\"packetdiag\",\"rackdiag\"]"
+  },
+  "observability": { "enabled": true },
+  "vars": { "RENDERER_BUILD": "blockdiag-family-compat-unit-1" },
+  "routes": [
+    { "pattern": "blockdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "seqdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "actdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "nwdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "packetdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "rackdiag.render.diagram.zip", "custom_domain": true }
+  ]
+}

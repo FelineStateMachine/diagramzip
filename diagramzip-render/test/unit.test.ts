@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createRendererUnit } from '../src/unit'
-import type { RendererAdapter } from '../src/types'
+import { createRendererUnit, createRendererUnitGroup } from '../src/unit'
+import type { EngineId, RendererAdapter } from '../src/types'
 
 const adapter: RendererAdapter = {
   id: 'vegalite',
@@ -59,5 +59,52 @@ describe('renderer unit protocol', () => {
       kind: 'translate',
       pipeline: ['vegalite', 'vega'],
     })
+  })
+})
+
+function testAdapter(id: EngineId): RendererAdapter {
+  return {
+    id,
+    runtime: 'origin',
+    version: 'test@1',
+    async render() {
+      return {
+        body: `<svg xmlns="http://www.w3.org/2000/svg"><text>${id}</text></svg>`,
+        contentType: 'image/svg+xml',
+        engineVersion: 'test@1',
+        runtime: 'origin',
+      }
+    },
+  }
+}
+
+describe('renderer dependency groups', () => {
+  const group = createRendererUnitGroup('blockdiag-family', [
+    { id: 'blockdiag', kind: 'compatibility', adapter: testAdapter('blockdiag') },
+    { id: 'seqdiag', kind: 'compatibility', adapter: testAdapter('seqdiag') },
+  ])
+  const fetchGroup = group.fetch!
+
+  it('selects an engine from its dedicated hostname while reporting the shared unit', async () => {
+    const response = await fetchGroup(new Request('https://seqdiag.render.diagram.zip/v1/svg', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: 'A -> B' }),
+    }) as Parameters<typeof fetchGroup>[0], env, context)
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('X-Diagram-Engine')).toBe('seqdiag')
+    expect(response.headers.get('X-Diagram-Unit')).toBe('blockdiag-family')
+    expect(response.headers.get('X-Diagram-Pipeline')).toBe('blockdiag-family')
+  })
+
+  it('does not serve an engine outside the dependency group', async () => {
+    const response = await fetchGroup(
+      new Request('https://graphviz.render.diagram.zip/v1/capabilities') as Parameters<typeof fetchGroup>[0],
+      env,
+      context,
+    )
+
+    expect(response.status).toBe(404)
   })
 })
