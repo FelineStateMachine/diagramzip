@@ -3,7 +3,7 @@ import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
-import { diagramTypes, isKnownDiagramType, languageFor } from './diagram-types.js'
+import { diagramTypeFromQuery, diagramTypes, isKnownDiagramType, languageFor } from './diagram-types.js'
 import { exampleStateFor } from './examples.js'
 import { stateForTypeChange } from './type-drafts.js'
 import {
@@ -71,7 +71,13 @@ document.querySelector('#app').innerHTML = `
           <span class="sr-only">Diagram type</span>
           <select id="diagram-type"></select>
         </label>
-        <button class="secondary-action" id="details" type="button">Details</button>
+        <a class="docs-link" href="https://docs.diagram.zip/" aria-label="Documentation" title="Documentation">
+          <svg class="docs-link-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M5 4.75A2.75 2.75 0 0 1 7.75 2H19v16.25A2.75 2.75 0 0 0 16.25 21H5a2 2 0 0 1-2-2V6.75A2 2 0 0 1 5 4.75Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M19 18.25A2.75 2.75 0 0 0 16.25 21H7.75A2.75 2.75 0 0 1 5 18.25V4.75M8 7h7M8 10.5h7M8 14h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </a>
+        <button class="secondary-action" id="details" type="button" aria-label="Details">Details</button>
         <button class="secondary-action" id="save" type="button">Save</button>
         <button class="primary-action" id="share" type="button">Share</button>
       </div>
@@ -409,6 +415,8 @@ async function loadInitialState() {
     }
   }
   if (location.hash) history.replaceState(null, '', `${location.pathname}${location.search}`)
+  const requestedType = diagramTypeFromQuery(location.search)
+  if (requestedType) return exampleStateFor(requestedType)
   const draft = loadDraft(LOCAL_DRAFT_KEY)
   if (draft) return draft.state
   return exampleStateFor(DEFAULT_DIAGRAM_TYPE)

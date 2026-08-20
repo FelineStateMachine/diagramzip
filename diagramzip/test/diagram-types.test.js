@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { diagramTypeFromQuery } from '../src/diagram-types.js'
+
+test('reads a known diagram type from the query string', () => {
+  assert.equal(diagramTypeFromQuery('?type=mermaid'), 'mermaid')
+  assert.equal(diagramTypeFromQuery('type=vega-lite'), null)
+})
+
+test('rejects missing, unknown, and empty type values', () => {
+  assert.equal(diagramTypeFromQuery(''), null)
+  assert.equal(diagramTypeFromQuery('?type='), null)
+  assert.equal(diagramTypeFromQuery('?type=not-a-diagram'), null)
+})

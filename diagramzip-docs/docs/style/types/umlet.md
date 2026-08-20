@@ -1,0 +1,24 @@
+---
+id: style-umlet
+slug: /style/types/umlet
+title: UMLet
+description: Style a UMLet diagram in diagram.zip.
+sidebar_label: UMLet
+---
+
+# Style UMLet
+
+UMLet stores position and style commands in the UXF XML source.
+
+Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+
+## Source controls
+
+- Use the UMLet editor to change element geometry safely.
+- Put supported style commands in `panel_attributes`.
+- Use `additional_attributes` only for the selected UMLet element.
+## Related pages
+
+- [Create an UMLet diagram](/create/types/umlet)
+- [General presentation settings](/style/presentation)
+- [Open UMLet in the editor](https://diagram.zip/?type=umlet)

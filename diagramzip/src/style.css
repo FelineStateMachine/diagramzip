@@ -127,6 +127,7 @@ button { cursor: pointer; }
 .type-picker select,
 .primary-action,
 .secondary-action,
+.docs-link,
 .preview-toolbar button,
 .mobile-tabs button,
 .icon-button,
@@ -160,6 +161,24 @@ button { cursor: pointer; }
 }
 
 .secondary-action:hover { background: var(--soft); }
+
+.docs-link {
+  display: inline-grid;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  place-items: center;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.docs-link:hover { background: var(--soft); }
+
+.docs-link-icon {
+  width: 19px;
+  height: 19px;
+  display: block;
+}
 
 .workspace {
   display: grid;
@@ -504,6 +523,16 @@ dialog::backdrop {
   .header-meta { gap: 6px; }
   .type-picker { flex-basis: 108px; }
   .type-picker select { max-width: 108px; }
+  #details {
+    width: 36px;
+    padding-inline: 0;
+    font-size: 0;
+  }
+  #details::before {
+    content: "…";
+    font-size: 18px;
+    line-height: 1;
+  }
   .primary-action, .secondary-action { padding-inline: 9px; }
   .preview-toolbar { bottom: 10px; left: 10px; }
   .minimap { right: 10px; bottom: 62px; }

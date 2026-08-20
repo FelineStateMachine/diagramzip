@@ -9,6 +9,9 @@
   "private": true,
   "scripts": {
     "build:diagramzip": "vite build --config diagramzip/vite.config.js && vite build --config diagramzip/vite.renderer.config.js",
+    "generate:diagramzip-docs": "npm --prefix diagramzip-docs run generate",
+    "check:diagramzip-docs": "npm --prefix diagramzip-docs run check",
+    "build:diagramzip-docs": "npm --prefix diagramzip-docs run build",
     "dev:diagramzip": "vite --config diagramzip/vite.config.js",
     "test": "node --test-force-exit ci/tests/smoke.js",
     "test:diagramzip": "node --test diagramzip/test/*.test.js",

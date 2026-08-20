@@ -1,0 +1,5 @@
+{
+  "engine": "erd",
+  "source": "[Person]\n*name\nheight\nweight\n+birth_location_id\n\n[Location]\n*id\ncity\nstate\ncountry\n\nPerson *--1 Location\n",
+  "sourceKind": "project-example"
+}

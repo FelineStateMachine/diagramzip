@@ -1,0 +1,5 @@
+{
+  "engine": "dbml",
+  "source": "Table users {\n  id integer [primary key]\n  name varchar\n}\n\nTable diagrams {\n  id integer [primary key]\n  user_id integer\n}\n\nRef: diagrams.user_id > users.id",
+  "sourceKind": "page-example"
+}

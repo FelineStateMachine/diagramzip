@@ -1,0 +1,5 @@
+{
+  "engine": "plantuml",
+  "source": "@startuml\nactor Alice\nparticipant Service\nAlice -> Service: Create a diagram\nService --> Alice: Return the link\n@enduml",
+  "sourceKind": "page-example"
+}

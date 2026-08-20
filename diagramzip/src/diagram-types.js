@@ -90,3 +90,10 @@ export function languageFor(type) {
 export function isKnownDiagramType(type) {
   return diagramTypes.some(diagramType => diagramType.id === type)
 }
+
+/** Return the known diagram type from a URL query string, or null. */
+export function diagramTypeFromQuery(search = '') {
+  const params = new URLSearchParams(search)
+  const type = params.get('type')
+  return isKnownDiagramType(type) ? type : null
+}

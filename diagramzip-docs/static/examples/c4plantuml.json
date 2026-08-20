@@ -1,0 +1,5 @@
+{
+  "engine": "c4plantuml",
+  "source": "@startuml\n!include <C4/C4_Context>\nPerson(user, \"User\")\nSystem(app, \"diagram.zip\")\nRel(user, app, \"Creates diagrams\")\n@enduml",
+  "sourceKind": "page-example"
+}

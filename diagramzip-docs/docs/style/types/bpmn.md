@@ -1,0 +1,24 @@
+---
+id: style-bpmn
+slug: /style/types/bpmn
+title: BPMN
+description: Style a BPMN diagram in diagram.zip.
+sidebar_label: BPMN
+---
+
+# Style BPMN
+
+BPMN appearance usually comes from BPMN diagram interchange data and renderer defaults.
+
+Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+
+## Source controls
+
+- Use BPMN diagram interchange bounds to set element positions.
+- Use BPMN diagram interchange waypoints to set connector paths.
+- Use supported extension attributes only when another BPMN tool must preserve them.
+## Related pages
+
+- [Create a BPMN diagram](/create/types/bpmn)
+- [General presentation settings](/style/presentation)
+- [Open BPMN in the editor](https://diagram.zip/?type=bpmn)

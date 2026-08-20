@@ -1,0 +1,47 @@
+# diagram.zip documentation
+
+> Use these stable pages to create, style, save, and share diagrams.
+
+- [PlantUML syntax](https://docs.diagram.zip/create/types/plantuml/): Create a PlantUML diagram. [Style](https://docs.diagram.zip/style/types/plantuml/).
+- [Mermaid syntax](https://docs.diagram.zip/create/types/mermaid/): Create a Mermaid diagram. [Style](https://docs.diagram.zip/style/types/mermaid/).
+- [Graphviz syntax](https://docs.diagram.zip/create/types/graphviz/): Create a Graphviz diagram. [Style](https://docs.diagram.zip/style/types/graphviz/).
+- [D2 syntax](https://docs.diagram.zip/create/types/d2/): Create a D2 diagram. [Style](https://docs.diagram.zip/style/types/d2/).
+- [C4 PlantUML syntax](https://docs.diagram.zip/create/types/c4plantuml/): Create a C4 PlantUML diagram. [Style](https://docs.diagram.zip/style/types/c4plantuml/).
+- [BlockDiag syntax](https://docs.diagram.zip/create/types/blockdiag/): Create a BlockDiag diagram. [Style](https://docs.diagram.zip/style/types/blockdiag/).
+- [SeqDiag syntax](https://docs.diagram.zip/create/types/seqdiag/): Create a SeqDiag diagram. [Style](https://docs.diagram.zip/style/types/seqdiag/).
+- [ActDiag syntax](https://docs.diagram.zip/create/types/actdiag/): Create an ActDiag diagram. [Style](https://docs.diagram.zip/style/types/actdiag/).
+- [NwDiag syntax](https://docs.diagram.zip/create/types/nwdiag/): Create a NwDiag diagram. [Style](https://docs.diagram.zip/style/types/nwdiag/).
+- [PacketDiag syntax](https://docs.diagram.zip/create/types/packetdiag/): Create a PacketDiag diagram. [Style](https://docs.diagram.zip/style/types/packetdiag/).
+- [RackDiag syntax](https://docs.diagram.zip/create/types/rackdiag/): Create a RackDiag diagram. [Style](https://docs.diagram.zip/style/types/rackdiag/).
+- [BPMN syntax](https://docs.diagram.zip/create/types/bpmn/): Create a BPMN diagram. [Style](https://docs.diagram.zip/style/types/bpmn/).
+- [Bytefield syntax](https://docs.diagram.zip/create/types/bytefield/): Create a Bytefield diagram. [Style](https://docs.diagram.zip/style/types/bytefield/).
+- [DBML syntax](https://docs.diagram.zip/create/types/dbml/): Create a DBML diagram. [Style](https://docs.diagram.zip/style/types/dbml/).
+- [Diagrams.net syntax](https://docs.diagram.zip/create/types/diagramsnet/): Create a Diagrams.net diagram. [Style](https://docs.diagram.zip/style/types/diagramsnet/).
+- [Ditaa syntax](https://docs.diagram.zip/create/types/ditaa/): Create a Ditaa diagram. [Style](https://docs.diagram.zip/style/types/ditaa/).
+- [ERD syntax](https://docs.diagram.zip/create/types/erd/): Create an ERD diagram. [Style](https://docs.diagram.zip/style/types/erd/).
+- [Excalidraw syntax](https://docs.diagram.zip/create/types/excalidraw/): Create an Excalidraw diagram. [Style](https://docs.diagram.zip/style/types/excalidraw/).
+- [GoAT syntax](https://docs.diagram.zip/create/types/goat/): Create a GoAT diagram. [Style](https://docs.diagram.zip/style/types/goat/).
+- [Nomnoml syntax](https://docs.diagram.zip/create/types/nomnoml/): Create a Nomnoml diagram. [Style](https://docs.diagram.zip/style/types/nomnoml/).
+- [Pikchr syntax](https://docs.diagram.zip/create/types/pikchr/): Create a Pikchr diagram. [Style](https://docs.diagram.zip/style/types/pikchr/).
+- [Structurizr syntax](https://docs.diagram.zip/create/types/structurizr/): Create a Structurizr diagram. [Style](https://docs.diagram.zip/style/types/structurizr/).
+- [Svgbob syntax](https://docs.diagram.zip/create/types/svgbob/): Create a Svgbob diagram. [Style](https://docs.diagram.zip/style/types/svgbob/).
+- [Symbolator syntax](https://docs.diagram.zip/create/types/symbolator/): Create a Symbolator diagram. [Style](https://docs.diagram.zip/style/types/symbolator/).
+- [TikZ syntax](https://docs.diagram.zip/create/types/tikz/): Create a TikZ diagram. [Style](https://docs.diagram.zip/style/types/tikz/).
+- [UMLet syntax](https://docs.diagram.zip/create/types/umlet/): Create an UMLet diagram. [Style](https://docs.diagram.zip/style/types/umlet/).
+- [Vega syntax](https://docs.diagram.zip/create/types/vega/): Create a Vega diagram. [Style](https://docs.diagram.zip/style/types/vega/).
+- [Vega-Lite syntax](https://docs.diagram.zip/create/types/vegalite/): Create a Vega-Lite diagram. [Style](https://docs.diagram.zip/style/types/vegalite/).
+- [WaveDrom syntax](https://docs.diagram.zip/create/types/wavedrom/): Create a WaveDrom diagram. [Style](https://docs.diagram.zip/style/types/wavedrom/).
+- [WireViz syntax](https://docs.diagram.zip/create/types/wireviz/): Create a WireViz diagram. [Style](https://docs.diagram.zip/style/types/wireviz/).
+
+## General pages
+
+- [General presentation](https://docs.diagram.zip/style/presentation/)
+- [Share a diagram](https://docs.diagram.zip/collaboration/sharing/)
+- [Password encryption](https://docs.diagram.zip/collaboration/encryption/)
+- [Working state and saved state](https://docs.diagram.zip/collaboration/working-and-saved-state/)
+
+## Structured catalog
+
+- [diagram-types.json](https://docs.diagram.zip/diagram-types.json)
+- [Full text reference](https://docs.diagram.zip/llms-full.txt)
+- [Source repository](https://github.com/FelineStateMachine/diagramzip)
