@@ -1,5 +1,6 @@
 import { clientAdapterFor } from './client-renderers.js'
 import { sanitizeAndDecorateSvg } from './client-svg.js'
+import { httpRendererUnitFor } from './renderer-units.js'
 
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), maximum)
@@ -120,15 +121,47 @@ export class PreviewController {
   }
 
   async renderThroughGateway({ type, source, options, meta, presentation }, signal) {
-    const response = await fetch('/render/v1/svg', {
+    const unitEndpoint = httpRendererUnitFor(type)
+    if (unitEndpoint) {
+      try {
+        const response = await this.renderRequest(
+          unitEndpoint,
+          { source, format: 'svg', options, metadata: meta, presentation },
+          signal,
+        )
+        if (response.ok || response.status < 500) return await this.renderResponse(response)
+        await response.body?.cancel()
+      } catch (error) {
+        if (error.name === 'AbortError') throw error
+      }
+    }
+
+    const response = await this.renderRequest('/render/v1/svg', {
+      engine: type,
+      source,
+      format: 'svg',
+      options,
+      metadata: meta,
+      presentation,
+    }, signal)
+    return this.renderResponse(response)
+  }
+
+  renderRequest(endpoint, body, signal) {
+    return fetch(endpoint, {
       method: 'POST',
       headers: { Accept: 'image/svg+xml', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ engine: type, source, format: 'svg', options, metadata: meta, presentation }),
+      body: JSON.stringify(body),
       signal,
     })
+  }
+
+  async renderResponse(response) {
     if (!response.ok) throw new Error(await this.errorMessage(response))
     this.status.dataset.cache = response.headers.get('X-Diagram-Cache')?.toLowerCase() ?? 'miss'
-    this.status.dataset.renderer = response.headers.get('X-Diagram-Renderer')?.toLowerCase() ?? 'gateway'
+    this.status.dataset.renderer = response.headers.get('X-Diagram-Unit')?.toLowerCase()
+      ?? response.headers.get('X-Diagram-Renderer')?.toLowerCase()
+      ?? 'gateway'
     return response.text()
   }
 

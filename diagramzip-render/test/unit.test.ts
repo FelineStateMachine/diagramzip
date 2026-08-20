@@ -1,0 +1,63 @@
+import { describe, expect, it } from 'vitest'
+import { createRendererUnit } from '../src/unit'
+import type { RendererAdapter } from '../src/types'
+
+const adapter: RendererAdapter = {
+  id: 'vegalite',
+  runtime: 'edge-js',
+  version: 'test@1',
+  async render() {
+    return {
+      body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 10"><text x="1" y="8">ok</text></svg>',
+      contentType: 'image/svg+xml',
+      engineVersion: 'test@1',
+      runtime: 'edge-js',
+    }
+  },
+}
+
+const unit = createRendererUnit({ id: 'vegalite', kind: 'translate', adapter, pipeline: ['vega'] })
+const fetchUnit = unit.fetch!
+const env = { RENDERER_BUILD: 'unit-test' }
+const context = {
+  waitUntil() {},
+  passThroughOnException() {},
+  props: {},
+} as unknown as ExecutionContext
+
+function request(body: unknown): Parameters<typeof fetchUnit>[0] {
+  return new Request('https://vegalite.render.diagram.zip/v1/svg', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }) as Parameters<typeof fetchUnit>[0]
+}
+
+describe('renderer unit protocol', () => {
+  it('assigns its own engine and exposes the explicit translation pipeline', async () => {
+    const response = await fetchUnit(request({ source: '{"mark":"point"}' }), env, context)
+    expect(response.status).toBe(200)
+    expect(response.headers.get('X-Diagram-Unit')).toBe('vegalite')
+    expect(response.headers.get('X-Diagram-Pipeline')).toBe('vegalite,vega')
+    expect(await response.text()).toContain('<text x="1" y="8">ok</text>')
+  })
+
+  it('rejects attempts to select a different engine inside a unit', async () => {
+    const response = await fetchUnit(request({ engine: 'mermaid', source: 'flowchart LR' }), env, context)
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toMatchObject({ error: { code: 'invalid_request' } })
+  })
+
+  it('describes only itself and its declared downstream unit', async () => {
+    const response = await fetchUnit(
+      new Request('https://vegalite.render.diagram.zip/v1/capabilities') as Parameters<typeof fetchUnit>[0],
+      env,
+      context,
+    )
+    await expect(response.json()).resolves.toMatchObject({
+      id: 'vegalite',
+      kind: 'translate',
+      pipeline: ['vegalite', 'vega'],
+    })
+  })
+})

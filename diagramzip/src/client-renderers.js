@@ -1,8 +1,13 @@
 const CHANNEL = 'diagram.zip:renderer:v1'
-const FRAME_URL = '/diagram.zip/renderer-frame.html?v=2'
 const RENDER_TIMEOUT = 20_000
 
-export const CLIENT_RENDERER_IDS = Object.freeze(['mermaid', 'bpmn'])
+export const CLIENT_RENDERERS = Object.freeze({
+  mermaid: Object.freeze({ frameUrl: '/diagram.zip/renderer-frame.html?v=2' }),
+  bpmn: Object.freeze({ frameUrl: '/diagram.zip/renderer-frame.html?v=2' }),
+  excalidraw: Object.freeze({ frameUrl: 'https://excalidraw.render.diagram.zip/index.html?v=3' }),
+})
+
+export const CLIENT_RENDERER_IDS = Object.freeze(Object.keys(CLIENT_RENDERERS))
 
 function abortError(reason) {
   if (reason?.name === 'AbortError') return reason
@@ -10,7 +15,7 @@ function abortError(reason) {
 }
 
 export class RendererFrame {
-  constructor({ documentObject = document, windowObject = window, frameUrl = FRAME_URL } = {}) {
+  constructor({ documentObject = document, windowObject = window, frameUrl } = {}) {
     this.document = documentObject
     this.window = windowObject
     this.frameUrl = frameUrl
@@ -108,14 +113,19 @@ export class RendererFrame {
   }
 }
 
-let sharedFrame
+const frames = new Map()
 
 export function clientAdapterFor(engine) {
-  if (!CLIENT_RENDERER_IDS.includes(engine)) return null
-  sharedFrame ??= new RendererFrame()
+  const renderer = CLIENT_RENDERERS[engine]
+  if (!renderer) return null
+  let frame = frames.get(renderer.frameUrl)
+  if (!frame) {
+    frame = new RendererFrame({ frameUrl: renderer.frameUrl })
+    frames.set(renderer.frameUrl, frame)
+  }
   return {
     id: engine,
     runtime: 'client',
-    render: ({ source }, signal) => sharedFrame.render(engine, source, signal),
+    render: ({ source }, signal) => frame.render(engine, source, signal),
   }
 }

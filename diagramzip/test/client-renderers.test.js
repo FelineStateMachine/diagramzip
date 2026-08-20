@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { CLIENT_RENDERER_IDS, RendererFrame, clientAdapterFor } from '../src/client-renderers.js'
+import { CLIENT_RENDERERS, CLIENT_RENDERER_IDS, RendererFrame, clientAdapterFor } from '../src/client-renderers.js'
 
 const CHANNEL = 'diagram.zip:renderer:v1'
 
@@ -30,7 +30,8 @@ function fakeBrowser() {
 }
 
 test('registers the first client-native renderer cohort', () => {
-  assert.deepEqual(CLIENT_RENDERER_IDS, ['mermaid', 'bpmn'])
+  assert.deepEqual(CLIENT_RENDERER_IDS, ['mermaid', 'bpmn', 'excalidraw'])
+  assert.equal(CLIENT_RENDERERS.excalidraw.frameUrl, 'https://excalidraw.render.diagram.zip/index.html?v=3')
   assert.equal(clientAdapterFor('graphviz'), null)
 })
 

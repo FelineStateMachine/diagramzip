@@ -12,6 +12,7 @@
     "deploy:dry": "wrangler deploy --dry-run",
     "dev": "wrangler dev",
     "smoke": "node scripts/smoke.mjs",
+    "smoke:units": "node scripts/smoke-units.mjs",
     "test": "vitest run"
   },
   "dependencies": {

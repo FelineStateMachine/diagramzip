@@ -1,5 +1,5 @@
 import { RequestError } from './errors'
-import { isEngineId, type RenderMetadata, type RenderPresentation, type RenderRequest } from './types'
+import { isEngineId, type EngineId, type RenderMetadata, type RenderPresentation, type RenderRequest } from './types'
 
 const MAX_REQUEST_BYTES = 1_048_576
 const MAX_SOURCE_LENGTH = 524_288
@@ -101,7 +101,7 @@ function presentationValue(value: unknown): RenderPresentation {
   return { background, padding: Number(padding), frame }
 }
 
-export async function parseRenderRequest(request: Request): Promise<RenderRequest> {
+async function renderInput(request: Request): Promise<Record<string, unknown>> {
   if (!request.headers.get('Content-Type')?.toLowerCase().startsWith('application/json')) {
     throw new RequestError(415, 'unsupported_media_type', 'Render requests must use application/json.')
   }
@@ -112,9 +112,10 @@ export async function parseRenderRequest(request: Request): Promise<RenderReques
     if (error instanceof RequestError) throw error
     throw new RequestError(400, 'invalid_json', 'Render request is not valid JSON.')
   }
-  const input = objectValue(value, 'request')
-  const engine = boundedString(input.engine, 'engine', 32)
-  if (!isEngineId(engine)) throw new RequestError(400, 'unknown_engine', `Unknown diagram engine: ${engine}.`)
+  return objectValue(value, 'request')
+}
+
+function parsedRequest(input: Record<string, unknown>, engine: EngineId): RenderRequest {
   const source = boundedString(input.source, 'source', MAX_SOURCE_LENGTH)
   if (source.trim() === '') throw new RequestError(400, 'empty_source', 'Diagram source cannot be empty.')
   if (input.format !== undefined && input.format !== 'svg') {
@@ -128,4 +129,19 @@ export async function parseRenderRequest(request: Request): Promise<RenderReques
     metadata: metadataValue(input.metadata),
     presentation: presentationValue(input.presentation),
   }
+}
+
+export async function parseRenderRequest(request: Request): Promise<RenderRequest> {
+  const input = await renderInput(request)
+  const engine = boundedString(input.engine, 'engine', 32)
+  if (!isEngineId(engine)) throw new RequestError(400, 'unknown_engine', `Unknown diagram engine: ${engine}.`)
+  return parsedRequest(input, engine)
+}
+
+export async function parseUnitRenderRequest(request: Request, engine: EngineId): Promise<RenderRequest> {
+  const input = await renderInput(request)
+  if (input.engine !== undefined) {
+    throw new RequestError(400, 'invalid_request', 'Renderer unit requests must not select an engine.')
+  }
+  return parsedRequest(input, engine)
 }

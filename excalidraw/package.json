@@ -8,6 +8,8 @@
   "scripts": {
     "prestart": "cp -r ./node_modules/@excalidraw/excalidraw/dist/prod/fonts ./assets/",
     "build": "npx esbuild ./assets/index.js --bundle --minify --outfile=./assets/index.bundle.js",
+    "build:diagramzip-unit": "node ./scripts/build-diagramzip-unit.mjs",
+    "deploy:diagramzip-unit": "../diagramzip-render/node_modules/.bin/wrangler deploy --config wrangler.diagramzip.jsonc",
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "biome check src"

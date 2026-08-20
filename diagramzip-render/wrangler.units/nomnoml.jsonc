@@ -1,0 +1,10 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-nomnoml",
+  "main": "../src/units/nomnoml.ts",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
+  "vars": { "RENDERER_BUILD": "nomnoml-1.7.0-unit-1" },
+  "routes": [{ "pattern": "nomnoml.render.diagram.zip", "custom_domain": true }]
+}
