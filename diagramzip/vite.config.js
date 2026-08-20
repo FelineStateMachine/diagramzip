@@ -18,6 +18,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/v1': process.env.DIAGRAMZIP_API_TARGET ?? 'http://127.0.0.1:8787',
+      '/render/v1': process.env.DIAGRAMZIP_RENDER_TARGET ?? 'http://127.0.0.1:8788',
     },
   },
   build: {

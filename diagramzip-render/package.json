@@ -1,0 +1,36 @@
+{
+  "name": "diagramzip-render",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "cf-typegen": "wrangler types",
+    "check": "tsc --noEmit",
+    "deploy:dry": "wrangler deploy --dry-run",
+    "dev": "wrangler dev",
+    "smoke": "node scripts/smoke.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "bytefield-svg": "1.11.0",
+    "json5": "2.2.3",
+    "nomnoml": "1.7.0",
+    "onml": "2.1.0",
+    "saxes": "6.0.0",
+    "vega": "6.3.1",
+    "vega-interpreter": "2.3.2",
+    "vega-lite": "6.4.3",
+    "wavedrom": "3.6.2"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260820.1",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.125.0"
+  }
+}

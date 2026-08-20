@@ -35,6 +35,10 @@ class DiagramZipHandlerTest {
       eq("Content-Security-Policy"),
       contains("connect-src 'self'")
     );
+    Mockito.verify(response).putHeader(
+      eq("Content-Security-Policy"),
+      contains("img-src 'self' blob: data:")
+    );
     Mockito.verify(response).end(argThat((ArgumentMatcher<String>) page ->
       page.contains("<title>diagram.zip</title>") && page.contains("/diagram.zip/assets/")
     ));

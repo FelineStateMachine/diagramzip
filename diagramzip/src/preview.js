@@ -1,5 +1,3 @@
-import { imageUrl, MAX_IMAGE_URL_LENGTH } from './state.js'
-
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), maximum)
 }
@@ -22,9 +20,17 @@ export class PreviewController {
     this.renderLoop = null
     this.latestRenderKey = null
     this.latestSvgBlob = null
+    this.imageFallbackUrl = null
+    this.activeImageUrl = null
     this.drag = null
 
-    this.image.addEventListener('load', () => this.fit())
+    this.image.addEventListener('load', () => {
+      if (this.image.src !== this.activeImageUrl) return
+      this.imageFallbackUrl = null
+      this.setStatus('Rendered', 'ready')
+      this.fit()
+    })
+    this.image.addEventListener('error', () => this.retryBlockedImage())
     this.stage.addEventListener('pointerdown', event => this.startPan(event))
     this.stage.addEventListener('pointermove', event => this.pan(event))
     this.stage.addEventListener('pointerup', event => this.endPan(event))
@@ -71,22 +77,11 @@ export class PreviewController {
     this.setStatus('Rendering…', 'loading')
     this.stage.style.setProperty('--render-background', 'var(--preview-bg)')
 
-    const getUrl = new URL(imageUrl(window.location.origin, { type, source, options, meta, presentation }))
-    const useGet = getUrl.toString().length <= MAX_IMAGE_URL_LENGTH
-    const url = useGet ? getUrl : new URL(`/${encodeURIComponent(type)}/svg`, window.location.origin)
-    if (!useGet) {
-      for (const [name, value] of getUrl.searchParams) {
-        url.searchParams.append(name, value)
-      }
-    }
-
     try {
-      const response = await fetch(url, {
-        method: useGet ? 'GET' : 'POST',
-        headers: useGet
-          ? { Accept: 'image/svg+xml' }
-          : { Accept: 'image/svg+xml', 'Content-Type': 'text/plain; charset=utf-8' },
-        body: useGet ? undefined : source,
+      const response = await fetch('/render/v1/svg', {
+        method: 'POST',
+        headers: { Accept: 'image/svg+xml', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ engine: type, source, format: 'svg', options, metadata: meta, presentation }),
         signal: abortController.signal,
       })
       if (requestNumber !== this.requestNumber) return
@@ -97,14 +92,16 @@ export class PreviewController {
       const { blob, background } = this.normalizedSvgBlob(await response.text())
       this.latestRenderKey = renderKey
       this.latestSvgBlob = blob
+      this.imageFallbackUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(await blob.text())}`
       this.stage.style.setProperty('--render-background', background)
       const nextObjectUrl = URL.createObjectURL(blob)
       const previousObjectUrl = this.objectUrl
       this.objectUrl = nextObjectUrl
+      this.activeImageUrl = nextObjectUrl
       this.image.src = nextObjectUrl
       this.minimapImage.src = nextObjectUrl
       this.image.hidden = false
-      this.setStatus('Rendered', 'ready')
+      this.setStatus('Loading image…', 'loading')
       if (previousObjectUrl) URL.revokeObjectURL(previousObjectUrl)
     } catch (error) {
       if (error.name === 'AbortError') return
@@ -112,6 +109,21 @@ export class PreviewController {
     } finally {
       if (this.abortController === abortController) this.abortController = null
     }
+  }
+
+  retryBlockedImage() {
+    if (this.image.src !== this.activeImageUrl) return
+    if (this.imageFallbackUrl && this.activeImageUrl.startsWith('blob:')) {
+      const fallback = this.imageFallbackUrl
+      this.imageFallbackUrl = null
+      if (this.objectUrl) URL.revokeObjectURL(this.objectUrl)
+      this.objectUrl = null
+      this.activeImageUrl = fallback
+      this.image.src = fallback
+      this.minimapImage.src = fallback
+      return
+    }
+    this.setStatus('The rendered image was blocked or invalid.', 'error')
   }
 
   svgBlobFor(state) {
@@ -122,6 +134,14 @@ export class PreviewController {
 
   async errorMessage(response) {
     const body = await response.text()
+    if (response.headers.get('Content-Type')?.includes('application/json')) {
+      try {
+        const payload = JSON.parse(body)
+        if (typeof payload?.error?.message === 'string') return payload.error.message
+      } catch {
+        // Fall through to the compatibility HTML/plain-text parser.
+      }
+    }
     const document = new DOMParser().parseFromString(body, 'text/html')
     const message = document.body.textContent.trim().replace(/\s+/g, ' ')
     return message || `Render failed with HTTP ${response.status}.`

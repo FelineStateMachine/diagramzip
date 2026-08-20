@@ -221,6 +221,15 @@ jobs:
         npm test
         npx wrangler deploy --dry-run
 
+    - name: Test diagram.zip rendering gateway
+      working-directory: diagramzip-render
+      run: |
+        npm ci
+        npm run cf-typegen
+        npm run check
+        npm test
+        npm run deploy:dry
+
     - name: Test and build diagram.zip
       run: |
         npm run test:diagramzip

@@ -87,9 +87,11 @@ ID.
 
 ## Persistence API
 
-The Worker is mounted at the same-origin `/api/v1/*` edge route. The existing
-Fly application remains responsible for the editor shell and transient Kroki
-renders.
+The persistence Worker is mounted at the same-origin `/api/v1/*` edge route.
+Transient renders go through the separate `/render/v1/svg` Worker gateway. The
+gateway owns the 30-engine registry, validation, SVG sanitization, presentation,
+and cache policy; it calls an edge renderer where one is active and otherwise
+uses the existing Fly application as a compatibility origin.
 
 ### Create
 

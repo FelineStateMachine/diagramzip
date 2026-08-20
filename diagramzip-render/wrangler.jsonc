@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.05 }
+  },
+  "vars": {
+    "ORIGIN_URL": "https://diagram-zip.fly.dev",
+    "RENDERER_BUILD": "diagramzip-render-0.2.0"
+  },
+  "routes": [
+    {
+      "pattern": "diagram.zip/render/v1/*",
+      "zone_name": "diagram.zip"
+    }
+  ]
+}
