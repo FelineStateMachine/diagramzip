@@ -39,7 +39,7 @@ public class InvalidRequestHandler implements Handler<HttpServerRequest> {
           new ErrorInfo(
             cause,
             responseStatus.code(),
-            "The request URI's length exceeds " + maxInitialLineLength + ". You can update this value by setting KROKI_MAX_URI_LENGTH environment variable. Please read: https://docs.kroki.io/kroki/setup/configuration/#_max_uri_length for more information.",
+            "This image link is too large to open. Use a shorter diagram or share the editable diagram.zip link instead.",
             null
           )
         ));

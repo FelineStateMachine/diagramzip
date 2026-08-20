@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -54,6 +55,11 @@ public class Goat implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
       List<String> commands = new ArrayList<>();
       commands.add(binPath);
@@ -79,7 +85,7 @@ public class Goat implements DiagramService {
       // Currently GoAT only supports passing custom CSS via files.
       // It would be best if we can inline it directly instead.
 
-      byte[] result = commander.execute(sourceDecoded.getBytes(), commands.toArray(new String[0]));
+      byte[] result = commander.execute(cancellation, sourceDecoded.getBytes(), commands.toArray(new String[0]));
       return Buffer.buffer(result);
     });
   }

@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -53,13 +54,18 @@ public class Svgbob implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = svgbob(sourceDecoded.getBytes(), options);
+      byte[] result = svgbob(cancellation, sourceDecoded.getBytes(), options);
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] svgbob(byte[] source, JsonObject options) throws IOException, InterruptedException, IllegalStateException {
+  private byte[] svgbob(RenderCancellation cancellation, byte[] source, JsonObject options) throws IOException, InterruptedException, IllegalStateException {
     List<String> commands = new ArrayList<>();
     commands.add(binPath);
     addOption("background", options, commands);
@@ -69,7 +75,7 @@ public class Svgbob implements DiagramService {
     addOption("scale", options, commands);
     addOption("stroke-width", options, commands);
     String[] args = commands.toArray(new String[0]);
-    return commander.execute(source, args);
+    return commander.execute(cancellation, source, args);
   }
 
   private void addOption(String optionKey, JsonObject options, List<String> commands) {

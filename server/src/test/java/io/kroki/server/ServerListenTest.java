@@ -107,7 +107,7 @@ class ServerListenTest {
       .as(BodyCodec.string())
       .send()
       .await(2, TimeUnit.SECONDS);
-    assertThat(response.body()).contains("https://kroki.io");
+    assertThat(response.body()).contains("<title>diagram.zip</title>");
   }
 
   private int getAvailablePort() throws IOException {

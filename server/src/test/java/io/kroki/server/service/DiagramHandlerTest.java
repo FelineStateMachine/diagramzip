@@ -326,6 +326,8 @@ class DiagramHandlerTest {
     when(diagramService.getSupportedFormats()).thenReturn(supportedFormats);
     when(diagramService.getSourceDecoder()).thenReturn(sourceDecoder);
     when(diagramService.convert(any(), any(), any(), any())).thenReturn(Future.succeededFuture(Buffer.buffer("")));
+    when(diagramService.convert(any(), any(), any(), any(), any())).thenAnswer(invocation ->
+      diagramService.convert(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2), invocation.getArgument(3)));
     return diagramService;
   }
 }

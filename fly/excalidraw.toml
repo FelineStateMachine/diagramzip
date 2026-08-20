@@ -1,0 +1,21 @@
+app = "diagram-zip-excalidraw"
+primary_region = "dfw"
+
+[build]
+  image = "yuzutech/kroki-excalidraw:0.32.1"
+
+[http_service]
+  internal_port = 8004
+  force_https = false
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 4
+    hard_limit = 8
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"

@@ -19,6 +19,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -35,6 +39,23 @@ class CommanderTest {
     assertThatThrownBy(() -> new Commander(new JsonObject()).execute("".getBytes(), "/path/not/found/dot"))
       .isInstanceOf(IOException.class)
       .hasMessageStartingWith("Cannot run program \"/path/not/found/dot\"");
+  }
+
+  @Test
+  void should_terminate_a_cancelled_command() throws Exception {
+    RenderCancellation cancellation = new RenderCancellation();
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    try {
+      java.util.concurrent.Future<byte[]> result = executor.submit(() ->
+        new Commander(new JsonObject().put("KROKI_COMMAND_TIMEOUT", "30s"))
+          .execute(cancellation, new byte[0], "sh", "-c", "sleep 30"));
+      cancellation.cancel();
+      assertThatThrownBy(() -> result.get(5, TimeUnit.SECONDS))
+        .isInstanceOf(ExecutionException.class)
+        .hasCauseInstanceOf(CancellationException.class);
+    } finally {
+      executor.shutdownNow();
+    }
   }
 
   // Server code injection

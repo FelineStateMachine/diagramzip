@@ -8,8 +8,12 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.PoolOptions;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpRequest;
@@ -20,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.ConnectException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 public class Delegator {
 
@@ -39,6 +45,7 @@ public class Delegator {
   // <host>:<port>") well before the companion itself is actually overloaded.
   private static final int DEFAULT_MAX_POOL_SIZE = 10;
   private final WebClient webClient;
+  private final HttpClient httpClient;
   private final long timeoutMs;
 
   public Delegator(Vertx vertx) {
@@ -48,7 +55,7 @@ public class Delegator {
   public Delegator(Vertx vertx, JsonObject config) {
     Integer configuredPoolSize = config.getInteger("KROKI_DELEGATE_MAX_POOL_SIZE");
     int maxPoolSize = configuredPoolSize != null && configuredPoolSize > 0 ? configuredPoolSize : DEFAULT_MAX_POOL_SIZE;
-    HttpClient httpClient = vertx.httpClientBuilder()
+    this.httpClient = vertx.httpClientBuilder()
       // https://vertx.io/docs/vertx-web-client/java/#_handling_30x_redirections
       // > By default the client follows redirections
       // But..
@@ -74,6 +81,82 @@ public class Delegator {
     });
     return request
       .sendBuffer(Buffer.buffer(body));
+  }
+
+  public Future<DelegatedResponse> delegateCancellable(String host, int port, String requestURI, String body,
+                                                        JsonObject options, RenderCancellation cancellation) {
+    String uri = requestURI + encodeOptions(options);
+    RequestOptions requestOptions = new RequestOptions()
+      .setMethod(HttpMethod.POST)
+      .setHost(host)
+      .setPort(port)
+      .setURI(uri)
+      .setFollowRedirects(true)
+      .setTimeout(timeoutMs);
+    return httpClient.request(requestOptions).compose(request -> {
+      request.putHeader(HttpHeaders.ACCEPT, HttpHeaderValues.APPLICATION_JSON);
+      cancellation.onCancel(request::cancel);
+      return request.send(Buffer.buffer(body));
+    }).compose(response -> response.body().map(bodyBuffer -> new DelegatedResponse(response, bodyBuffer)));
+  }
+
+  private static String encodeOptions(JsonObject options) {
+    if (options.isEmpty()) return "";
+    StringBuilder query = new StringBuilder("?");
+    options.stream().forEach(entry -> {
+      if (query.length() > 1) query.append('&');
+      query.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
+      query.append('=');
+      query.append(URLEncoder.encode(entry.getValue() == null ? "" : entry.getValue().toString(), StandardCharsets.UTF_8));
+    });
+    return query.toString();
+  }
+
+  public static Future<Buffer> handleCancellable(String host, int port, String requestURI,
+                                                  Future<DelegatedResponse> httpResponseFuture) {
+    return httpResponseFuture.compose(httpResponse -> {
+      if (httpResponse.statusCode == 200) {
+        return Future.succeededFuture(httpResponse.body);
+      }
+      logging.delegate(httpResponse.statusCode, httpResponse.body.toString(), host, port, requestURI);
+      String contentType = httpResponse.contentType;
+      if (contentType != null && contentType.toLowerCase().startsWith(HttpHeaderValues.APPLICATION_JSON.toString())) {
+        try {
+          JsonObject json = httpResponse.body.toJsonObject();
+          Object error = json.getValue("error");
+          if (error instanceof String) {
+            return Future.failedFuture(new BadRequestException((String) error, httpResponse.statusCode));
+          }
+          if (error instanceof JsonObject) {
+            JsonObject errorObject = (JsonObject) error;
+            String message = errorObject.getString("name", "Error") + ": "
+              + errorObject.getString("message", "Unexpected error") + "\n"
+              + errorObject.getString("stacktrace", "");
+            return Future.failedFuture(new BadRequestException(message, httpResponse.statusCode));
+          }
+        } catch (DecodeException ignored) {
+          // Fall through to a generic status error.
+        }
+      }
+      return Future.failedFuture(new HttpException(httpResponse.statusCode));
+    }, failure -> {
+      if (failure instanceof ConnectException) {
+        return Future.failedFuture(new ServiceUnavailableException(failure.getMessage()));
+      }
+      return Future.failedFuture(failure);
+    });
+  }
+
+  public static class DelegatedResponse {
+    private final int statusCode;
+    private final String contentType;
+    private final Buffer body;
+
+    private DelegatedResponse(HttpClientResponse response, Buffer body) {
+      this.statusCode = response.statusCode();
+      this.contentType = response.getHeader(HttpHeaders.CONTENT_TYPE);
+      this.body = body;
+    }
   }
 
   public static Future<Buffer> handle(String host, int port, String requestURI, Future<HttpResponse<Buffer>> httpResponseFuture) {

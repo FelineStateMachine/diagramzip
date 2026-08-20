@@ -19,6 +19,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.StaticHandler;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -92,7 +93,7 @@ public class Server extends AbstractVerticle {
       .allowedMethods(allowedMethods));
 
     Commander commander = new Commander(config);
-    DiagramRegistry registry = new DiagramRegistry(router, bodyHandler);
+    DiagramRegistry registry = new DiagramRegistry(router, bodyHandler, new RenderCache(config));
     registry.register(new Plantuml(vertx, config), "plantuml");
     registry.register(new Plantuml(vertx, config), "c4plantuml");
     registry.register(new Ditaa(vertx, config), "ditaa");
@@ -139,12 +140,14 @@ public class Server extends AbstractVerticle {
     router.get("/healthz") // k8s liveness default URL (alias)
       .handler(healthHandlerService);
 
-    // hello
-    List<ServiceVersion> serviceVersions = healthHandler.getServiceVersions();
-    String krokiBuildHash = healthHandler.getKrokiBuildHash();
-    String krokiVersionNumber = healthHandler.getKrokiVersionNumber();
+    // diagram.zip
+    router.route("/diagram.zip/*")
+      .handler(StaticHandler.create("web/diagramzip")
+        .setFilesReadOnly(true)
+        .setCachingEnabled(true)
+        .setMaxAgeSeconds(31536000));
     router.get("/")
-      .handler(new HelloHandler(vertx, serviceVersions, krokiVersionNumber, krokiBuildHash).create());
+      .handler(new DiagramZipHandler(vertx).create());
 
     // Default route
     Route route = router.route("/*");

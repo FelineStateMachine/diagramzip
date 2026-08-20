@@ -11,6 +11,10 @@ versioned entry and uses it as the GitHub release notes.
 
 ## [Unreleased]
 
+### Added
+
+- Add the diagram.zip browser editor with syntax highlighting, live SVG preview, zoom and minimap navigation, and URL-based sharing without server-side document storage
+
 ## [0.32.1] - 2026-08-12
 
 ### Security

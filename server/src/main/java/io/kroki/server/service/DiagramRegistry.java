@@ -6,6 +6,7 @@ import io.kroki.server.response.Caching;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,14 +19,20 @@ public class DiagramRegistry {
   private final Map<String, DiagramHandler> registry = new HashMap<>();
   private final Router router;
   private final BodyHandler bodyHandler;
+  private final RenderCache renderCache;
 
   public DiagramRegistry(Router router, BodyHandler bodyHandler) {
+    this(router, bodyHandler, new RenderCache(new JsonObject()));
+  }
+
+  public DiagramRegistry(Router router, BodyHandler bodyHandler, RenderCache renderCache) {
     this.router = router;
     this.bodyHandler = bodyHandler;
+    this.renderCache = renderCache;
   }
 
   public void register(DiagramService diagramService, String... names) {
-    DiagramHandler diagramHandler = new DiagramHandler(diagramService, new Caching(diagramService.getVersion()));
+    DiagramHandler diagramHandler = new DiagramHandler(diagramService, new Caching(diagramService.getVersion()), renderCache);
     for (String name : names) {
       registry.put(name, diagramHandler);
       router.get("/" + name + "/:output_format/:source_encoded")

@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Delegator;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -55,5 +56,12 @@ public class Bpmn implements DiagramService {
     String requestURI = "/" + serviceName + "/" + fileFormat.getName();
     Future<HttpResponse<Buffer>> httpResponseFuture = this.delegator.delegate(host, port, requestURI, sourceDecoded, options);
     return Delegator.handle(host, port, requestURI, httpResponseFuture);
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
+    String requestURI = "/" + serviceName + "/" + fileFormat.getName();
+    return Delegator.handleCancellable(host, port, requestURI,
+      delegator.delegateCancellable(host, port, requestURI, sourceDecoded, options, cancellation));
   }
 }

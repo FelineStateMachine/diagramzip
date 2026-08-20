@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -51,13 +52,18 @@ public class Dbml implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = dbmlRenderer(sourceDecoded.getBytes(), fileFormat.getName());
+      byte[] result = dbmlRenderer(cancellation, sourceDecoded.getBytes(), fileFormat.getName());
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] dbmlRenderer(byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
-    return commander.execute(source, binPath);
+  private byte[] dbmlRenderer(RenderCancellation cancellation, byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
+    return commander.execute(cancellation, source, binPath);
   }
 }

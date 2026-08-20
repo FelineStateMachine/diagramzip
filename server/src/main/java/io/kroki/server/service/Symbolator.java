@@ -1,5 +1,6 @@
 package io.kroki.server.service;
 
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -47,8 +48,13 @@ public class Symbolator implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = this.command.convert(sourceDecoded, fileFormat, options);
+      byte[] result = this.command.convert(cancellation, sourceDecoded, fileFormat, options);
       return Buffer.buffer(result);
     });
   }

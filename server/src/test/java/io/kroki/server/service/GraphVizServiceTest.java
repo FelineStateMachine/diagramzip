@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.format.FileFormat;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -22,7 +23,7 @@ public class GraphVizServiceTest {
   public void should_call_graphviz_with_correct_arguments() throws Throwable {
     Vertx vertx = Vertx.vertx();
     Commander commanderMock = mock(Commander.class);
-    when(commanderMock.execute(any(), any(String[].class))).thenReturn("<svg>graphviz</svg>".getBytes());
+    when(commanderMock.execute(any(RenderCancellation.class), any(), any(String[].class))).thenReturn("<svg>graphviz</svg>".getBytes());
     HashMap<String, Object> config = new HashMap<>();
     config.put("KROKI_SAFE_MODE", "unsafe");
     config.put("KROKI_DOT_BIN_PATH", "/path/to/dot");
@@ -37,6 +38,6 @@ public class GraphVizServiceTest {
     options.put("edge-attribute-arrowhead", "diamond");
     Buffer buffer = graphvizService.convert("{}", "graphviz", FileFormat.SVG, options).await(2, TimeUnit.SECONDS);
     assertThat(buffer.toString()).isEqualTo("<svg>graphviz</svg>");
-    Mockito.verify(commanderMock).execute("{}".getBytes(), "/path/to/dot", "-Tsvg", "-Kneato", "-Nfontcolor=Crimson", "-Nshape=rect", "-Gfontcolor=SteelBlue", "-Glabel=Hello World", "-Ecolor=NavajoWhite", "-Earrowhead=diamond");
+    Mockito.verify(commanderMock).execute(any(RenderCancellation.class), Mockito.eq("{}".getBytes()), Mockito.eq("/path/to/dot"), Mockito.eq("-Tsvg"), Mockito.eq("-Kneato"), Mockito.eq("-Nfontcolor=Crimson"), Mockito.eq("-Nshape=rect"), Mockito.eq("-Gfontcolor=SteelBlue"), Mockito.eq("-Glabel=Hello World"), Mockito.eq("-Ecolor=NavajoWhite"), Mockito.eq("-Earrowhead=diamond"));
   }
 }

@@ -1,5 +1,6 @@
 package io.kroki.server.service;
 
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.format.FileFormat;
 import io.vertx.core.AsyncResult;
@@ -19,4 +20,9 @@ public interface DiagramService {
   String getVersion();
 
   Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options);
+
+  default Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options,
+                                 RenderCancellation cancellation) {
+    return convert(sourceDecoded, serviceName, fileFormat, options);
+  }
 }

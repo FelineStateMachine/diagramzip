@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -60,15 +61,20 @@ public class Vega implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = vega(sourceDecoded.getBytes(), fileFormat.getName());
+      byte[] result = vega(cancellation, sourceDecoded.getBytes(), fileFormat.getName());
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] vega(byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
+  private byte[] vega(RenderCancellation cancellation, byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
     String vegaSafeMode = safeMode == SafeMode.UNSAFE ? "unsafe" : "secure";
-    return commander.execute(source, binPath,
+    return commander.execute(cancellation, source, binPath,
       "--output-format=" + format,
       "--safe-mode=" + vegaSafeMode,
       "--spec-format=" + specFormat.name().toLowerCase());

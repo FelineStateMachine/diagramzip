@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -51,13 +52,18 @@ public class Pikchr implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = pikchr(sourceDecoded.getBytes());
+      byte[] result = pikchr(cancellation, sourceDecoded.getBytes());
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] pikchr(byte[] source) throws IOException, InterruptedException, IllegalStateException {
-    return commander.execute(source, binPath, "--svg-only", "-");
+  private byte[] pikchr(RenderCancellation cancellation, byte[] source) throws IOException, InterruptedException, IllegalStateException {
+    return commander.execute(cancellation, source, binPath, "--svg-only", "-");
   }
 }

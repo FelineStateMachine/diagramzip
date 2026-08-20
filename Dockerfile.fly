@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1.7
+
+FROM node:24.19-bookworm-slim AS frontend
+
+WORKDIR /workspace
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY diagramzip ./diagramzip
+COPY ci/tests/diagrams ./ci/tests/diagrams
+COPY server/src/main/resources ./server/src/main/resources
+RUN npm run test:diagramzip && npm run build:diagramzip
+
+FROM maven:3.9.11-eclipse-temurin-21 AS server-build
+
+WORKDIR /workspace
+COPY pom.xml ./
+COPY server/pom.xml ./server/pom.xml
+COPY server/src ./server/src
+COPY --from=frontend /workspace/server/src/main/resources/web/diagramzip ./server/src/main/resources/web/diagramzip
+RUN git init --quiet && \
+    git config user.name "diagram.zip build" && \
+    git config user.email "build@diagram.zip" && \
+    git add . && \
+    git commit --quiet --message "Build diagram.zip"
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn --no-transfer-progress -DskipTests -pl server package
+
+FROM yuzutech/kroki:0.32.1
+
+COPY --from=server-build --chown=kroki:kroki /workspace/server/target/kroki-server.jar /usr/local/kroki/kroki-server.jar

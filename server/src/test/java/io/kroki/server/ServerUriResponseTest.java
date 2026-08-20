@@ -52,6 +52,6 @@ public class ServerUriResponseTest {
       .await(5, TimeUnit.SECONDS);
     assertThat(response.statusCode()).isEqualTo(414);
     assertThat(response.statusMessage()).isEqualTo("Request-URI Too Long");
-    assertThat(response.body()).isEqualTo("Error 414: The request URI's length exceeds 8192. You can update this value by setting KROKI_MAX_URI_LENGTH environment variable. Please read: https://docs.kroki.io/kroki/setup/configuration/#_max_uri_length for more information.");
+    assertThat(response.body()).isEqualTo("Error 414: This image link is too large to open. Use a shorter diagram or share the editable diagram.zip link instead.");
   }
 }

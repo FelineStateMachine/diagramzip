@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -53,13 +54,18 @@ public class Graphviz implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = dot(sourceDecoded.getBytes(), fileFormat.getName(), options);
+      byte[] result = dot(cancellation, sourceDecoded.getBytes(), fileFormat.getName(), options);
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] dot(byte[] source, String format, JsonObject options) throws IOException, InterruptedException, IllegalStateException {
+  private byte[] dot(RenderCancellation cancellation, byte[] source, String format, JsonObject options) throws IOException, InterruptedException, IllegalStateException {
     List<String> commands = new ArrayList<>();
     commands.add(binPath);
     // Supported format:
@@ -90,6 +96,6 @@ public class Graphviz implements DiagramService {
         commands.add("-E" + name + "=" + options.getString(fieldName));
       }
     }
-    return commander.execute(source, commands.toArray(new String[0]));
+    return commander.execute(cancellation, source, commands.toArray(new String[0]));
   }
 }

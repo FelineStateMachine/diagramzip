@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -80,13 +81,18 @@ public class D2 implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = d2(sourceDecoded.getBytes(), options);
+      byte[] result = d2(cancellation, sourceDecoded.getBytes(), options);
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] d2(byte[] source, JsonObject options) throws IOException, InterruptedException, IllegalStateException {
+  private byte[] d2(RenderCancellation cancellation, byte[] source, JsonObject options) throws IOException, InterruptedException, IllegalStateException {
     List<String> commands = new ArrayList<>();
     commands.add(binPath);
     String layout = options.getString("layout");
@@ -141,6 +147,6 @@ public class D2 implements DiagramService {
       commands.add("--scale=" + scale);
     }
     commands.add("-"); // read from stdin
-    return commander.execute(source, commands.toArray(new String[0]));
+    return commander.execute(cancellation, source, commands.toArray(new String[0]));
   }
 }

@@ -140,10 +140,12 @@ public class Logging {
   }
 
   public void delegate(HttpResponse<Buffer> httpResponse, String host, int port, String requestURI) {
+    delegate(httpResponse.statusCode(), httpResponse.bodyAsString(), host, port, requestURI);
+  }
+
+  public void delegate(int statusCode, String responseBody, String host, int port, String requestURI) {
     try {
       String path = host + ":" + port + requestURI;
-      int statusCode = httpResponse.statusCode();
-      String responseBody = httpResponse.bodyAsString();
       MDC.put("action", "delegate");
       MDC.put("method", "POST");
       MDC.put("path", path);

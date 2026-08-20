@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.concurrent.CancellationException;
 
 public class Commander {
 
@@ -35,48 +36,62 @@ public class Commander {
   }
 
   public byte[] execute(byte[] source, String... cmd) throws IOException, InterruptedException, IllegalStateException {
+    return execute(new RenderCancellation(), source, cmd);
+  }
+
+  public byte[] execute(RenderCancellation cancellation, byte[] source, String... cmd) throws IOException, InterruptedException, IllegalStateException {
     ProcessBuilder builder = new ProcessBuilder();
     builder.command(cmd);
     //builder.redirectError(ProcessBuilder.Redirect.PIPE);
     //builder.redirectInput(ProcessBuilder.Redirect.PIPE);
     Process process = builder.start();
+    cancellation.register(process);
 
-    ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
-    Thread processStdoutReader = readProcessStdout(process, stdoutBuffer);
-    ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
-    Thread readProcessStderr = readProcessStderr(process, stderrBuffer);
-
-    OutputStream stdin = process.getOutputStream();
-    stdin.write(source);
     try {
-      stdin.flush();
-    } catch (IOException e) {
-      logger.error("Error while flushing stdin on command: " + Arrays.toString(cmd), e);
-      throw e;
-    }
-    try {
-      stdin.close();
-    } catch (IOException e) {
-      logger.error("Error while closing stdin on command: " + Arrays.toString(cmd), e);
-      throw e;
-    }
+      ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+      Thread processStdoutReader = readProcessStdout(process, stdoutBuffer, cancellation);
+      ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
+      Thread readProcessStderr = readProcessStderr(process, stderrBuffer, cancellation);
 
-    process.waitFor(this.commandTimeout.duration(), this.commandTimeout.timeUnit());
-    // writing to stdout is asynchronous, wait until there is no more data in the stdout stream
-    processStdoutReader.join(readStdoutTimeout.millis());
-    // writing to stderr is asynchronous, wait until there is no more data in the stderr stream
-    readProcessStderr.join(readStderrTimeout.millis());
-    byte[] output = stdoutBuffer.toByteArray();
+      OutputStream stdin = process.getOutputStream();
+      stdin.write(source);
+      try {
+        stdin.flush();
+      } catch (IOException e) {
+        if (cancellation.isCancelled()) throw new CancellationException("Render cancelled because no clients are waiting for it.");
+        logger.error("Error while flushing stdin on command: " + Arrays.toString(cmd), e);
+        throw e;
+      }
+      try {
+        stdin.close();
+      } catch (IOException e) {
+        if (cancellation.isCancelled()) throw new CancellationException("Render cancelled because no clients are waiting for it.");
+        logger.error("Error while closing stdin on command: " + Arrays.toString(cmd), e);
+        throw e;
+      }
 
-    if (process.isAlive()) {
-      process.destroyForcibly();
-      throw new InterruptedIOException("Process was forcibly killed (not responding after " + this.commandTimeout + " seconds)");
+      process.waitFor(this.commandTimeout.duration(), this.commandTimeout.timeUnit());
+      // writing to stdout is asynchronous, wait until there is no more data in the stdout stream
+      processStdoutReader.join(readStdoutTimeout.millis());
+      // writing to stderr is asynchronous, wait until there is no more data in the stderr stream
+      readProcessStderr.join(readStderrTimeout.millis());
+      byte[] output = stdoutBuffer.toByteArray();
+
+      if (cancellation.isCancelled()) {
+        throw new CancellationException("Render cancelled because no clients are waiting for it.");
+      }
+      if (process.isAlive()) {
+        process.destroyForcibly();
+        throw new InterruptedIOException("Process was forcibly killed (not responding after " + this.commandTimeout + " seconds)");
+      }
+      int exitValue = process.exitValue();
+      return commandStatusHandler.handle(exitValue, output, stderrBuffer.toByteArray());
+    } finally {
+      cancellation.unregister(process);
     }
-    int exitValue = process.exitValue();
-    return commandStatusHandler.handle(exitValue, output, stderrBuffer.toByteArray());
   }
 
-  private static Thread readProcessStdout(final Process process, final ByteArrayOutputStream buffer) {
+  private static Thread readProcessStdout(final Process process, final ByteArrayOutputStream buffer, RenderCancellation cancellation) {
     InputStream input = process.getInputStream();
     Thread thread = new Thread(() -> {
       byte[] data = new byte[2048];
@@ -86,14 +101,14 @@ public class Commander {
           buffer.write(data, 0, index);
         }
       } catch (IOException e) {
-        throw new RuntimeException("Unable to read stdout", e);
+        if (!cancellation.isCancelled()) throw new RuntimeException("Unable to read stdout", e);
       }
     });
     thread.start();
     return thread;
   }
 
-  private static Thread readProcessStderr(final Process process, final ByteArrayOutputStream buffer) {
+  private static Thread readProcessStderr(final Process process, final ByteArrayOutputStream buffer, RenderCancellation cancellation) {
     InputStream input = process.getErrorStream();
     Thread thread = new Thread(() -> {
       byte[] data = new byte[2048];
@@ -103,7 +118,7 @@ public class Commander {
           buffer.write(data, 0, index);
         }
       } catch (IOException e) {
-        throw new RuntimeException("Unable to read stderr", e);
+        if (!cancellation.isCancelled()) throw new RuntimeException("Unable to read stderr", e);
       }
     });
     thread.start();

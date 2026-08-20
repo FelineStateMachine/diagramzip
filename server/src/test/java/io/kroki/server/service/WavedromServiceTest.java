@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.format.FileFormat;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -28,12 +29,12 @@ public class WavedromServiceTest {
     HttpServerResponse httpServerResponseMock = mock(HttpServerResponse.class);
     when(routingContextMock.response()).thenReturn(httpServerResponseMock);
     when(httpServerResponseMock.putHeader(any(CharSequence.class), any(CharSequence.class))).thenReturn(httpServerResponseMock);
-    when(commanderMock.execute(any(), any())).thenReturn("<svg>wavedrom</svg>".getBytes());
+    when(commanderMock.execute(any(RenderCancellation.class), any(), any(String[].class))).thenReturn("<svg>wavedrom</svg>".getBytes());
     HashMap<String, Object> config = new HashMap<>();
     config.put("KROKI_WAVEDROM_BIN_PATH", "/path/to/wavedrom");
     Wavedrom wavedromService = new Wavedrom(vertx, new JsonObject(config), commanderMock);
     Buffer result = wavedromService.convert("{}", "wavedrom", FileFormat.SVG, new JsonObject()).await(2, TimeUnit.SECONDS);
     assertThat(result.toString()).isEqualTo("<svg>wavedrom</svg>");
-    Mockito.verify(commanderMock).execute("{}".getBytes(), "/path/to/wavedrom");
+    Mockito.verify(commanderMock).execute(any(RenderCancellation.class), Mockito.eq("{}".getBytes()), Mockito.eq("/path/to/wavedrom"));
   }
 }

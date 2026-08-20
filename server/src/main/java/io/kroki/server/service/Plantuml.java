@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.DitaaContext;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.BadRequestException;
@@ -187,6 +188,11 @@ public class Plantuml implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     String source;
     try {
       source = sanitize(sourceDecoded, this.safeMode, this.includeWhitelist);
@@ -206,7 +212,7 @@ public class Plantuml implements DiagramService {
       // found a ditaa context, delegate to the optimized ditaa service
       return vertx.executeBlocking(() -> {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ditaaCommand.convert(ditaaContext.getSource(), fileFormat, options);
+        ditaaCommand.convert(cancellation, ditaaContext.getSource(), fileFormat, options);
         return Buffer.buffer(outputStream.toByteArray());
       });
     } else {
@@ -218,7 +224,7 @@ public class Plantuml implements DiagramService {
           // add !theme directive just after the @start directive
           sourceWithTheme = START_BLOCK_RX.matcher(primeSource).replaceAll("$1!theme " + theme + "\n");
         }
-        byte[] data = this.plantumlCommand.convert(sourceWithTheme, fileFormat, options);
+        byte[] data = this.plantumlCommand.convert(cancellation, sourceWithTheme, fileFormat, options);
         return Buffer.buffer(data);
       });
     }

@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -53,16 +54,21 @@ public class Umlet implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = umlet(sourceDecoded.getBytes(), fileFormat.getName());
+      byte[] result = umlet(cancellation, sourceDecoded.getBytes(), fileFormat.getName());
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] umlet(byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
+  private byte[] umlet(RenderCancellation cancellation, byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
     List<String> commands = new ArrayList<>();
     commands.add(binPath);
     commands.add(format);
-    return commander.execute(source, commands.toArray(new String[0]));
+    return commander.execute(cancellation, source, commands.toArray(new String[0]));
   }
 }

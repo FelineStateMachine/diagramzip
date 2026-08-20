@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.format.FileFormat;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -22,27 +23,27 @@ public class VegaServiceTest {
   public void should_call_vega_with_correct_arguments() throws Throwable {
     Vertx vertx = Vertx.vertx();
     Commander commanderMock = mock(Commander.class);
-    when(commanderMock.execute(any(), any(String[].class))).thenReturn("<svg>vega</svg>".getBytes());
+    when(commanderMock.execute(any(RenderCancellation.class), any(), any(String[].class))).thenReturn("<svg>vega</svg>".getBytes());
     HashMap<String, Object> config = new HashMap<>();
     config.put("KROKI_SAFE_MODE", "unsafe");
     config.put("KROKI_VEGA_BIN_PATH", "/path/to/vega");
     Vega vegaService = new Vega(vertx, new JsonObject(config), Vega.SpecFormat.DEFAULT, commanderMock);
     Buffer buffer = vegaService.convert("{}", "vega", FileFormat.SVG, new JsonObject()).await(4, TimeUnit.SECONDS);
     assertThat(buffer.toString()).isEqualTo("<svg>vega</svg>");
-    Mockito.verify(commanderMock).execute("{}".getBytes(), "/path/to/vega", "--output-format=svg", "--safe-mode=unsafe", "--spec-format=default");
+    Mockito.verify(commanderMock).execute(any(RenderCancellation.class), Mockito.eq("{}".getBytes()), Mockito.eq("/path/to/vega"), Mockito.eq("--output-format=svg"), Mockito.eq("--safe-mode=unsafe"), Mockito.eq("--spec-format=default"));
   }
 
   @Test
   public void should_call_vega_lite_with_correct_arguments() throws Throwable {
     Vertx vertx = Vertx.vertx();
     Commander commanderMock = mock(Commander.class);
-    when(commanderMock.execute(any(), any(String[].class))).thenReturn("<svg>vega-lite</svg>".getBytes());
+    when(commanderMock.execute(any(RenderCancellation.class), any(), any(String[].class))).thenReturn("<svg>vega-lite</svg>".getBytes());
     HashMap<String, Object> config = new HashMap<>();
     config.put("KROKI_SAFE_MODE", "unsafe");
     config.put("KROKI_VEGA_BIN_PATH", "/path/to/vega");
     Vega vegaService = new Vega(vertx, new JsonObject(config), Vega.SpecFormat.LITE, commanderMock);
     Buffer buffer = vegaService.convert("{}", "vegalite", FileFormat.SVG, new JsonObject()).await(4, TimeUnit.SECONDS);
     assertThat(buffer.toString()).isEqualTo("<svg>vega-lite</svg>");
-    Mockito.verify(commanderMock).execute("{}".getBytes(), "/path/to/vega", "--output-format=svg", "--safe-mode=unsafe", "--spec-format=lite");
+    Mockito.verify(commanderMock).execute(any(RenderCancellation.class), Mockito.eq("{}".getBytes()), Mockito.eq("/path/to/vega"), Mockito.eq("--output-format=svg"), Mockito.eq("--safe-mode=unsafe"), Mockito.eq("--spec-format=lite"));
   }
 }

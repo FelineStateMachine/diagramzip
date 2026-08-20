@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -53,13 +54,18 @@ public class Blockdiag implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = bin(sourceDecoded.getBytes(), serviceName, fileFormat, options);
+      byte[] result = bin(cancellation, sourceDecoded.getBytes(), serviceName, fileFormat, options);
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] bin(byte[] source, String serviceName, FileFormat fileFormat, JsonObject options) throws IOException, InterruptedException, IllegalStateException {
+  private byte[] bin(RenderCancellation cancellation, byte[] source, String serviceName, FileFormat fileFormat, JsonObject options) throws IOException, InterruptedException, IllegalStateException {
     List<String> commands = new ArrayList<>();
     commands.add(binPath);
     commands.add("--module=" + serviceName);
@@ -82,6 +88,6 @@ public class Blockdiag implements DiagramService {
       commands.add("--nodoctype");
     }
     commands.add("-"); // read from stdin
-    return commander.execute(source, commands.toArray(new String[0]));
+    return commander.execute(cancellation, source, commands.toArray(new String[0]));
   }
 }

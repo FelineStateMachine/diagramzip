@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -52,14 +53,19 @@ public class Erd implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = erd(sourceDecoded.getBytes(), fileFormat == FileFormat.JPEG ? "jpg" : fileFormat.getName());
+      byte[] result = erd(cancellation, sourceDecoded.getBytes(), fileFormat == FileFormat.JPEG ? "jpg" : fileFormat.getName());
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] erd(byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
+  private byte[] erd(RenderCancellation cancellation, byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
     // Supported format: bmp, dot, eps, gif, jpg, pdf, plain, png, ps, ps2, svg, tiff
-    return commander.execute(source, binPath, "--fmt=" + format);
+    return commander.execute(cancellation, source, binPath, "--fmt=" + format);
   }
 }

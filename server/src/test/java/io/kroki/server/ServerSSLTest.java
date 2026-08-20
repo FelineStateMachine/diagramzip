@@ -45,7 +45,7 @@ class ServerSSLTest {
       .as(BodyCodec.string())
       .send()
       .await(5, TimeUnit.SECONDS);
-    assertThat(response.body()).contains("https://kroki.io");
+    assertThat(response.body()).contains("<title>diagram.zip</title>");
   }
 
   @Test
@@ -61,7 +61,7 @@ class ServerSSLTest {
       .as(BodyCodec.string())
       .send()
       .await(5, TimeUnit.SECONDS);
-    assertThat(response.body()).contains("https://kroki.io");
+    assertThat(response.body()).contains("<title>diagram.zip</title>");
   }
 
   @Test
@@ -77,7 +77,7 @@ class ServerSSLTest {
       .as(BodyCodec.string())
       .send()
       .await(5, TimeUnit.SECONDS);
-    assertThat(response.body()).contains("https://kroki.io");
+    assertThat(response.body()).contains("<title>diagram.zip</title>");
   }
 
   @Test

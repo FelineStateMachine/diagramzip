@@ -2,6 +2,7 @@ package io.kroki.server.service;
 
 import io.kroki.server.Main;
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.format.FileFormat;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
@@ -24,6 +25,10 @@ public class DitaaCommand {
   }
 
   public byte[] convert(String source, FileFormat format, JsonObject options) throws IOException, InterruptedException {
+    return convert(new RenderCancellation(), source, format, options);
+  }
+
+  public byte[] convert(RenderCancellation cancellation, String source, FileFormat format, JsonObject options) throws IOException, InterruptedException {
     List<String> commands = new ArrayList<>();
     commands.add(binPath);
     if (format.equals(FileFormat.SVG)) {
@@ -66,6 +71,6 @@ public class DitaaCommand {
     }
     commands.add("-");
     logger.info("commands: {}", Arrays.toString(commands.toArray(new String[0])));
-    return commander.execute(source.getBytes(), commands.toArray(new String[0]));
+    return commander.execute(cancellation, source.getBytes(), commands.toArray(new String[0]));
   }
 }

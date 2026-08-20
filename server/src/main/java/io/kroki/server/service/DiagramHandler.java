@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.concurrent.CancellationException;
 
 public class DiagramHandler {
 
@@ -31,15 +32,21 @@ public class DiagramHandler {
   private final DiagramService service;
   private final Logging logging;
   private final DiagramResponse diagramResponse;
+  private final RenderCache renderCache;
 
   public DiagramHandler(DiagramService service) {
     this(service, null);
   }
 
   public DiagramHandler(DiagramService service, Caching caching) {
+    this(service, caching, new RenderCache(new JsonObject()));
+  }
+
+  public DiagramHandler(DiagramService service, Caching caching, RenderCache renderCache) {
     this.service = service;
     this.logging = new Logging(logger);
     this.diagramResponse = new DiagramResponse(caching);
+    this.renderCache = renderCache;
   }
 
   public Handler<RoutingContext> createRequestReceived(String serviceName) {
@@ -189,18 +196,27 @@ public class DiagramHandler {
 
   public void convert(RoutingContext routingContext, String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
     long start = System.currentTimeMillis();
-    Future<Buffer> result = service.convert(sourceDecoded, serviceName, fileFormat, options);
-    result.onComplete(buffer -> {
+    RenderCache.RenderRequest render = renderCache.render(serviceName + "@" + service.getVersion(), fileFormat, sourceDecoded, options,
+      cancellation -> service.convert(sourceDecoded, serviceName, fileFormat, options, cancellation));
+    HttpServerResponse response = routingContext.response();
+    response.putHeader("X-Diagram-Cache", render.status().name());
+    response.closeHandler(ignored -> render.release());
+    render.future().onComplete(buffer -> {
+      render.release();
       logging.convert(routingContext, start, serviceName, fileFormat);
       if (buffer == null) {
         routingContext.fail(new BadRequestException("The service did not return a response."));
       } else {
-        HttpServerResponse response = routingContext.response();
         if (!response.closed()) {
           diagramResponse.end(response, sourceDecoded, fileFormat, buffer);
         }
       }
-    }, routingContext::fail);
+    }, failure -> {
+      render.release();
+      if (!response.closed() && !(failure instanceof CancellationException)) {
+        routingContext.fail(failure);
+      }
+    });
   }
 
   public DiagramService getService() {

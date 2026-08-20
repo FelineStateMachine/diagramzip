@@ -1,6 +1,7 @@
 package io.kroki.server.service;
 
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.decode.DiagramSource;
 import io.kroki.server.decode.SourceDecoder;
 import io.kroki.server.error.DecodeException;
@@ -54,17 +55,22 @@ public class TikZ implements DiagramService {
 
   @Override
   public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    return convert(sourceDecoded, serviceName, fileFormat, options, new RenderCancellation());
+  }
+
+  @Override
+  public Future<Buffer> convert(String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options, RenderCancellation cancellation) {
     return vertx.executeBlocking(() -> {
-      byte[] result = tikz2svg(sourceDecoded.getBytes(), fileFormat.getName());
+      byte[] result = tikz2svg(cancellation, sourceDecoded.getBytes(), fileFormat.getName());
       return Buffer.buffer(result);
     });
   }
 
-  private byte[] tikz2svg(byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
+  private byte[] tikz2svg(RenderCancellation cancellation, byte[] source, String format) throws IOException, InterruptedException, IllegalStateException {
     List<String> commands = new ArrayList<>();
     commands.add(binPath);
     commands.add(format);
     commands.add(String.valueOf(safeMode.value));
-    return commander.execute(source, commands.toArray(new String[0]));
+    return commander.execute(cancellation, source, commands.toArray(new String[0]));
   }
 }

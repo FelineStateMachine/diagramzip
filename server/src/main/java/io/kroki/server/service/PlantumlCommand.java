@@ -2,6 +2,7 @@ package io.kroki.server.service;
 
 import io.kroki.server.action.CommandStatusHandler;
 import io.kroki.server.action.Commander;
+import io.kroki.server.action.RenderCancellation;
 import io.kroki.server.error.BadRequestException;
 import io.kroki.server.format.FileFormat;
 import io.kroki.server.security.SafeMode;
@@ -94,11 +95,15 @@ public class PlantumlCommand {
   }
 
   public byte[] convert(String source, FileFormat format, JsonObject options) throws IOException, InterruptedException {
+    return convert(new RenderCancellation(), source, format, options);
+  }
+
+  public byte[] convert(RenderCancellation cancellation, String source, FileFormat format, JsonObject options) throws IOException, InterruptedException {
     List<String> commandArgs = buildCommandArgs(format, options);
 
     logger.debug("Executing PlantUML command: {}", commandArgs);
 
-    byte[] result = commander.execute(source.getBytes(), commandArgs.toArray(new String[0]));
+    byte[] result = commander.execute(cancellation, source.getBytes(), commandArgs.toArray(new String[0]));
     if (format == FileFormat.BASE64) {
       final String encodedBytes = "data:image/png;base64," + Base64.getUrlEncoder().encodeToString(result).replaceAll("\\s", "");
       return encodedBytes.getBytes();

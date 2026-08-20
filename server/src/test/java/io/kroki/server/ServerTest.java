@@ -51,7 +51,7 @@ class ServerTest {
         if (response.failed()) {
           throw new RuntimeException("Failed to get response", response.cause());
         } else {
-          assertThat(response.result().bodyAsString()).contains("https://kroki.io");
+          assertThat(response.result().bodyAsString()).contains("<title>diagram.zip</title>");
         }
       });
   }

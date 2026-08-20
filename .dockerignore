@@ -1,5 +1,9 @@
-.git/
-.registry/oci/*
-*.iml
-.vertx/
-**/node_modules/
+**
+!Dockerfile.fly
+!package.json
+!package-lock.json
+!pom.xml
+!diagramzip/**
+!ci/tests/diagrams/**
+!server/pom.xml
+!server/src/**
