@@ -45,6 +45,8 @@ const sharedUnits = {
   vegalite: 'vega-family',
 }
 
+const pythonEngines = new Set(['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag'])
+
 async function smoke([engine, filename]) {
   const source = await readFile(resolve(fixtureDirectory, filename), 'utf8')
   const endpoint = `https://${engine}.render.diagram.zip/v1/svg`
@@ -70,6 +72,14 @@ async function smoke([engine, filename]) {
   const expectedPipeline = engine === 'vegalite' ? `${expectedUnit},vega` : expectedUnit
   if (pipeline !== expectedPipeline) {
     throw new Error(`${engine}: unexpected pipeline ${pipeline}`)
+  }
+  if (pythonEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-python') {
+      throw new Error(`${engine}: expected edge-python renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    }
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('blockdiag-3.4.2-family-python-')) {
+      throw new Error(`${engine}: unexpected Python Worker build ${response.headers.get('X-Renderer-Build')}`)
+    }
   }
   return `${engine.padEnd(10)} ${response.headers.get('X-Diagram-Cache')?.padEnd(4)} ${body.length} bytes`
 }

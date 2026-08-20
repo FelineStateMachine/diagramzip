@@ -28,11 +28,14 @@ For each diagram family, choose the closest maintained rendering path in this or
 3. Run a compatible upstream library in its supported Worker language.
 4. Render in a Worker with precompiled WebAssembly.
 5. Port a small, well-defined upstream parser or renderer when the original runtime is unsuitable.
-6. Use the existing origin renderer as a compatibility fallback.
+6. Use a narrowly scoped compatibility unit only until that engine's replacement
+   is live, then remove its origin path instead of retaining a silent fallback.
 
 Workers should own routing, decoding, request validation, SVG sanitization, presentation, caching, and the edge-native engines. The browser should own interactive rendering wherever practical. Fly.io or Cloudflare Containers should temporarily retain engines whose real responsibility is a native toolchain, a JVM, Graphviz composition that cannot yet move to WebAssembly, or TeX. Python alone is no longer a reason to require an origin now that Cloudflare has Python Workers, but each dependency still needs a compatibility and performance spike.
 
-This gives v2 a coherent product even before every engine is Cloudflare-native: all engines can remain available through a runtime adapter, while the highest-value engines move off the origin incrementally.
+This gives v2 a coherent product during the extraction: all engines remain
+available through a runtime adapter, while each completed cutover permanently
+shrinks the set that can reach the origin.
 
 ## Separate the four product responsibilities
 
@@ -58,7 +61,11 @@ The transient gateway keeps the familiar engine/source rendering contract:
 /render/v1/svg
 ```
 
-The editor POSTs a bounded JSON request containing the engine, source, options, metadata, and presentation. The rendering gateway renders locally when possible and forwards only the remaining engines to the compatibility origin. The result is transient until a successful alias save uploads the immutable content-addressed render blob.
+The editor POSTs a bounded JSON request to the selected engine's dedicated
+hostname. Only engines not yet extracted may fall through the legacy gateway to
+the compatibility origin. Completed units surface their own failures and are
+structurally barred from that fallback. The result is transient until a
+successful alias save uploads the immutable content-addressed render blob.
 
 ## Proposed runtime topology
 
@@ -66,20 +73,23 @@ The editor POSTs a bounded JSON request containing the engine, source, options, 
 browser
   |- client renderer adapters
   |- persistence Worker -> D1 aliases/pointers -> R2 immutable blobs
-  `- /render/v1/svg gateway
-       |- registry, validation, sanitization, presentation, Cache API
-       |- edge-js adapters
-       |- future service bindings -> render-wasm / render-python
-       `- fetch -> consolidated compatibility origin
+  |- {engine}.render.diagram.zip -> dependency-grouped renderer units
+  `- /render/v1/svg gateway -> residual-only compatibility origin
 ```
 
-The internal Workers should use service bindings rather than public URLs. Grouping by runtime and failure boundary avoids both one-Worker-per-engine sprawl and a single bundle containing every dependency.
+Each engine owns a public renderer hostname and knows only its own contract.
+Engines with the same dependencies may share one Worker deployment behind
+multiple hostnames. Grouping by dependency and failure boundary avoids both
+one-Worker-per-engine sprawl and a single bundle containing every dependency.
 
 Suggested deployable units:
 
 - `diagram-zip-web`: UI assets, alias flows, client-side encryption, and browser renderer adapters.
 - `diagram-zip-persistence`: D1 alias metadata and R2 content-addressed source/render storage.
-- `diagram-zip-render`: the shared 30-engine registry, Bytefield, Nomnoml, WaveDrom, Vega, and Vega-Lite, plus origin fallback.
+- `diagram-zip-render`: the shared 30-engine catalog and a temporary gateway
+  that accepts only residual origin engines.
+- dependency-grouped JavaScript units: Bytefield, Nomnoml, WaveDrom, Vega,
+  and Vega-Lite, each reached only through its engine hostname.
 - `diagram-zip-render-wasm`: GraphViz, D2, Pikchr, and Svgbob after compatibility spikes.
 - `diagram-zip-render-python`: the upstream BlockDiag suite, isolated because Pyodide, Pillow, fonts, and the Python package graph have a different bundle and startup profile.
 - `diagram-zip-render-origin`: the remaining native/JVM/TeX renderers, initially consolidated in one Fly app or equivalent container group.
@@ -237,21 +247,29 @@ The Python Worker spike must settle these issues before this path is declared pr
 - Normalize parser failures into source-positioned diagram.zip errors and sanitize every returned SVG.
 - Measure compressed bundle size, snapshot/startup time, warm CPU, peak memory, and cancellation behavior for every module.
 
-Because Python Workers are still beta and PyEmscripten package support is evolving, keep the current origin binary as the rollout fallback. If the Python Worker misses the performance or compatibility bar, the next choice is a TypeScript port of the upstream parser/model/layout/SVG layers using their Apache-2.0 source and golden fixtures. Lowering to GraphViz, D2, Mermaid, or PlantUML is a later fallback because it changes the layout engine and increases visual drift.
+The production Python Worker now proves the pinned Pyodide/Pillow package can
+render all six structural fixtures. Its cutover deliberately has no origin
+fallback: unsupported image resources fail clearly. If a future platform
+constraint invalidates this path, replace the unit explicitly with a
+TypeScript port of the upstream parser/model/layout/SVG layers rather than
+silently routing requests back to Java.
 
 #### Reuse decision
 
-| Catalog type | Primary v2 target | Compatibility fallback | Later fallback if Python Workers fail |
+| Catalog type | Primary v2 target | Current state | Later replacement if Python Workers fail |
 | --- | --- | --- | --- |
-| ERD | Upstream-guided TypeScript parser/model/DOT emitter + GraphViz WASM | Existing ERD executable | None needed unless upstream parity proves unexpectedly difficult |
-| BlockDiag | Upstream Python package in `render-python` | Existing bundled executable | Port upstream layout/SVG implementation to TypeScript |
-| SeqDiag | Upstream Python package in `render-python` | Existing bundled executable | Port upstream implementation; Mermaid lowering only if explicitly accepted as non-identical |
-| ActDiag | Upstream Python package in `render-python` | Existing bundled executable | Port upstream implementation; alternative activity renderer only if explicitly accepted |
-| NwDiag | Upstream Python package in `render-python` | Existing bundled executable | Port upstream implementation; D2/GraphViz lowering is secondary |
-| PacketDiag | Upstream Python package in `render-python` | Existing bundled executable | Port its deterministic geometry to TypeScript |
-| RackDiag | Upstream Python package in `render-python` | Existing bundled executable | Port its deterministic geometry to TypeScript |
+| ERD | Upstream-guided TypeScript parser/model/DOT emitter + GraphViz WASM | Compatibility unit | None needed unless upstream parity proves unexpectedly difficult |
+| BlockDiag | Upstream Python package in `blockdiag-family` | Edge Python, no origin fallback | Port upstream layout/SVG implementation to TypeScript |
+| SeqDiag | Upstream Python package in `blockdiag-family` | Edge Python, no origin fallback | Port upstream implementation; Mermaid lowering only if explicitly accepted as non-identical |
+| ActDiag | Upstream Python package in `blockdiag-family` | Edge Python, no origin fallback | Port upstream implementation; alternative activity renderer only if explicitly accepted |
+| NwDiag | Upstream Python package in `blockdiag-family` | Edge Python, no origin fallback | Port upstream implementation; D2/GraphViz lowering is secondary |
+| PacketDiag | Upstream Python package in `blockdiag-family` | Edge Python, no origin fallback | Port its deterministic geometry to TypeScript |
+| RackDiag | Upstream Python package in `blockdiag-family` | Edge Python, no origin fallback | Port its deterministic geometry to TypeScript |
 
-Unsupported source features must fail clearly or use the compatibility origin; they must not be silently dropped. Preserve upstream licenses and notices in vendored packages and document the exact upstream commit and local patch set used to build each Worker.
+Unsupported source features must fail clearly after cutover; they must not be
+silently dropped or routed back to the compatibility origin. Preserve upstream
+licenses and notices in vendored packages and document the exact upstream
+commit and local patch set used to build each Worker.
 
 ### Structurizr: compile the DSL to PlantUML in TypeScript
 
@@ -373,12 +391,12 @@ The origin is a compatibility bridge, not the target architecture for standardiz
 | GraphViz | Edge WebAssembly | Origin |
 | D2 | Client + edge WebAssembly adapter | Origin |
 | C4-PlantUML | Client | Origin |
-| BlockDiag | Upstream Python Worker | Existing bundled executable |
-| SeqDiag | Upstream Python Worker | Existing bundled executable |
-| ActDiag | Upstream Python Worker | Existing bundled executable |
-| NwDiag | Upstream Python Worker | Existing bundled executable |
-| PacketDiag | Upstream Python Worker | Existing bundled executable |
-| RackDiag | Upstream Python Worker | Existing bundled executable |
+| BlockDiag | Upstream Python Worker | None after cutover |
+| SeqDiag | Upstream Python Worker | None after cutover |
+| ActDiag | Upstream Python Worker | None after cutover |
+| NwDiag | Upstream Python Worker | None after cutover |
+| PacketDiag | Upstream Python Worker | None after cutover |
+| RackDiag | Upstream Python Worker | None after cutover |
 | BPMN | Client | Browser-render/origin |
 | Bytefield | Edge JavaScript | Origin |
 | DBML | Edge JavaScript | Origin |
@@ -487,7 +505,11 @@ Move GraphViz and Pikchr, then Svgbob. Adapt D2's underlying WebAssembly directl
 
 ### Phase 3: upstream BlockDiag Python Worker
 
-Build an SVG-only Python Worker from the pinned BlockDiag-family sources. Start with RackDiag and PacketDiag smoke tests, then run the complete BlockDiag, SeqDiag, ActDiag, and NwDiag fixture suites. Compare it to the current 3.4.2 bundle for output, errors, cold/warm latency, CPU, memory, and cancellation. Route only passing modules to the Worker; retain per-module origin fallback.
+Build an SVG-only Python Worker from the pinned BlockDiag-family sources. Run
+structural fixtures across all six engines in CPython and real workerd, then
+smoke each production hostname. Document loss instead of making pixel parity a
+gate. Once the production unit passes, remove the six gateway/origin paths as
+one dependency-family cutover.
 
 ### Phase 4: upstream-guided ERD port
 
@@ -520,7 +542,8 @@ Use production traffic and latency data to choose the remaining rewrites. WireVi
 - Each Worker remains within current Cloudflare bundle, startup, memory, and CPU limits.
 - Every engine has an explicit runtime and fallback; there is no silent substitution with a merely similar renderer.
 - Vendored upstream renderer code records its exact version or commit, license, local patches, and imported upstream test corpus.
-- The BlockDiag-family Worker either passes its module's compatibility and performance gate or remains routed to the existing binary; migration is not all-or-nothing.
+- The BlockDiag-family Worker passes structural coverage for all six hostnames,
+  declares its losses, and has no gateway/origin fallback.
 
 ## Open design questions
 
@@ -531,7 +554,22 @@ Use production traffic and latency data to choose the remaining rewrites. WireVi
 
 ## Implementation status — 2026-08-20
 
-The first coverage plane is implemented in `diagramzip-render`. Its catalog contains all 30 engines, five execute directly in the Worker, and 25 use the Fly compatibility origin. The repository smoke sends a real fixture through each entry and currently reports 30/30 structurally valid SVG results. The Worker also centralizes bounded JSON validation, error normalization, build-versioned Cache API entries, SVG sanitization, metadata, background, padding, and framing. Pixel comparison is intentionally deferred.
+The coverage plane is implemented across dedicated renderer hostnames. Fourteen
+of 30 catalog engines no longer depend on Fly: five execute in JavaScript
+Workers, six share the `blockdiag-family` Python Worker, and Mermaid, BPMN, and
+Excalidraw render in sandboxed browser units. The remaining 16 engines use 15
+dependency-grouped compatibility units. Repository and production smokes require
+structurally valid SVG; pixel comparison remains intentionally deferred.
+
+The BlockDiag family is deployed from pinned vendored sources with static
+drawer/node/plugin registration, a bundled DejaVu Serif font, bounded streaming
+input, Cache API storage, SVG sanitization, and explicit remote/filesystem image
+rejection. All six production hostnames report `edge-python` and the
+`blockdiag-family` unit, and none can fall back through the gateway.
+The same hard boundary now applies to all fourteen migrated engines: direct
+unit or client-renderer failure is surfaced to the editor, the gateway rejects
+their engine IDs before consulting its cache or origin adapter, and every
+catalog fallback is `null`.
 
 The first feasibility findings are already reflected in routing and the loss ledger: DBML's package cannot currently be imported cleanly in the Worker runtime, and Viz.js attempts runtime WebAssembly compilation. Both remain fully covered through the origin rather than blocking the migration. The current dry-run bundle is approximately 4.4 MB uncompressed and 0.85 MB compressed.
 

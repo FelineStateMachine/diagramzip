@@ -9,10 +9,21 @@ describe('engine catalog', () => {
     expect(ENGINE_CATALOG.map(engine => engine.id)).toEqual(ENGINE_IDS)
   })
 
-  it('keeps every not-yet-migrated engine on the compatibility origin', () => {
+  it('marks the BlockDiag family as edge Python', () => {
+    const family = ENGINE_CATALOG.filter(engine => [
+      'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
+    ].includes(engine.id))
+    expect(family).toHaveLength(6)
+    for (const engine of family) {
+      expect(engine.activeRuntime).toBe('edge-python')
+      expect(engine.version).toContain('python-worker-1')
+    }
+  })
+
+  it('does not retain a silent origin fallback for any engine', () => {
     for (const engine of ENGINE_CATALOG) {
       if (engine.activeRuntime === 'origin') expect(engine.version).toBe('compatibility-origin')
-      else expect(engine.fallback).toBe('origin')
+      expect(engine.fallback).toBeNull()
     }
   })
 })

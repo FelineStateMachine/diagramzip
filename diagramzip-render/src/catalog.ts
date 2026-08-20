@@ -51,6 +51,12 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
   vega: 'edge-js',
   vegalite: 'edge-js',
   wavedrom: 'edge-js',
+  blockdiag: 'edge-python',
+  seqdiag: 'edge-python',
+  actdiag: 'edge-python',
+  nwdiag: 'edge-python',
+  packetdiag: 'edge-python',
+  rackdiag: 'edge-python',
 }
 
 const versions: Partial<Record<EngineId, string>> = {
@@ -62,6 +68,12 @@ const versions: Partial<Record<EngineId, string>> = {
   vega: 'vega@6.3.1',
   vegalite: 'vega-lite@6.4.3',
   wavedrom: 'wavedrom@3.6.2',
+  blockdiag: 'blockdiag@3.4.2/python-worker-1',
+  seqdiag: 'seqdiag@3.0.0/python-worker-1',
+  actdiag: 'actdiag@3.0.0/python-worker-1',
+  nwdiag: 'nwdiag@3.0.0/python-worker-1',
+  packetdiag: 'packetdiag@3.0.0/python-worker-1',
+  rackdiag: 'rackdiag@3.0.0/python-worker-1',
 }
 
 const losses: Partial<Record<EngineId, readonly string[]>> = {
@@ -82,6 +94,12 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
   vega: ['URL-backed data and images are rejected; data must be embedded as values.', 'Only SVG is in the v2 rendering contract.'],
   vegalite: ['URL-backed data and images are rejected; data must be embedded as values.', 'Only SVG is in the v2 rendering contract.'],
   wavedrom: ['Only the six bundled Kroki skins are accepted.', 'Only SVG is in the v2 rendering contract.'],
+  blockdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
+  seqdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
+  actdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
+  nwdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
+  packetdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
+  rackdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
 }
 
 export const ENGINE_CATALOG: readonly EngineCatalogEntry[] = ENGINE_IDS.map(id => ({
@@ -89,7 +107,7 @@ export const ENGINE_CATALOG: readonly EngineCatalogEntry[] = ENGINE_IDS.map(id =
   targetRuntime: targetRuntime[id],
   activeRuntime: activeRuntime[id] ?? 'origin',
   version: versions[id] ?? 'compatibility-origin',
-  fallback: activeRuntime[id] ? 'origin' : null,
+  fallback: null,
   knownLosses: losses[id] ?? [],
 }))
 

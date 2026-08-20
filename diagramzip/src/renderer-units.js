@@ -28,6 +28,16 @@ export const HTTP_RENDERER_UNITS = Object.freeze({
   wireviz: 'https://wireviz.render.diagram.zip/v1/svg',
 })
 
+export const NO_GATEWAY_FALLBACK_ENGINES = Object.freeze([
+  'mermaid', 'bpmn', 'excalidraw',
+  'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
+  'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
+])
+
+export function requiresDedicatedRenderer(engine) {
+  return NO_GATEWAY_FALLBACK_ENGINES.includes(engine)
+}
+
 export function httpRendererUnitFor(engine) {
   return HTTP_RENDERER_UNITS[engine] ?? null
 }

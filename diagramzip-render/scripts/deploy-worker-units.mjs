@@ -9,7 +9,6 @@ const configs = [
   'wrangler.compatibility/plantuml-family.jsonc',
   'wrangler.compatibility/graphviz.jsonc',
   'wrangler.compatibility/d2.jsonc',
-  'wrangler.compatibility/blockdiag-family.jsonc',
   'wrangler.compatibility/dbml.jsonc',
   'wrangler.compatibility/diagramsnet.jsonc',
   'wrangler.compatibility/ditaa.jsonc',

@@ -4,7 +4,8 @@ Cloudflare Worker rendering plane for diagram.zip. Every catalog engine owns
 `https://{engine}.render.diagram.zip`. The hostname selects the engine; the
 editor never sends an engine selector. Engines that ship as one dependency or
 runtime share a Worker deployment while retaining distinct hostnames. The older
-`/render/v1/svg` gateway remains only as a migration fallback.
+`/render/v1/svg` gateway remains only as a temporary migration path for engines
+that have not yet moved; an extracted engine cannot fall back through it.
 
 The catalog deliberately contains all 30 diagram types. An engine does not
 disappear while its replacement is incomplete: its small compatibility unit
@@ -53,10 +54,13 @@ reports `vega-family,vega`; `X-Diagram-Engine` still reports `vegalite`.
 | Runtime | Engines |
 | --- | --- |
 | Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
+| Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag) |
 | Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
-| Compatibility unit | 16 dependency units covering the remaining 22 engines |
+| Compatibility unit | 15 dependency units covering the remaining 16 engines |
 
-Compatibility units are the replacement seam, not the final runtime. DBML
+The current split is 14/30 engines off Fly and 16/30 still dependent on it.
+Compatibility units are extraction seams, not final runtimes or fallbacks for
+an engine after cutover. DBML
 currently proxies because its published package mixes module formats. GraphViz
 currently proxies because the published Viz.js wrapper performs runtime
 WebAssembly instantiation; its unit still needs a direct precompiled module

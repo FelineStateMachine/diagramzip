@@ -1,0 +1,28 @@
+lock-version = "1.0"
+created-by = "uv"
+requires-python = ">=3.13.2"
+
+[[packages]]
+name = "defusedxml"
+version = "0.7.1"
+wheels = [{ url = "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl", upload-time = 2021-03-08T10:59:24Z, size = 25604, hashes = { sha256 = "a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61" } }]
+
+[[packages]]
+name = "funcparserlib"
+version = "1.0.1"
+wheels = [{ url = "https://files.pythonhosted.org/packages/83/66/acd740d84f59c655935f586c113a863aa404dfe932052a68a1163d88ea63/funcparserlib-1.0.1-py2.py3-none-any.whl", upload-time = 2022-11-03T23:10:53Z, size = 17842, hashes = { sha256 = "95da15d3f0d00b9b6f4bf04005c708af3faa115f7b45692ace064ebe758c68e8" } }]
+
+[[packages]]
+name = "pillow"
+version = "11.3.0"
+wheels = [{ url = "https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pillow-11.3.0-cp313-cp313-pyodide_2025_0_wasm32.whl", hashes = { sha256 = "52984112ca668d60291a7868011a04d66baf526d27e5eaef0a8a16e7ef22ab6c" } }]
+
+[[packages]]
+name = "webcolors"
+version = "25.10.0"
+wheels = [{ url = "https://files.pythonhosted.org/packages/e2/cc/e097523dd85c9cf5d354f78310927f1656c422bd7b2613b2db3e3f9a0f2c/webcolors-25.10.0-py3-none-any.whl", upload-time = 2025-10-31T07:51:01Z, size = 14905, hashes = { sha256 = "032c727334856fc0b968f63daa252a1ac93d33db2f5267756623c210e57a4f1d" } }]
+
+[[packages]]
+name = "workers-runtime-sdk"
+version = "1.6.14"
+wheels = [{ url = "https://files.pythonhosted.org/packages/fa/95/960a9a940825c52eae52c316e8f23f91f9d92c5f0e3bb5400097c43c2747/workers_runtime_sdk-1.6.14-py3-none-any.whl", upload-time = 2026-08-19T14:54:24Z, size = 34805, hashes = { sha256 = "c66a7278a93198b36fa3f1d61e5ac071e9a0d5e57a3f4fadcab9cc5107e587b4" } }]

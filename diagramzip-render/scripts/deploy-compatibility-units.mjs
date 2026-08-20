@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 
 const units = [
-  'plantuml-family', 'graphviz', 'd2', 'blockdiag-family',
+  'plantuml-family', 'graphviz', 'd2',
   'dbml', 'diagramsnet', 'ditaa', 'erd', 'goat', 'pikchr',
   'structurizr', 'svgbob', 'symbolator', 'tikz', 'umlet', 'wireviz',
 ]

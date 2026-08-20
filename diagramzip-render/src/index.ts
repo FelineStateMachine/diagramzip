@@ -1,5 +1,4 @@
 import { ENGINE_CATALOG, ENGINE_CATALOG_BY_ID } from './catalog'
-import { edgeAdapter, isEdgeEngine } from './adapters/edge'
 import { originAdapter } from './adapters/origin'
 import { RenderError, RequestError } from './errors'
 import { sanitizeAndDecorateSvg } from './svg'
@@ -23,8 +22,15 @@ function errorResponse(error: unknown): Response {
   return json({ error: { code: 'internal_error', message: 'The diagram could not be rendered.' } }, { status: 500 })
 }
 
+function assertGatewayRoutable(id: EngineId): void {
+  const entry = ENGINE_CATALOG_BY_ID.get(id)
+  if (entry?.activeRuntime !== 'origin') {
+    throw new RenderError(503, 'renderer_unit_required', `The ${id} renderer is available through its dedicated renderer unit.`)
+  }
+}
+
 function adapterFor(id: EngineId, env: Env): RendererAdapter {
-  if (isEdgeEngine(id)) return edgeAdapter(id)
+  assertGatewayRoutable(id)
   return originAdapter(id, env.ORIGIN_URL)
 }
 
@@ -84,6 +90,9 @@ async function render(request: RenderRequest, env: Env, signal: AbortSignal): Pr
 
 async function renderRoute(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const input = await parseRenderRequest(request)
+  // Check before consulting the gateway cache so a pre-cutover response cannot
+  // hide the dedicated-unit boundary.
+  assertGatewayRoutable(input.engine)
   const cacheKey = await cacheRequestFor(input, env)
   const cached = await caches.default.match(cacheKey)
   if (cached !== undefined) return responseWithCacheStatus(cached, 'HIT')

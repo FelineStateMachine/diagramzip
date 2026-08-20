@@ -1,6 +1,6 @@
 import { clientAdapterFor } from './client-renderers.js'
 import { sanitizeAndDecorateSvg } from './client-svg.js'
-import { httpRendererUnitFor } from './renderer-units.js'
+import { httpRendererUnitFor, requiresDedicatedRenderer } from './renderer-units.js'
 
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), maximum)
@@ -100,6 +100,7 @@ export class PreviewController {
           this.status.dataset.renderer = type
         } catch (error) {
           if (error.name === 'AbortError') throw error
+          if (requiresDedicatedRenderer(type)) throw error
           rendered = await this.renderThroughGateway({ type, source, options, meta, presentation }, abortController.signal)
         }
       } else {
@@ -142,6 +143,10 @@ export class PreviewController {
         await response.body?.cancel()
       } catch (error) {
         if (error.name === 'AbortError') throw error
+        if (requiresDedicatedRenderer(type)) throw error
+      }
+      if (requiresDedicatedRenderer(type)) {
+        throw new Error(`The ${type} renderer unit is unavailable.`)
       }
     }
 
