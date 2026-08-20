@@ -19,6 +19,7 @@ npm run check
 npm test
 npm run deploy:dry
 npm run deploy:worker-units
+npm run deploy:python-units
 npm run dev -- --port 8788
 npm run smoke
 ```
@@ -48,24 +49,29 @@ hostname, so a caller cannot choose an unrelated engine in the body.
 
 A unit may translate into another renderer. Translation is declared as an
 ordered pipeline whose first stage is the deployable unit. Vega-Lite therefore
-reports `vega-family,vega`; `X-Diagram-Engine` still reports `vegalite`.
+reports `vega-family,vega`. WireViz preserves its upstream Python parser/model,
+emits DOT, and reports `wireviz,graphviz-family,graphviz`; service binding keeps
+the GraphViz dependency internal. `X-Diagram-Engine` still reports the selected
+catalog engine.
 
 ## Current runtime split
 
 | Runtime | Engines |
 | --- | --- |
 | Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
-| Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag) |
+| Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag); WireViz → DOT → GraphViz |
 | Worker WebAssembly | GraphViz family (GraphViz and ERD → DOT → GraphViz) |
 | Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
-| Compatibility unit | 13 dependency units covering the remaining 14 engines |
+| Compatibility unit | 12 dependency units covering the remaining 13 engines |
 
-The current split is 16/30 engines off Fly and 14/30 still dependent on it.
+The current split is 17/30 engines off Fly and 13/30 still dependent on it.
 Compatibility units are extraction seams, not final runtimes or fallbacks for
 an engine after cutover. DBML
 currently proxies because its published package mixes module formats. GraphViz
 uses a precompiled Worker module; ERD lowers its upstream-compatible source
-language to DOT and reuses the same in-process GraphViz runtime.
+language to DOT and reuses the same in-process GraphViz runtime. WireViz runs
+its vendored upstream parser and DOT composer in a separate Python Worker, then
+calls that same GraphViz deployment through a service binding.
 
 All returned SVG passes through the same sanitizer. Scripts, event handlers,
 external resources, and active embedded HTML are removed. Mermaid's

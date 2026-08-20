@@ -45,10 +45,12 @@ const sharedUnits = {
   erd: 'graphviz-family',
   vega: 'vega-family',
   vegalite: 'vega-family',
+  wireviz: 'wireviz',
 }
 
 const pythonEngines = new Set(['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag'])
 const graphvizEngines = new Set(['graphviz', 'erd'])
+const wirevizEngines = new Set(['wireviz'])
 
 async function smoke([engine, filename]) {
   const source = await readFile(resolve(fixtureDirectory, filename), 'utf8')
@@ -78,6 +80,8 @@ async function smoke([engine, filename]) {
       ? `${expectedUnit},graphviz`
       : engine === 'erd'
         ? `${expectedUnit},erd,graphviz`
+        : engine === 'wireviz'
+          ? `${expectedUnit},graphviz-family,graphviz`
         : expectedUnit
   if (pipeline !== expectedPipeline) {
     throw new Error(`${engine}: unexpected pipeline ${pipeline}`)
@@ -96,6 +100,14 @@ async function smoke([engine, filename]) {
     }
     if (!response.headers.get('X-Renderer-Build')?.startsWith('graphviz-15.1.1-family-edge-wasm-')) {
       throw new Error(`${engine}: unexpected GraphViz-family Worker build ${response.headers.get('X-Renderer-Build')}`)
+    }
+  }
+  if (wirevizEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-python') {
+      throw new Error(`${engine}: expected edge-python renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    }
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('wireviz-0.3.2-python-dot-')) {
+      throw new Error(`${engine}: unexpected WireViz Worker build ${response.headers.get('X-Renderer-Build')}`)
     }
   }
   return `${engine.padEnd(10)} ${response.headers.get('X-Diagram-Cache')?.padEnd(4)} ${body.length} bytes`

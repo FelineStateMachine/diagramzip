@@ -29,6 +29,12 @@ describe('engine catalog', () => {
     }
   })
 
+  it('marks WireViz as a dedicated Python translator unit', () => {
+    const wireviz = ENGINE_CATALOG.find(engine => engine.id === 'wireviz')!
+    expect(wireviz.activeRuntime).toBe('edge-python')
+    expect(wireviz.version).toContain('python-translator-1')
+  })
+
   it('does not retain a silent origin fallback for any engine', () => {
     for (const engine of ENGINE_CATALOG) {
       if (engine.activeRuntime === 'origin') expect(engine.version).toBe('compatibility-origin')

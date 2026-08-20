@@ -39,7 +39,7 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
   vega: 'edge-js',
   vegalite: 'edge-js',
   wavedrom: 'edge-js',
-  wireviz: 'origin',
+  wireviz: 'edge-python',
 }
 
 const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
@@ -59,6 +59,7 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
   rackdiag: 'edge-python',
   graphviz: 'edge-wasm',
   erd: 'edge-wasm',
+  wireviz: 'edge-python',
 }
 
 const versions: Partial<Record<EngineId, string>> = {
@@ -78,6 +79,7 @@ const versions: Partial<Record<EngineId, string>> = {
   rackdiag: 'rackdiag@3.0.0/python-worker-1',
   graphviz: 'graphviz@15.1.1/edge-wasm-1',
   erd: 'erd@0.2.1.0+graphviz@15.1.1/edge-wasm-1',
+  wireviz: 'wireviz@0.3.2/python-translator-1',
 }
 
 const losses: Partial<Record<EngineId, readonly string[]>> = {
@@ -108,6 +110,13 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
   rackdiag: ['Remote and filesystem-backed images are rejected.', 'Only SVG output is supported.'],
   erd: [
     'Only the source language and Kroki rendering mode are supported; ERD CLI and filesystem configuration modes are not exposed.',
+    'The translated graph uses GraphViz 15.1.1 versus the compatibility image GraphViz 14.1.3; output differences are possible.',
+  ],
+  wireviz: [
+    'Only SVG is supported; BOM and HTML sidecars are not exposed.',
+    'Filesystem and remote images are rejected.',
+    'tweak.append and tweak.override are rejected.',
+    'The upstream source reports WireViz 0.3.2; the Dockerfile release label is 0.3.3.',
     'The translated graph uses GraphViz 15.1.1 versus the compatibility image GraphViz 14.1.3; output differences are possible.',
   ],
 }

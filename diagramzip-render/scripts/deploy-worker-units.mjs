@@ -19,7 +19,6 @@ const configs = [
   'wrangler.compatibility/symbolator.jsonc',
   'wrangler.compatibility/tikz.jsonc',
   'wrangler.compatibility/umlet.jsonc',
-  'wrangler.compatibility/wireviz.jsonc',
 ]
 const wrangler = resolve(import.meta.dirname, '../node_modules/.bin/wrangler')
 const pending = [...configs]
