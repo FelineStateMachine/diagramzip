@@ -33,7 +33,11 @@ class DiagramZipHandlerTest {
     Mockito.verify(response).putHeader(HttpHeaders.CACHE_CONTROL, "no-cache");
     Mockito.verify(response).putHeader(
       eq("Content-Security-Policy"),
-      contains("connect-src 'self'")
+      contains("connect-src 'self' https://*.render.diagram.zip")
+    );
+    Mockito.verify(response).putHeader(
+      eq("Content-Security-Policy"),
+      contains("frame-src https://*.render.diagram.zip")
     );
     Mockito.verify(response).putHeader(
       eq("Content-Security-Policy"),
