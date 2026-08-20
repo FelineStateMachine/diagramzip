@@ -107,7 +107,7 @@ document.querySelector('#app').innerHTML = `
   <dialog id="details-dialog" aria-labelledby="details-title">
     <form method="dialog" class="dialog-card">
       <div class="dialog-header">
-        <div><p class="dialog-eyebrow">Diagram</p><h1 id="details-title">Add some context.</h1></div>
+        <h1 id="details-title">Diagram details</h1>
         <button class="icon-button" value="cancel" aria-label="Close">×</button>
       </div>
       <div class="details-fields">
@@ -157,7 +157,7 @@ document.querySelector('#app').innerHTML = `
   <dialog id="share-dialog" aria-labelledby="share-title">
     <form method="dialog" class="dialog-card">
       <div class="dialog-header">
-        <div><p class="dialog-eyebrow">Share</p><h1 id="share-title">Take the diagram with you.</h1></div>
+        <h1 id="share-title">Share diagram</h1>
         <button class="icon-button" value="cancel" aria-label="Close">×</button>
       </div>
       <p class="share-status" id="share-status"></p>
@@ -176,7 +176,7 @@ document.querySelector('#app').innerHTML = `
   <dialog id="conflict-dialog" aria-labelledby="conflict-title">
     <form method="dialog" class="dialog-card">
       <div class="dialog-header">
-        <div><p class="dialog-eyebrow">Save conflict</p><h1 id="conflict-title">This diagram changed elsewhere.</h1></div>
+        <h1 id="conflict-title">Save conflict</h1>
         <button class="icon-button" value="cancel" aria-label="Close">×</button>
       </div>
       <p class="dialog-copy">Reload the saved version, or keep your work by saving it as a new diagram.</p>
@@ -190,7 +190,7 @@ document.querySelector('#app').innerHTML = `
   <dialog id="password-dialog" aria-labelledby="password-title">
     <form class="dialog-card" id="password-form">
       <div class="dialog-header">
-        <div><p class="dialog-eyebrow">Encrypted diagram</p><h1 id="password-title">Enter password.</h1></div>
+        <h1 id="password-title">Enter password</h1>
         <button class="icon-button" id="password-cancel" type="button" aria-label="Close">×</button>
       </div>
       <p class="dialog-copy" id="password-copy"></p>
@@ -646,7 +646,7 @@ async function svgToPngBlob(svg) {
 
 async function lockDiagram() {
   const password = await askPassword({
-    title: 'Lock this diagram.',
+    title: 'Lock diagram',
     copy: 'The source, metadata, and saved render will be encrypted in this browser. The password cannot be recovered.',
     submitLabel: 'Lock diagram',
     confirm: true,
@@ -671,7 +671,7 @@ async function lockDiagram() {
 async function changeDiagramPassword() {
   if (remote.mode !== 'locked' || !(remote.bundleKey instanceof Uint8Array)) return
   const password = await askPassword({
-    title: 'Change the password.',
+    title: 'Change password',
     copy: 'Only the encrypted bundle key will be rewrapped. The diagram content does not need to be re-encrypted.',
     submitLabel: 'Change password',
     confirm: true,
@@ -699,7 +699,7 @@ function unlockDiagram() {
 async function promptToUnlock(alias) {
   while (true) {
     const password = await askPassword({
-      title: 'Unlock this diagram.',
+      title: 'Unlock diagram',
       copy: 'Decryption happens only in this browser. The password is never sent to diagram.zip.',
       submitLabel: 'Unlock',
       confirm: false,
