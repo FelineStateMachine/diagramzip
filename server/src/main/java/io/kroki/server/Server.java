@@ -146,8 +146,11 @@ public class Server extends AbstractVerticle {
         .setFilesReadOnly(true)
         .setCachingEnabled(true)
         .setMaxAgeSeconds(31536000));
+    Handler<RoutingContext> diagramZipHandler = new DiagramZipHandler(vertx).create();
     router.get("/")
-      .handler(new DiagramZipHandler(vertx).create());
+      .handler(diagramZipHandler);
+    router.get("/d/:aliasId")
+      .handler(diagramZipHandler);
 
     // Default route
     Route route = router.route("/*");

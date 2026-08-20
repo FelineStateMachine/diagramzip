@@ -2,12 +2,12 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import {
-  decodeEditorHash,
   decodeText,
-  encodeEditorHash,
   encodeText,
   imageUrl,
   MAX_IMAGE_URL_LENGTH,
+  normalizeMetadata,
+  normalizePresentation,
 } from '../src/state.js'
 
 test('uses the Kroki-compatible zlib + base64url encoding', () => {
@@ -20,18 +20,15 @@ test('round trips Unicode text', () => {
   assert.equal(decodeText(encodeText(source)), source)
 })
 
-test('round trips a versioned editor hash', () => {
-  const state = {
-    type: 'mermaid',
-    source: 'flowchart LR\n  A --> B',
-    options: { theme: 'neutral' },
-  }
-  assert.deepEqual(decodeEditorHash(encodeEditorHash(state)), state)
+test('validates structured presentation values', () => {
+  assert.deepEqual(normalizePresentation(), { background: '', padding: 0, frame: false })
+  assert.throws(() => normalizePresentation({ background: 'red' }), /presentation/)
+  assert.throws(() => normalizePresentation({ padding: 257 }), /presentation/)
 })
 
-test('rejects unsupported and malformed hashes', () => {
-  assert.throws(() => decodeEditorHash('#v2/mermaid/nope'), /Unsupported/)
-  assert.throws(() => decodeEditorHash('#v1/mermaid/nope'))
+test('validates metadata values', () => {
+  assert.deepEqual(normalizeMetadata(), { title: '', description: '' })
+  assert.throws(() => normalizeMetadata({ title: 42 }), /metadata/)
 })
 
 test('builds an encoded image URL with options', () => {
@@ -42,6 +39,28 @@ test('builds an encoded image URL with options', () => {
   }))
   assert.match(url.pathname, /^\/d2\/svg\/[A-Za-z0-9_-]+$/)
   assert.equal(url.searchParams.get('theme'), '200')
+})
+
+test('carries metadata in a compact static SVG query payload', () => {
+  const url = new URL(imageUrl('https://diagram.zip', {
+    type: 'd2',
+    source: 'a -> b',
+    meta: { title: 'A to B', description: 'A points to B.' },
+  }))
+  assert.deepEqual(JSON.parse(decodeText(url.searchParams.get('dz'))), {
+    meta: { title: 'A to B', description: 'A points to B.' },
+  })
+})
+
+test('carries presentation in the static SVG payload', () => {
+  const url = new URL(imageUrl('https://diagram.zip', {
+    type: 'd2',
+    source: 'a -> b',
+    presentation: { background: '#f4f4f4', padding: 24, frame: true },
+  }))
+  assert.deepEqual(JSON.parse(decodeText(url.searchParams.get('dz'))), {
+    presentation: { background: '#f4f4f4', padding: 24, frame: true },
+  })
 })
 
 test('keeps shared image URLs below the edge request limit', () => {

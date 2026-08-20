@@ -19,6 +19,8 @@ import vega from '../../ci/tests/diagrams/bar-chart.vega?raw'
 import vegalite from '../../ci/tests/diagrams/discretizing-scale.vlite?raw'
 import wavedrom from '../../ci/tests/diagrams/wavedrom.json5?raw'
 import wireviz from '../../ci/tests/diagrams/wireviz.yaml?raw'
+import { diagramTypes } from './diagram-types.js'
+import { exampleVariant } from './example-variants.js'
 import { DEFAULT_SOURCE } from './state.js'
 
 const EXAMPLES = {
@@ -184,6 +186,50 @@ Rel(bob, tandem, "Completes tasks")
   wireviz,
 }
 
+const EXAMPLE_CONTEXT = {
+  plantuml: ['Tandem task sync', 'Alice and Bob coordinate shared tasks through their agents.'],
+  mermaid: ['Shared task flow', 'A compact view of ideas moving through the Tandem team.'],
+  graphviz: ['Tandem collaboration graph', 'People and agents converge on one synchronized task list.'],
+  d2: ['Connection styles', 'D2 connection, arrowhead, shape, and animation syntax.'],
+  c4plantuml: ['Tandem system context', 'The people and software systems surrounding Tandem.'],
+  blockdiag: ['Tandem block flow', 'A block-oriented view of the shared task workflow.'],
+  seqdiag: ['Tandem task sequence', 'A task moves from Alice to Bob and back through Tandem.'],
+  actdiag: ['Tandem delivery activities', 'Work crosses Alice, Alice Agent, and Bob Agent lanes.'],
+  nwdiag: ['Network layout', 'A sample network topology and its connected address ranges.'],
+  packetdiag: ['TCP packet structure', 'The bit-level layout of a TCP packet header.'],
+  rackdiag: ['Rack layout', 'A sample equipment rack rendered from rackdiag syntax.'],
+  bpmn: ['Agent-assisted review', 'A BPMN review flow that branches on test results.'],
+  bytefield: ['Byte field layout', 'A compact byte-oriented protocol field example.'],
+  dbml: ['Database schema', 'Tables and relationships expressed with DBML.'],
+  diagramsnet: ['Venn diagram', 'An overlapping-set example imported from diagrams.net.'],
+  ditaa: ['Tandem ASCII architecture', 'An ASCII sketch becomes a rendered system diagram.'],
+  erd: ['Data model', 'Entities and relationships in a small relational schema.'],
+  excalidraw: ['Venn sketch', 'A hand-drawn overlapping-set diagram.'],
+  goat: ['Component shapes', 'GoAT exercises boxes, connectors, curves, and symbols.'],
+  nomnoml: ['Pirate class diagram', 'A playful class diagram demonstrating Nomnoml syntax.'],
+  pikchr: ['Cardinal points', 'A diamond marks north, east, south, and west.'],
+  structurizr: ['Tandem landscape', 'A software landscape linking people, agents, and Tandem.'],
+  svgbob: ['Cloud network', 'An ASCII cloud connects clients and services.'],
+  symbolator: ['Hardware component', 'A component symbol generated from interface declarations.'],
+  tikz: ['Periodic table', 'A color-coded periodic table rendered with TikZ.'],
+  umlet: ['UML example', 'A UMLet document rendered directly from its XML form.'],
+  vega: ['Bar chart', 'A declarative bar chart expressed with Vega.'],
+  vegalite: ['Discretizing scale', 'A Vega-Lite example comparing discretized values.'],
+  wavedrom: ['Timing diagram', 'Digital signals and timing relationships rendered by WaveDrom.'],
+  wireviz: ['Wiring harness', 'Connections, cables, and pins described with WireViz.'],
+}
+
 export function exampleFor(type) {
   return EXAMPLES[type] ?? DEFAULT_SOURCE
+}
+
+export function exampleStateFor(type) {
+  const index = diagramTypes.findIndex(diagramType => diagramType.id === type)
+  const [title, description] = EXAMPLE_CONTEXT[type] ?? ['Diagram example', 'A diagram.zip catalog example.']
+  return {
+    type,
+    source: exampleFor(type),
+    options: {},
+    ...exampleVariant(Math.max(index, 0), { title, description }),
+  }
 }

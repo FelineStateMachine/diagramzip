@@ -57,6 +57,17 @@ class ServerTest {
   }
 
   @Test
+  void http_server_serves_diagram_zip_shell_for_alias_routes(Vertx vertx) throws TimeoutException {
+    WebClient client = WebClient.create(vertx);
+    HttpResponse<String> response = client.get(port, "localhost", "/d/AbCdEfGhIjKlMnOp")
+      .as(BodyCodec.string())
+      .send()
+      .await(5, TimeUnit.SECONDS);
+    assertThat(response.statusCode()).isEqualTo(200);
+    assertThat(response.body()).contains("<title>diagram.zip</title>");
+  }
+
+  @Test
   void http_server_check_metrics(Vertx vertx) {
     WebClient client = WebClient.create(vertx);
    client.get(port, "localhost", "/metrics")

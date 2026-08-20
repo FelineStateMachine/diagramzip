@@ -38,8 +38,25 @@ body {
   color: var(--ink);
 }
 
-button, input, select { font: inherit; }
-button, select { color: inherit; }
+.app-shell,
+dialog,
+.toast {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cm-content,
+.share-options input,
+.details-fields input,
+.details-fields textarea,
+.details-fields select,
+.render-status[data-state="error"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+button, input, select, textarea { font: inherit; }
+button, select, textarea { color: inherit; }
 button { cursor: pointer; }
 
 .sr-only {
@@ -109,6 +126,7 @@ button { cursor: pointer; }
 
 .type-picker select,
 .primary-action,
+.secondary-action,
 .preview-toolbar button,
 .mobile-tabs button,
 .icon-button,
@@ -132,9 +150,21 @@ button { cursor: pointer; }
   font-weight: 720;
 }
 
+.secondary-action {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font-weight: 680;
+}
+
+.secondary-action:hover { background: var(--soft); }
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(340px, .82fr) minmax(440px, 1.18fr);
+  min-width: 0;
   min-height: 0;
 }
 
@@ -295,6 +325,12 @@ dialog::backdrop {
 }
 
 .share-options { display: grid; gap: 18px; }
+.share-status,
+.dialog-copy {
+  margin: -8px 0 20px;
+  color: var(--muted);
+  line-height: 1.5;
+}
 .share-options label > span { display: block; margin-bottom: 7px; font-weight: 700; }
 .share-options label > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
 .share-options input {
@@ -310,6 +346,81 @@ dialog::backdrop {
 .share-options button { padding: 7px 13px; font-weight: 700; }
 .share-options button:disabled { cursor: not-allowed; opacity: .42; }
 .share-options small { display: block; margin-top: 6px; color: var(--danger); }
+
+.details-fields { display: grid; gap: 18px; }
+.details-fields label > span { display: block; margin-bottom: 7px; font-weight: 700; }
+.details-fields input,
+.details-fields textarea {
+  width: 100%;
+  padding: 10px 12px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--page);
+  resize: vertical;
+}
+.details-fields input { height: 42px; }
+.details-fields textarea { min-height: 108px; line-height: 1.5; }
+
+.presentation-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px auto;
+  align-items: end;
+  gap: 12px;
+  margin: 2px 0 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.presentation-fields legend { padding: 0 6px; font-weight: 750; }
+.presentation-fields label > span { display: block; margin-bottom: 7px; font-weight: 700; }
+.presentation-fields select,
+.presentation-fields input[type="number"] {
+  width: 100%;
+  height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--page);
+}
+.number-field { position: relative; }
+.number-field input { padding-right: 34px !important; }
+.number-field span { position: absolute; right: 10px; top: 10px; color: var(--muted); font-size: 13px; }
+.presentation-fields .checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 4px;
+}
+.presentation-fields .checkbox-field input { width: 18px; height: 18px; accent-color: var(--ink); }
+.presentation-fields .checkbox-field span { display: inline; margin: 0; }
+
+.privacy-fields {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 2px 0 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.privacy-fields legend { padding: 0 6px; font-weight: 750; }
+.privacy-fields strong { display: block; margin-bottom: 4px; }
+.privacy-fields p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.privacy-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 7px; justify-content: flex-end; }
+.form-error { min-height: 20px; margin: 12px 0 -4px; color: var(--danger); font-size: 13px; }
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.conflict-actions { justify-content: space-between; }
 
 .toast {
   position: fixed;
@@ -354,8 +465,9 @@ dialog::backdrop {
   }
   .app-header { padding-left: 14px; }
   .brand span:last-child { display: none; }
-  .type-picker select { max-width: 142px; }
-
+  .header-meta { flex: 1; justify-content: flex-end; gap: 6px; }
+  .type-picker { flex: 0 1 142px; min-width: 0; }
+  .type-picker select { width: 100%; max-width: 142px; }
   .mobile-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -379,18 +491,23 @@ dialog::backdrop {
     color: var(--ink);
   }
 
-  .workspace { display: block; }
+  .workspace { display: block; width: 100%; overflow: hidden; }
   .workspace[data-mobile-panel="editor"] .preview-panel,
   .workspace[data-mobile-panel="preview"] .editor-panel { display: none; }
   .editor-panel, .preview-panel { width: 100%; height: 100%; border-right: 0; }
   .minimap { width: 132px; height: 88px; }
+  .presentation-fields { grid-template-columns: 1fr 100px; }
+  .presentation-fields .checkbox-field { grid-column: 1 / -1; }
+  .privacy-fields { align-items: stretch; flex-direction: column; }
+  .privacy-actions { justify-content: flex-start; }
 }
 
 @media (max-width: 390px) {
   .app-header { gap: 8px; }
   .header-meta { gap: 6px; }
-  .type-picker select { max-width: 120px; }
-  .primary-action { padding-inline: 11px; }
+  .type-picker { flex-basis: 108px; }
+  .type-picker select { max-width: 108px; }
+  .primary-action, .secondary-action { padding-inline: 9px; }
   .preview-toolbar { bottom: 10px; left: 10px; }
   .minimap { right: 10px; bottom: 62px; }
 }

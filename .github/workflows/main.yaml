@@ -212,6 +212,15 @@ jobs:
     - name: Install Node dependencies
       run: npm ci
 
+    - name: Test diagram.zip persistence API
+      working-directory: diagramzip-api
+      run: |
+        npm ci
+        npm run cf-typegen
+        npm run check
+        npm test
+        npx wrangler deploy --dry-run
+
     - name: Test and build diagram.zip
       run: |
         npm run test:diagramzip

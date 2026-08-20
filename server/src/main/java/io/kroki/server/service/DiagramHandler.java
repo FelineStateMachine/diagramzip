@@ -165,7 +165,9 @@ public class DiagramHandler {
   static JsonObject getOptions(JsonObject diagramOptions, MultiMap headers, MultiMap params) {
     Map<String, Object> options = new HashMap<>();
     for (Map.Entry<String, String> paramEntry : params.entries()) {
-      if (paramEntry.getKey().equalsIgnoreCase("source_encoded") || paramEntry.getKey().equalsIgnoreCase("output_format")) {
+      if (paramEntry.getKey().equalsIgnoreCase("source_encoded") ||
+        paramEntry.getKey().equalsIgnoreCase("output_format") ||
+        paramEntry.getKey().equalsIgnoreCase(DiagramZipSvgMetadata.PARAMETER)) {
         continue;
       }
       options.put(paramEntry.getKey().toLowerCase(), paramEntry.getValue());
@@ -195,6 +197,13 @@ public class DiagramHandler {
   }
 
   public void convert(RoutingContext routingContext, String sourceDecoded, String serviceName, FileFormat fileFormat, JsonObject options) {
+    DiagramZipSvgMetadata metadata;
+    try {
+      metadata = DiagramZipSvgMetadata.decode(routingContext.request().getParam(DiagramZipSvgMetadata.PARAMETER));
+    } catch (BadRequestException exception) {
+      routingContext.fail(exception);
+      return;
+    }
     long start = System.currentTimeMillis();
     RenderCache.RenderRequest render = renderCache.render(serviceName + "@" + service.getVersion(), fileFormat, sourceDecoded, options,
       cancellation -> service.convert(sourceDecoded, serviceName, fileFormat, options, cancellation));
@@ -208,7 +217,7 @@ public class DiagramHandler {
         routingContext.fail(new BadRequestException("The service did not return a response."));
       } else {
         if (!response.closed()) {
-          diagramResponse.end(response, sourceDecoded, fileFormat, buffer);
+          diagramResponse.end(response, sourceDecoded + metadata.cacheSuffix(), fileFormat, metadata.apply(fileFormat, buffer));
         }
       }
     }, failure -> {

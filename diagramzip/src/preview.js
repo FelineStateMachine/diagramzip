@@ -20,6 +20,8 @@ export class PreviewController {
     this.requestNumber = 0
     this.pendingRender = null
     this.renderLoop = null
+    this.latestRenderKey = null
+    this.latestSvgBlob = null
     this.drag = null
 
     this.image.addEventListener('load', () => this.fit())
@@ -32,7 +34,7 @@ export class PreviewController {
     new ResizeObserver(() => this.updateTransform()).observe(this.stage)
   }
 
-  render({ type, source, options = {} }) {
+  render({ type, source, options = {}, meta = {}, presentation = {} }) {
     if (!source.trim()) {
       this.requestNumber++
       this.pendingRender = null
@@ -41,7 +43,10 @@ export class PreviewController {
       return
     }
 
-    this.pendingRender = { type, source, options, requestNumber: ++this.requestNumber }
+    const renderKey = JSON.stringify({ type, source, options, meta, presentation })
+    if (this.latestRenderKey === renderKey && this.latestSvgBlob) return Promise.resolve()
+
+    this.pendingRender = { type, source, options, meta, presentation, renderKey, requestNumber: ++this.requestNumber }
     this.abortController?.abort()
     if (!this.renderLoop) this.renderLoop = this.drainRenderQueue()
     return this.renderLoop
@@ -60,18 +65,18 @@ export class PreviewController {
     }
   }
 
-  async performRender({ type, source, options, requestNumber }) {
+  async performRender({ type, source, options, meta, presentation, renderKey, requestNumber }) {
     const abortController = new AbortController()
     this.abortController = abortController
     this.setStatus('Rendering…', 'loading')
     this.stage.style.setProperty('--render-background', 'var(--preview-bg)')
 
-    const getUrl = imageUrl(window.location.origin, { type, source, options })
-    const useGet = getUrl.length <= MAX_IMAGE_URL_LENGTH
+    const getUrl = new URL(imageUrl(window.location.origin, { type, source, options, meta, presentation }))
+    const useGet = getUrl.toString().length <= MAX_IMAGE_URL_LENGTH
     const url = useGet ? getUrl : new URL(`/${encodeURIComponent(type)}/svg`, window.location.origin)
     if (!useGet) {
-      for (const [name, value] of Object.entries(options)) {
-        url.searchParams.set(name, String(value))
+      for (const [name, value] of getUrl.searchParams) {
+        url.searchParams.append(name, value)
       }
     }
 
@@ -90,6 +95,8 @@ export class PreviewController {
       }
       this.status.dataset.cache = response.headers.get('X-Diagram-Cache')?.toLowerCase() ?? 'browser'
       const { blob, background } = this.normalizedSvgBlob(await response.text())
+      this.latestRenderKey = renderKey
+      this.latestSvgBlob = blob
       this.stage.style.setProperty('--render-background', background)
       const nextObjectUrl = URL.createObjectURL(blob)
       const previousObjectUrl = this.objectUrl
@@ -105,6 +112,12 @@ export class PreviewController {
     } finally {
       if (this.abortController === abortController) this.abortController = null
     }
+  }
+
+  svgBlobFor(state) {
+    const { type, source, options = {}, meta = {}, presentation = {} } = state
+    const renderKey = JSON.stringify({ type, source, options, meta, presentation })
+    return this.latestRenderKey === renderKey ? this.latestSvgBlob : null
   }
 
   async errorMessage(response) {

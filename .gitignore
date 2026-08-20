@@ -3,9 +3,10 @@ target/
 /.registry/oci/*
 *.iml
 .vertx/
-/node_modules/
+**/node_modules/
 dependency-reduced-pom.xml
 .idea
 **/.vscode
 .nzip-*/
 /.playwright-cli/
+**/.wrangler/

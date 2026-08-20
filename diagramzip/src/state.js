@@ -1,6 +1,5 @@
 import { deflate, inflate } from 'pako'
 
-export const HASH_VERSION = 'v1'
 // Leave room below Cloudflare's 16 KB request URL ceiling.
 export const MAX_IMAGE_URL_LENGTH = 15_000
 export const DEFAULT_DIAGRAM_TYPE = 'plantuml'
@@ -51,31 +50,54 @@ export function decodeText(value) {
   return decoder.decode(inflate(fromBase64Url(value)))
 }
 
-export function encodeEditorHash({ type, source, options = {} }) {
-  const payload = JSON.stringify({ source, options })
-  return `#${HASH_VERSION}/${encodeURIComponent(type)}/${encodeText(payload)}`
+export function normalizeMetadata(meta = {}) {
+  if (typeof meta !== 'object' || meta === null || Array.isArray(meta)) {
+    throw new Error('Invalid diagram metadata.')
+  }
+  const title = meta.title ?? ''
+  const description = meta.description ?? ''
+  if (typeof title !== 'string' || typeof description !== 'string') {
+    throw new Error('Invalid diagram metadata.')
+  }
+  return { title, description }
 }
 
-export function decodeEditorHash(hash) {
-  const [version, encodedType, payload] = hash.replace(/^#/, '').split('/')
-  if (version !== HASH_VERSION || !encodedType || !payload) {
-    throw new Error('Unsupported diagram.zip link.')
+export function normalizePresentation(presentation = {}) {
+  if (typeof presentation !== 'object' || presentation === null || Array.isArray(presentation)) {
+    throw new Error('Invalid diagram presentation.')
   }
-  const state = JSON.parse(decodeText(payload))
-  if (typeof state.source !== 'string' || typeof state.options !== 'object' || state.options === null || Array.isArray(state.options)) {
-    throw new Error('Invalid diagram.zip link.')
+  const background = presentation.background ?? ''
+  const padding = presentation.padding ?? 0
+  const frame = presentation.frame ?? false
+  if (typeof background !== 'string' || (background && !/^#[0-9a-f]{6}$/i.test(background))) {
+    throw new Error('Invalid diagram presentation.')
   }
-  return {
-    type: decodeURIComponent(encodedType),
-    source: state.source,
-    options: state.options,
+  if (!Number.isInteger(padding) || padding < 0 || padding > 256 || typeof frame !== 'boolean') {
+    throw new Error('Invalid diagram presentation.')
   }
+  return { background, padding, frame }
 }
 
-export function imageUrl(origin, { type, source, options = {} }) {
+function hasMetadata(meta) {
+  return Boolean(meta.title || meta.description)
+}
+
+function hasPresentation(presentation) {
+  return Boolean(presentation.background || presentation.padding || presentation.frame)
+}
+
+export function imageUrl(origin, { type, source, options = {}, meta = {}, presentation = {} }) {
   const url = new URL(`/${encodeURIComponent(type)}/svg/${encodeText(source)}`, origin)
   for (const [name, value] of Object.entries(options)) {
     url.searchParams.set(name, String(value))
+  }
+  const normalizedMeta = normalizeMetadata(meta)
+  const normalizedPresentation = normalizePresentation(presentation)
+  if (hasMetadata(normalizedMeta) || hasPresentation(normalizedPresentation)) {
+    const payload = {}
+    if (hasMetadata(normalizedMeta)) payload.meta = normalizedMeta
+    if (hasPresentation(normalizedPresentation)) payload.presentation = normalizedPresentation
+    url.searchParams.set('dz', encodeText(JSON.stringify(payload)))
   }
   return url.toString()
 }
