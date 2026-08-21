@@ -1,7 +1,7 @@
 import { RenderError } from '../../errors'
 import type { RenderResult } from '../../types'
 
-export type EdgeEngineId = 'bytefield' | 'erd' | 'graphviz' | 'nomnoml' | 'svgbob' | 'vega' | 'vegalite' | 'wavedrom'
+export type EdgeEngineId = 'bytefield' | 'dbml' | 'erd' | 'graphviz' | 'nomnoml' | 'svgbob' | 'vega' | 'vegalite' | 'wavedrom'
 
 export function edgeResult(id: EdgeEngineId, version: string, body: string, runtime: 'edge-js' | 'edge-wasm' = 'edge-js'): RenderResult {
   if (typeof body !== 'string' || body.trim() === '') {

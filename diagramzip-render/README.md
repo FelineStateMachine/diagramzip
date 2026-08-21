@@ -42,7 +42,7 @@ bundles, CSPs, deployments, and subdomains.
 
 A unit may expose multiple catalog hostnames when those engines share the same
 dependency stack. BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, and RackDiag
-share `blockdiag-family`; GraphViz and the ERD-to-DOT translator share
+share `blockdiag-family`; GraphViz, DBML, and the ERD-to-DOT translator share
 `graphviz-family`; PlantUML and C4 PlantUML share `plantuml-family`; Vega and
 Vega-Lite share `vega-family`. Requests are still selected only by a dedicated
 hostname, so a caller cannot choose an unrelated engine in the body.
@@ -60,14 +60,15 @@ catalog engine.
 | --- | --- |
 | Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
 | Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag); WireViz → DOT → GraphViz |
-| Worker WebAssembly | GraphViz family (GraphViz and ERD → DOT → GraphViz); Pikchr; Svgbob |
+| Worker WebAssembly | GraphViz family (GraphViz, DBML → DOT → GraphViz, and ERD → DOT → GraphViz); Pikchr; Svgbob |
 | Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
-| Compatibility unit | 10 dependency units covering the remaining 11 engines |
+| Compatibility unit | 9 dependency units covering the remaining 10 engines |
 
-The current split is 19/30 engines off Fly and 11/30 still dependent on it.
+The current split is 20/30 engines off Fly and 10/30 still dependent on it.
 Compatibility units are extraction seams, not final runtimes or fallbacks for
-an engine after cutover. DBML
-currently proxies because its published package mixes module formats. GraphViz
+an engine after cutover. DBML retains the upstream parser/checker/DOT model in
+an explicitly rebuilt Worker bundle, then shares the GraphViz-Wasm runtime.
+GraphViz
 uses a precompiled Worker module; ERD lowers its upstream-compatible source
 language to DOT and reuses the same in-process GraphViz runtime. WireViz runs
 its vendored upstream parser and DOT composer in a separate Python Worker, then

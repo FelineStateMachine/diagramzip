@@ -1,8 +1,20 @@
 import { erdAdapter } from '../adapters/edge/erd'
+import { dbmlAdapter } from '../adapters/edge/dbml'
 import { graphvizAdapter } from '../adapters/edge/graphviz'
 import { createRendererUnitGroup } from '../unit'
 
 export default createRendererUnitGroup('graphviz-family', [
+  {
+    id: 'dbml',
+    kind: 'translate',
+    adapter: dbmlAdapter,
+    pipeline: ['dbml', 'graphviz'],
+    knownLosses: [
+      'Only SVG is supported.',
+      'DBML URLs are lowered to GraphViz HREFs, then external links are removed by SVG sanitization.',
+      'The translated graph uses GraphViz 15.1.1 versus the compatibility DBML image Viz.js/GraphViz 2.47.0; output differences are possible.',
+    ],
+  },
   {
     id: 'graphviz',
     kind: 'render',

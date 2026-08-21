@@ -8,8 +8,9 @@
     { "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": false }
   ],
   "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
-  "vars": { "RENDERER_BUILD": "graphviz-15.1.1-family-edge-wasm-1" },
+  "vars": { "RENDERER_BUILD": "graphviz-15.1.1-family-edge-wasm-2" },
   "routes": [
+    { "pattern": "dbml.render.diagram.zip", "custom_domain": true },
     { "pattern": "erd.render.diagram.zip", "custom_domain": true },
     { "pattern": "graphviz.render.diagram.zip", "custom_domain": true }
   ]

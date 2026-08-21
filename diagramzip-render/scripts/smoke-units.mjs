@@ -49,7 +49,7 @@ const sharedUnits = {
 }
 
 const pythonEngines = new Set(['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag'])
-const graphvizEngines = new Set(['graphviz', 'erd'])
+const graphvizEngines = new Set(['graphviz', 'erd', 'dbml'])
 const pikchrEngines = new Set(['pikchr'])
 const svgbobEngines = new Set(['svgbob'])
 const wirevizEngines = new Set(['wireviz'])
@@ -82,6 +82,8 @@ async function smoke([engine, filename]) {
       ? `${expectedUnit},graphviz`
       : engine === 'erd'
         ? `${expectedUnit},erd,graphviz`
+        : engine === 'dbml'
+          ? `${expectedUnit},dbml,graphviz`
         : engine === 'wireviz'
           ? `${expectedUnit},graphviz-family,graphviz`
         : expectedUnit

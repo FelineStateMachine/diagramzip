@@ -4,6 +4,7 @@ import type { RenderRequest } from '../src/types'
 
 const fixtures = {
   graphviz: 'digraph { a -> b }',
+  dbml: 'Table users { id integer [primary key] }',
   erd: '[Person]\n*name\n\n[Place]\n*id\n\nPerson *--1 Place',
   nomnoml: '[Alice]->[Bob]',
   bytefield: '[{:bits 8 :name "field"}]',

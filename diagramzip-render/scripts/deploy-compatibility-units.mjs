@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 
 const units = [
   'plantuml-family', 'd2',
-  'dbml', 'diagramsnet', 'ditaa', 'goat',
+  'diagramsnet', 'ditaa', 'goat',
   'structurizr', 'symbolator', 'tikz', 'umlet',
 ]
 const wrangler = resolve(import.meta.dirname, '../node_modules/.bin/wrangler')

@@ -20,9 +20,9 @@ describe('engine catalog', () => {
     }
   })
 
-  it('marks GraphViz and ERD as one edge-Wasm family', () => {
-    const family = ENGINE_CATALOG.filter(engine => ['graphviz', 'erd'].includes(engine.id))
-    expect(family).toHaveLength(2)
+  it('marks GraphViz, DBML, and ERD as one edge-Wasm family', () => {
+    const family = ENGINE_CATALOG.filter(engine => ['graphviz', 'dbml', 'erd'].includes(engine.id))
+    expect(family).toHaveLength(3)
     for (const engine of family) {
       expect(engine.activeRuntime).toBe('edge-wasm')
       expect(engine.version).toContain('graphviz@15.1.1')

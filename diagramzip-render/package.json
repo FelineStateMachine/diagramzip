@@ -8,6 +8,7 @@
   },
   "scripts": {
     "cf-typegen": "wrangler types",
+    "build:dbml": "node scripts/build-dbml.mjs",
     "check": "tsc --noEmit",
     "deploy:dry": "wrangler deploy --dry-run",
     "deploy:compatibility-units": "node scripts/deploy-compatibility-units.mjs",
@@ -19,6 +20,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@softwaretechnik/dbml-renderer": "1.0.31",
     "@viz-js/viz": "3.29.0",
     "bytefield-svg": "1.11.0",
     "json5": "2.2.3",

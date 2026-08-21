@@ -5,7 +5,7 @@ const migrated = [
   'mermaid', 'bpmn', 'excalidraw',
   'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
   'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
-  'graphviz', 'erd', 'pikchr', 'svgbob', 'wireviz',
+  'graphviz', 'erd', 'dbml', 'pikchr', 'svgbob', 'wireviz',
 ] as const
 const env = {
   ORIGIN_URL: 'https://diagram-zip.fly.dev',
