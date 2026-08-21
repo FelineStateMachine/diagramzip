@@ -9,6 +9,7 @@
   --soft: #f3f3f3;
   --action-bg: #000000;
   --action-ink: #ffffff;
+  --unsaved: #b45309;
   --danger: #333333;
   --editor-active-line: #0000000b;
   --editor-selection: #00000038;
@@ -230,6 +231,13 @@ button { cursor: pointer; }
 
 .header-icon-action:hover { background: var(--soft); }
 .header-icon-action:disabled { cursor: default; opacity: .58; }
+
+#save[data-dirty="true"] {
+  border-color: var(--unsaved);
+  box-shadow: inset 0 0 0 1px var(--unsaved);
+}
+
+#save[data-dirty="true"]:disabled { opacity: .72; }
 
 .header-action-icon {
   width: 20px;

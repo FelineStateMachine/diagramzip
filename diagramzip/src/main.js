@@ -82,7 +82,7 @@ document.querySelector('#app').innerHTML = `
               <path d="M14 3.5V8h4M9 12h6M9 15.5h6"/>
             </svg>
           </button>
-          <button class="header-icon-action" id="save" type="button" data-save-state="save" aria-label="Save" title="Save">
+          <button class="header-icon-action" id="save" type="button" data-save-state="save" data-dirty="true" aria-label="Save" title="Save">
             <svg class="header-action-icon save-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <g data-save-icon="save">
                 <path d="M5 3.5h11.5L19 6v14.5H5v-17Z"/>
@@ -950,6 +950,7 @@ function updateSaveButton() {
     label = 'Save a copy'
   }
   button.dataset.saveState = state
+  button.dataset.dirty = String(remote.dirty)
   button.setAttribute('aria-label', label)
   button.title = label
   button.disabled = disabled
