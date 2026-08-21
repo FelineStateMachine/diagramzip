@@ -1,3 +1,7 @@
 # Preserve the byte-identical upstream draw.io export runtime, including its
 # intentional indentation/trailing whitespace.
-vendor/diagramsnet/assets/js/export.js whitespace=-trailing-space
+renderers/client/diagramsnet/vendor/assets/js/export.js whitespace=-trailing-space
+
+# Wrangler owns these generated files byte-for-byte. Some runtime declarations
+# contain trailing spaces, and changing them makes `wrangler types --check` fail.
+**/worker-configuration.d.ts whitespace=-trailing-space

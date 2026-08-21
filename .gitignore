@@ -1,9 +1,11 @@
 .DS_store
-/.registry/oci/*
+
 **/node_modules/
-.idea
-**/.vscode
+
 .nzip-*/
+
 /.playwright-cli/
+
 **/.wrangler/
+
 apps/editor/dist/
