@@ -4,7 +4,7 @@ const RENDER_TIMEOUT = 60_000
 export const CLIENT_RENDERERS = Object.freeze({
   mermaid: Object.freeze({ frameUrl: 'https://mermaid.render.diagram.zip/index.html?v=1' }),
   bpmn: Object.freeze({ frameUrl: 'https://bpmn.render.diagram.zip/index.html?v=1' }),
-  excalidraw: Object.freeze({ frameUrl: 'https://excalidraw.render.diagram.zip/index.html?v=3' }),
+  excalidraw: Object.freeze({ frameUrl: 'https://excalidraw.render.diagram.zip/index.html?v=4' }),
   diagramsnet: Object.freeze({ frameUrl: 'https://diagramsnet.render.diagram.zip/index.html?v=1' }),
   tikz: Object.freeze({ frameUrl: 'https://tikz.render.diagram.zip/index.html?v=2' }),
 })

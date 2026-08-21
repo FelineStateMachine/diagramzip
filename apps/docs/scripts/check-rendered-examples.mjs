@@ -8,6 +8,20 @@ const site = join(dirname(fileURLToPath(import.meta.url)), '..')
 const examplesDir = join(site, 'static', 'examples')
 const names = (await readdir(examplesDir)).filter((name) => name.endsWith('.json')).sort()
 
+function cspSource(document, headers) {
+  return headers.get('Content-Security-Policy')
+    ?? document.match(/http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i)?.[1]
+    ?? ''
+}
+
+function cspAllows(csp, directive, origin) {
+  const values = csp.split(';')
+    .map(value => value.trim().split(/\s+/))
+    .find(([name]) => name === directive)
+    ?.slice(1) ?? []
+  return values.includes('*') || values.includes(origin)
+}
+
 async function check(name) {
   const example = JSON.parse(await readFile(join(examplesDir, name), 'utf8'))
   if (CLIENT_RENDERERS[example.engine]) {
@@ -26,6 +40,16 @@ async function check(name) {
     const hasProtocol = scripts.some((script) => script.ok && script.body.includes('diagram.zip:renderer:v1'))
     if (!response.ok || !hasProtocol) {
       throw new Error(`${example.engine}: client frame unavailable (HTTP ${response.status})`)
+    }
+    if (example.engine === 'excalidraw' && scripts.some((script) => script.body.includes('https://esm.sh'))) {
+      const fallbackOrigin = 'https://esm.sh'
+      if (!cspAllows(cspSource(body, response.headers), 'font-src', fallbackOrigin)) {
+        throw new Error(`${example.engine}: frame CSP font-src blocks ${fallbackOrigin}`)
+      }
+      const fallbackFont = await fetch(`${fallbackOrigin}/@excalidraw/excalidraw@0.18.1/dist/prod/fonts/Cascadia/CascadiaCode-Regular.woff2`)
+      if (!fallbackFont.ok || fallbackFont.headers.get('Access-Control-Allow-Origin') !== '*') {
+        throw new Error(`${example.engine}: packaged font fallback is unavailable (HTTP ${fallbackFont.status})`)
+      }
     }
     return `${example.engine} client frame`
   }

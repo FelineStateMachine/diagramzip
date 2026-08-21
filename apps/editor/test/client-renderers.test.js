@@ -42,7 +42,7 @@ test('registers the client-native renderers', () => {
   assert.deepEqual(CLIENT_RENDERER_IDS, ['mermaid', 'bpmn', 'excalidraw', 'diagramsnet', 'tikz'])
   assert.equal(CLIENT_RENDERERS.mermaid.frameUrl, 'https://mermaid.render.diagram.zip/index.html?v=1')
   assert.equal(CLIENT_RENDERERS.bpmn.frameUrl, 'https://bpmn.render.diagram.zip/index.html?v=1')
-  assert.equal(CLIENT_RENDERERS.excalidraw.frameUrl, 'https://excalidraw.render.diagram.zip/index.html?v=3')
+  assert.equal(CLIENT_RENDERERS.excalidraw.frameUrl, 'https://excalidraw.render.diagram.zip/index.html?v=4')
   assert.equal(CLIENT_RENDERERS.diagramsnet.frameUrl, 'https://diagramsnet.render.diagram.zip/index.html?v=1')
   assert.equal(CLIENT_RENDERERS.tikz.frameUrl, 'https://tikz.render.diagram.zip/index.html?v=2')
   assert.equal(clientAdapterFor('graphviz'), null)
