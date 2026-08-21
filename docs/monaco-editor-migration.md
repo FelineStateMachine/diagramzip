@@ -40,12 +40,12 @@ features, not reasons to broaden the initial change.
 
 CodeMirror is coupled to the application in three places:
 
-1. `diagramzip/src/main.js` creates `EditorView`, reads the document in
+1. `apps/editor/src/main.js` creates `EditorView`, reads the document in
    `currentState()`, listens for edits, and replaces the document and language
    in `applyState()`.
-2. `diagramzip/src/diagram-types.js` imports CodeMirror language packages and
+2. `apps/editor/src/diagram-types.js` imports CodeMirror language packages and
    returns editor-specific language extensions.
-3. `diagramzip/src/style.css` targets `.cm-*` selectors.
+3. `apps/editor/src/style.css` targets `.cm-*` selectors.
 
 The important behavioural contract is small:
 
@@ -92,7 +92,7 @@ budget that Monaco is expected to match.
 
 ### 1. Introduce an editor-neutral contract
 
-Add `diagramzip/src/source-editor.js` as the only module imported by
+Add `apps/editor/src/source-editor.js` as the only module imported by
 `main.js`. It owns backend selection and exposes this interface:
 
 ```js
@@ -133,8 +133,8 @@ or Monaco.
 
 ### 2. Monaco backend
 
-Add `diagramzip/src/editors/monaco-editor.js` and
-`diagramzip/src/editors/monaco-languages.js`.
+Add `apps/editor/src/editors/monaco-editor.js` and
+`apps/editor/src/editors/monaco-languages.js`.
 
 Use Monaco 0.56.x (0.56.0 is current at the time of this spec) through its ESM
 API. The lockfile remains the source of truth for the exact version. Do not use
@@ -236,7 +236,7 @@ diagram formats such as Ditaa, GoAT, and Svgbob.
 
 ### 5. Mobile fallback
 
-Add `diagramzip/src/editors/textarea-editor.js` implementing the same contract.
+Add `apps/editor/src/editors/textarea-editor.js` implementing the same contract.
 It provides plain text editing, selection, undo/redo supplied by the browser,
 the save shortcut, full-document replacement, and change notifications. It does
 not provide line numbers, syntax highlighting, folding, or find beyond the
@@ -277,17 +277,17 @@ Expected file-level change set:
 | File | Change |
 | --- | --- |
 | `package.json`, `package-lock.json` | Add Monaco and remove CodeMirror dependencies. |
-| `diagramzip/src/main.js` | Consume the editor-neutral contract; remove CodeMirror imports and direct APIs. |
-| `diagramzip/src/diagram-types.js` | Remove editor imports and `languageFor()`. |
-| `diagramzip/src/source-editor.js` | Select and expose a backend through one contract. |
-| `diagramzip/src/editors/monaco-editor.js` | Create, configure, update, and dispose Monaco. |
-| `diagramzip/src/editors/monaco-languages.js` | Register narrow language contributions, JSON5, and the generic Monarch grammar. |
-| `diagramzip/src/editors/monaco-workers.js` | Configure the editor and JSON worker constructors. |
-| `diagramzip/src/editors/textarea-editor.js` | Implement the mobile/support fallback. |
-| `diagramzip/src/style.css` | Replace CodeMirror selectors and style the fallback. |
-| `diagramzip/test/*` | Add language routing and editor contract coverage. |
+| `apps/editor/src/main.js` | Consume the editor-neutral contract; remove CodeMirror imports and direct APIs. |
+| `apps/editor/src/diagram-types.js` | Remove editor imports and `languageFor()`. |
+| `apps/editor/src/source-editor.js` | Select and expose a backend through one contract. |
+| `apps/editor/src/editors/monaco-editor.js` | Create, configure, update, and dispose Monaco. |
+| `apps/editor/src/editors/monaco-languages.js` | Register narrow language contributions, JSON5, and the generic Monarch grammar. |
+| `apps/editor/src/editors/monaco-workers.js` | Configure the editor and JSON worker constructors. |
+| `apps/editor/src/editors/textarea-editor.js` | Implement the mobile/support fallback. |
+| `apps/editor/src/style.css` | Replace CodeMirror selectors and style the fallback. |
+| `apps/editor/test/*` | Add language routing and editor contract coverage. |
 
-`diagramzip/vite.config.js` should not need a Monaco plugin. A config change is
+`apps/editor/vite.config.js` should not need a Monaco plugin. A config change is
 justified only if production worker/base-path testing demonstrates a problem
 that Vite's standard worker imports cannot solve.
 

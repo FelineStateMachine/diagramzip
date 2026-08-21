@@ -1,5 +1,0 @@
-{
-  "engine": "structurizr",
-  "source": "workspace {\n\n    model {\n        user = person \"User\"\n        softwareSystem = softwareSystem \"Software System\"\n\n        user -> softwareSystem \"Uses\"\n    }\n\n    views {\n        systemContext softwareSystem {\n            include *\n            autolayout\n        }\n\n        theme default\n    }\n\n}\n",
-  "sourceKind": "project-example"
-}

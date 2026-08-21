@@ -1,0 +1,5 @@
+{
+  "engine": "pikchr",
+  "source": "box \"User\"\narrow right 0.6\nbox \"diagram.zip\"",
+  "sourceKind": "page-example"
+}

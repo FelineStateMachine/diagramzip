@@ -1,5 +1,0 @@
-{
-  "engine": "symbolator",
-  "source": "module diagram (\n  input wire clock,\n  input wire data_in,\n  output wire data_out\n);\nendmodule",
-  "sourceKind": "page-example"
-}

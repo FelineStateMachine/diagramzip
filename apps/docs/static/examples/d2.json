@@ -1,0 +1,5 @@
+{
+  "engine": "d2",
+  "source": "user: User\nagent: Agent\ndiagram: \"diagram.zip\"\nuser -> agent: request\nagent -> diagram: create",
+  "sourceKind": "page-example"
+}

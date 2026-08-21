@@ -1,0 +1,17 @@
+{
+  "name": "@diagramzip/renderer-bpmn",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "deploy": "../../edge/node_modules/.bin/wrangler deploy --config wrangler.jsonc"
+  },
+  "dependencies": {
+    "bpmn-js": "18.25.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  }
+}

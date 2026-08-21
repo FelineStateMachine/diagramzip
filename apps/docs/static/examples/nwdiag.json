@@ -1,0 +1,5 @@
+{
+  "engine": "nwdiag",
+  "source": "nwdiag {\n  network public {\n    address = \"192.0.2.0/24\";\n    gateway [address = \"192.0.2.1\"];\n  }\n}",
+  "sourceKind": "page-example"
+}

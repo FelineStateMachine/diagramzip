@@ -6,4 +6,4 @@
 .nzip-*/
 /.playwright-cli/
 **/.wrangler/
-diagramzip/dist/
+apps/editor/dist/

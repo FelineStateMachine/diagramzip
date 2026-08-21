@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developers.cloudflare.com/workers/wrangler/config-schema.json",
+  "name": "diagramzip-render-symbolator",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["python_workers", "disable_python_external_sdk"],
+  "observability": { "enabled": true },
+  "vars": { "RENDERER_BUILD": "symbolator-python-1" },
+  "routes": [
+    { "pattern": "symbolator.render.diagram.zip", "custom_domain": true }
+  ]
+}

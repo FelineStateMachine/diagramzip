@@ -1,0 +1,5 @@
+{
+  "engine": "wavedrom",
+  "source": "{ \"signal\": [\n  { \"name\": \"clock\", \"wave\": \"p....\" },\n  { \"name\": \"data\", \"wave\": \"x.34x\", \"data\": [\"A\", \"B\"] }\n]}",
+  "sourceKind": "page-example"
+}

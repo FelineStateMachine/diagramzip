@@ -1,5 +1,0 @@
-{
-  "engine": "svgbob",
-  "source": "+------+       +---------+\n| User |------>| Diagram |\n+------+       +---------+",
-  "sourceKind": "page-example"
-}

@@ -1,5 +1,0 @@
-{
-  "engine": "packetdiag",
-  "source": "packetdiag {\n  colwidth = 16;\n  0-3: Version;\n  4-7: Flags;\n  8-15: Length;\n}",
-  "sourceKind": "page-example"
-}

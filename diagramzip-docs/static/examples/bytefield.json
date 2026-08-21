@@ -1,5 +1,0 @@
-{
-  "engine": "bytefield",
-  "source": "(draw-column-headers)\n(draw-box \"Type\" {:span 2})\n(draw-box \"Length\" {:span 2})\n(draw-gap \"Payload\")\n(draw-bottom)",
-  "sourceKind": "page-example"
-}

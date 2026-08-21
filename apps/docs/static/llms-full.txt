@@ -1,0 +1,2519 @@
+# diagram.zip documentation
+
+---
+id: create-plantuml
+slug: /create/types/plantuml
+title: PlantUML
+description: Create a PlantUML diagram in diagram.zip.
+sidebar_label: PlantUML
+---
+
+# PlantUML
+
+PlantUML creates UML and related diagrams from directives and relationships.
+
+## Use this type
+
+Use PlantUML for sequence, class, activity, state, component, deployment, and use-case diagrams.
+
+## Source format
+
+The source format is **PlantUML text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Start the source with `@startuml`.
+- End the source with `@enduml`.
+- Declare participants or elements before complex relationships.
+- Use arrows to define relationships or messages.
+
+### Example
+
+```text
+@startuml
+actor Alice
+participant Service
+Alice -> Service: Create a diagram
+Service --> Alice: Return the link
+@enduml
+```
+
+## Related pages
+
+- [Style PlantUML](/style/types/plantuml)
+- [General presentation settings](/style/presentation)
+- [Open PlantUML in the editor](https://diagram.zip/?type=plantuml)
+
+## Upstream reference
+
+[PlantUML documentation](https://plantuml.com/)
+
+---
+id: style-plantuml
+slug: /style/types/plantuml
+title: PlantUML
+description: Style a PlantUML diagram in diagram.zip.
+sidebar_label: PlantUML
+---
+
+# Style PlantUML
+
+PlantUML supports themes, skin parameters, colors, sprites, and element-specific style rules.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use `!theme` to apply a bundled theme.
+- Use `skinparam` for global or diagram-specific values.
+- Add color values to elements when you need a local override.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `theme` | A supported PlantUML theme name | Apply the theme before diagram.zip renders the source. |
+| `no-metadata` | Flag | Remove the source metadata from the rendered image. |
+
+## Related pages
+
+- [Create a PlantUML diagram](/create/types/plantuml)
+- [General presentation settings](/style/presentation)
+- [Open PlantUML in the editor](https://diagram.zip/?type=plantuml)
+
+---
+
+---
+id: create-mermaid
+slug: /create/types/mermaid
+title: Mermaid
+description: Create a Mermaid diagram in diagram.zip.
+sidebar_label: Mermaid
+---
+
+# Mermaid
+
+Mermaid creates diagrams with compact, Markdown-friendly text.
+
+## Use this type
+
+Use Mermaid for flowcharts, sequence diagrams, class diagrams, state diagrams, timelines, and many other diagram forms.
+
+## Source format
+
+The source format is **Mermaid text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put the diagram keyword on the first line.
+- Declare nodes, participants, or data after the keyword.
+- Use the syntax for the selected Mermaid diagram form.
+- diagram.zip rejects frontmatter settings that reduce renderer security.
+
+### Example
+
+```text
+flowchart LR
+  Idea[Idea] --> Agent[Agent]
+  Agent --> Diagram[Shared diagram]
+```
+
+## Limitations
+
+- diagram.zip removes active content and unsafe external resources from the SVG.
+- Security configuration values cannot reduce the renderer security level.
+
+## Related pages
+
+- [Style Mermaid](/style/types/mermaid)
+- [General presentation settings](/style/presentation)
+- [Open Mermaid in the editor](https://diagram.zip/?type=mermaid)
+
+## Upstream reference
+
+[Mermaid documentation](https://mermaid.js.org/intro/)
+
+---
+id: style-mermaid
+slug: /style/types/mermaid
+title: Mermaid
+description: Style a Mermaid diagram in diagram.zip.
+sidebar_label: Mermaid
+---
+
+# Style Mermaid
+
+Mermaid supports themes, frontmatter configuration, class definitions, and diagram-specific configuration.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use `classDef` and `class` in flowcharts.
+- Use frontmatter for supported theme and layout values.
+- Use Mermaid theme variables for controlled color changes.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `layout` | `dagre` or `elk`; mind maps can also use `tidy-tree` | Select a layout engine. |
+| `Mermaid configuration` | Primitive values | Use kebab-case. Replace a configuration dot with an underscore. |
+
+## Limitations
+
+- diagram.zip removes active content and unsafe external resources from the SVG.
+- Security configuration values cannot reduce the renderer security level.
+
+## Related pages
+
+- [Create a Mermaid diagram](/create/types/mermaid)
+- [General presentation settings](/style/presentation)
+- [Open Mermaid in the editor](https://diagram.zip/?type=mermaid)
+
+---
+
+---
+id: create-graphviz
+slug: /create/types/graphviz
+title: Graphviz
+description: Create a Graphviz diagram in diagram.zip.
+sidebar_label: Graphviz
+---
+
+# Graphviz
+
+Graphviz creates directed and undirected graphs from the DOT language.
+
+## Use this type
+
+Use Graphviz when graph structure and automatic layout are more important than manual placement.
+
+## Source format
+
+The source format is **DOT text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use `digraph` for directed edges.
+- Use `graph` for undirected edges.
+- Use `->` for a directed edge.
+- Use `--` for an undirected edge.
+- Put attributes in square brackets.
+
+### Example
+
+```text
+digraph delivery {
+  rankdir=LR
+  idea -> agent -> diagram
+}
+```
+
+## Related pages
+
+- [Style Graphviz](/style/types/graphviz)
+- [General presentation settings](/style/presentation)
+- [Open Graphviz in the editor](https://diagram.zip/?type=graphviz)
+
+## Upstream reference
+
+[Graphviz documentation](https://graphviz.org/documentation/)
+
+---
+id: style-graphviz
+slug: /style/types/graphviz
+title: Graphviz
+description: Style a Graphviz diagram in diagram.zip.
+sidebar_label: Graphviz
+---
+
+# Style Graphviz
+
+DOT supports graph, node, and edge attributes.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set graph defaults with a `graph` attribute statement.
+- Set node defaults with a `node` attribute statement.
+- Set edge defaults with an `edge` attribute statement.
+- Add an attribute list to override one element.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `layout` | `dot`, `neato`, `fdp`, `sfdp`, `twopi`, or `circo` | Select the layout program. |
+| `graph-attribute-{name}` | A DOT graph attribute value | Set one graph attribute. |
+| `node-attribute-{name}` | A DOT node attribute value | Set one default node attribute. |
+| `edge-attribute-{name}` | A DOT edge attribute value | Set one default edge attribute. |
+| `scale` | Number; default is `72.0` | Set the input scale for position data. |
+
+## Related pages
+
+- [Create a Graphviz diagram](/create/types/graphviz)
+- [General presentation settings](/style/presentation)
+- [Open Graphviz in the editor](https://diagram.zip/?type=graphviz)
+
+---
+
+---
+id: create-d2
+slug: /create/types/d2
+title: D2
+description: Create a D2 diagram in diagram.zip.
+sidebar_label: D2
+---
+
+# D2
+
+D2 creates modern diagrams from declarations, connections, containers, and style properties.
+
+## Use this type
+
+Use D2 for architecture diagrams, dependency graphs, process diagrams, and annotated technical sketches.
+
+## Source format
+
+The source format is **D2 text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Declare a shape with an identifier and an optional label.
+- Use an arrow to connect two shapes.
+- Put nested elements inside braces.
+- Put style properties below `style`.
+
+### Example
+
+```text
+user: User
+agent: Agent
+diagram: "diagram.zip"
+user -> agent: request
+agent -> diagram: create
+```
+
+## Related pages
+
+- [Style D2](/style/types/d2)
+- [General presentation settings](/style/presentation)
+- [Open D2 in the editor](https://diagram.zip/?type=d2)
+
+## Upstream reference
+
+[D2 documentation](https://d2lang.com/tour/intro/)
+
+---
+id: style-d2
+slug: /style/types/d2
+title: D2
+description: Style a D2 diagram in diagram.zip.
+sidebar_label: D2
+---
+
+# Style D2
+
+D2 supports themes, shape properties, style blocks, classes, and sketch mode.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Put local values in an element `style` block.
+- Define reusable classes when elements use the same style.
+- Use shape properties to control geometry and labels.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `theme` | D2 theme name or number | Apply a D2 theme. |
+| `layout` | `dagre` or `elk` | Select the layout engine. |
+| `sketch` | Flag | Apply the hand-drawn style. |
+
+## Related pages
+
+- [Create a D2 diagram](/create/types/d2)
+- [General presentation settings](/style/presentation)
+- [Open D2 in the editor](https://diagram.zip/?type=d2)
+
+---
+
+---
+id: create-c4plantuml
+slug: /create/types/c4plantuml
+title: C4 PlantUML
+description: Create a C4 PlantUML diagram in diagram.zip.
+sidebar_label: C4 PlantUML
+---
+
+# C4 PlantUML
+
+C4 PlantUML creates C4 software architecture diagrams with PlantUML macros.
+
+## Use this type
+
+Use C4 PlantUML for system landscape, system context, container, component, dynamic, and deployment views.
+
+## Source format
+
+The source format is **PlantUML with C4 macros**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Start and end the source with PlantUML directives.
+- Include the required C4 library file.
+- Declare people, systems, containers, or components.
+- Use `Rel` macros to define relationships.
+
+### Example
+
+```text
+@startuml
+!include <C4/C4_Context>
+Person(user, "User")
+System(app, "diagram.zip")
+Rel(user, app, "Creates diagrams")
+@enduml
+```
+
+## Related pages
+
+- [Style C4 PlantUML](/style/types/c4plantuml)
+- [General presentation settings](/style/presentation)
+- [Open C4 PlantUML in the editor](https://diagram.zip/?type=c4plantuml)
+
+## Upstream reference
+
+[C4 PlantUML documentation](https://github.com/plantuml-stdlib/C4-PlantUML)
+
+---
+id: style-c4plantuml
+slug: /style/types/c4plantuml
+title: C4 PlantUML
+description: Style a C4 PlantUML diagram in diagram.zip.
+sidebar_label: C4 PlantUML
+---
+
+# Style C4 PlantUML
+
+C4 PlantUML supports layout macros, tags, legends, and PlantUML style controls.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use C4 layout macros to change direction or spacing.
+- Use tags and element-style macros for reusable styles.
+- Use PlantUML theme and skin parameters only when they do not conflict with C4 macros.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `theme` | A supported PlantUML theme name | Apply the theme before diagram.zip renders the source. |
+| `no-metadata` | Flag | Remove the source metadata from the rendered image. |
+
+## Related pages
+
+- [Create a C4 PlantUML diagram](/create/types/c4plantuml)
+- [General presentation settings](/style/presentation)
+- [Open C4 PlantUML in the editor](https://diagram.zip/?type=c4plantuml)
+
+---
+
+---
+id: create-blockdiag
+slug: /create/types/blockdiag
+title: BlockDiag
+description: Create a BlockDiag diagram in diagram.zip.
+sidebar_label: BlockDiag
+---
+
+# BlockDiag
+
+BlockDiag creates block diagrams with automatic layout.
+
+## Use this type
+
+Use BlockDiag for systems, processes, and component relationships.
+
+## Source format
+
+The source format is **BlockDiag text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put the diagram in a `blockdiag` block.
+- Separate statements with semicolons.
+- Use arrows to connect nodes.
+- Put node attributes in square brackets.
+
+### Example
+
+```text
+blockdiag {
+  idea -> agent -> diagram;
+  agent [color = "#dbeafe"];
+}
+```
+
+## Related pages
+
+- [Style BlockDiag](/style/types/blockdiag)
+- [General presentation settings](/style/presentation)
+- [Open BlockDiag in the editor](https://diagram.zip/?type=blockdiag)
+
+## Upstream reference
+
+[BlockDiag documentation](http://blockdiag.com/en/blockdiag/)
+
+---
+id: style-blockdiag
+slug: /style/types/blockdiag
+title: BlockDiag
+description: Style a BlockDiag diagram in diagram.zip.
+sidebar_label: BlockDiag
+---
+
+# Style BlockDiag
+
+BlockDiag supports diagram attributes and per-node or per-edge attributes.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set orientation and default attributes in the diagram block.
+- Set colors, shapes, fonts, and sizes in node attributes.
+- Set line and label properties in edge attributes.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `antialias` | Flag | Apply the anti-alias filter. |
+| `size` | `widthxheight` | Set the image size. |
+| `no-doctype` | Flag | Remove the document type declaration from SVG output. |
+
+## Related pages
+
+- [Create a BlockDiag diagram](/create/types/blockdiag)
+- [General presentation settings](/style/presentation)
+- [Open BlockDiag in the editor](https://diagram.zip/?type=blockdiag)
+
+---
+
+---
+id: create-seqdiag
+slug: /create/types/seqdiag
+title: SeqDiag
+description: Create a SeqDiag diagram in diagram.zip.
+sidebar_label: SeqDiag
+---
+
+# SeqDiag
+
+SeqDiag creates sequence diagrams from message statements.
+
+## Use this type
+
+Use SeqDiag to show requests, responses, and ordered interactions.
+
+## Source format
+
+The source format is **SeqDiag text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put the diagram in a `seqdiag` block.
+- Use arrows to send messages.
+- Use a left arrow for a response.
+- Put message attributes in square brackets.
+
+### Example
+
+```text
+seqdiag {
+  user -> agent [label = "Create diagram"];
+  user <-- agent [label = "Return link"];
+}
+```
+
+## Related pages
+
+- [Style SeqDiag](/style/types/seqdiag)
+- [General presentation settings](/style/presentation)
+- [Open SeqDiag in the editor](https://diagram.zip/?type=seqdiag)
+
+## Upstream reference
+
+[SeqDiag documentation](http://blockdiag.com/en/seqdiag/)
+
+---
+id: style-seqdiag
+slug: /style/types/seqdiag
+title: SeqDiag
+description: Style a SeqDiag diagram in diagram.zip.
+sidebar_label: SeqDiag
+---
+
+# Style SeqDiag
+
+SeqDiag supports participant, message, and diagram attributes.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set participant colors and fonts in participant attributes.
+- Set message labels, colors, and line forms in message attributes.
+- Set diagram defaults in the diagram block.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `antialias` | Flag | Apply the anti-alias filter. |
+| `size` | `widthxheight` | Set the image size. |
+| `no-doctype` | Flag | Remove the document type declaration from SVG output. |
+
+## Related pages
+
+- [Create a SeqDiag diagram](/create/types/seqdiag)
+- [General presentation settings](/style/presentation)
+- [Open SeqDiag in the editor](https://diagram.zip/?type=seqdiag)
+
+---
+
+---
+id: create-actdiag
+slug: /create/types/actdiag
+title: ActDiag
+description: Create an ActDiag diagram in diagram.zip.
+sidebar_label: ActDiag
+---
+
+# ActDiag
+
+ActDiag creates activity diagrams with actions and lanes.
+
+## Use this type
+
+Use ActDiag to show a process across people, systems, or teams.
+
+## Source format
+
+The source format is **ActDiag text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put the diagram in an `actdiag` block.
+- Use arrows to connect actions.
+- Put related actions in a `lane` block.
+- Put action attributes in square brackets.
+
+### Example
+
+```text
+actdiag {
+  write -> review -> share
+  lane user {
+    write; share;
+  }
+  lane agent {
+    review;
+  }
+}
+```
+
+## Related pages
+
+- [Style ActDiag](/style/types/actdiag)
+- [General presentation settings](/style/presentation)
+- [Open ActDiag in the editor](https://diagram.zip/?type=actdiag)
+
+## Upstream reference
+
+[ActDiag documentation](http://blockdiag.com/en/actdiag/)
+
+---
+id: style-actdiag
+slug: /style/types/actdiag
+title: ActDiag
+description: Style a ActDiag diagram in diagram.zip.
+sidebar_label: ActDiag
+---
+
+# Style ActDiag
+
+ActDiag supports lane, action, edge, and diagram attributes.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set labels and colors on actions.
+- Set lane labels and colors in lane blocks.
+- Set edge labels and colors in edge attributes.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `antialias` | Flag | Apply the anti-alias filter. |
+| `size` | `widthxheight` | Set the image size. |
+| `no-doctype` | Flag | Remove the document type declaration from SVG output. |
+
+## Related pages
+
+- [Create an ActDiag diagram](/create/types/actdiag)
+- [General presentation settings](/style/presentation)
+- [Open ActDiag in the editor](https://diagram.zip/?type=actdiag)
+
+---
+
+---
+id: create-nwdiag
+slug: /create/types/nwdiag
+title: NwDiag
+description: Create a NwDiag diagram in diagram.zip.
+sidebar_label: NwDiag
+---
+
+# NwDiag
+
+NwDiag creates network diagrams from networks, addresses, and hosts.
+
+## Use this type
+
+Use NwDiag to show network segments and the devices that connect to them.
+
+## Source format
+
+The source format is **NwDiag text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put the diagram in an `nwdiag` block.
+- Declare each network in a `network` block.
+- Declare hosts inside a network.
+- Use attributes for addresses and labels.
+
+### Example
+
+```text
+nwdiag {
+  network public {
+    address = "192.0.2.0/24";
+    gateway [address = "192.0.2.1"];
+  }
+}
+```
+
+## Related pages
+
+- [Style NwDiag](/style/types/nwdiag)
+- [General presentation settings](/style/presentation)
+- [Open NwDiag in the editor](https://diagram.zip/?type=nwdiag)
+
+## Upstream reference
+
+[NwDiag documentation](http://blockdiag.com/en/nwdiag/)
+
+---
+id: style-nwdiag
+slug: /style/types/nwdiag
+title: NwDiag
+description: Style a NwDiag diagram in diagram.zip.
+sidebar_label: NwDiag
+---
+
+# Style NwDiag
+
+NwDiag supports network and host attributes.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set a network label, color, and address in its block.
+- Set host shape, color, label, and address in host attributes.
+- Repeat a host in two networks to show a connection.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `antialias` | Flag | Apply the anti-alias filter. |
+| `size` | `widthxheight` | Set the image size. |
+| `no-doctype` | Flag | Remove the document type declaration from SVG output. |
+
+## Related pages
+
+- [Create a NwDiag diagram](/create/types/nwdiag)
+- [General presentation settings](/style/presentation)
+- [Open NwDiag in the editor](https://diagram.zip/?type=nwdiag)
+
+---
+
+---
+id: create-packetdiag
+slug: /create/types/packetdiag
+title: PacketDiag
+description: Create a PacketDiag diagram in diagram.zip.
+sidebar_label: PacketDiag
+---
+
+# PacketDiag
+
+PacketDiag creates bit-field layouts for packets and binary records.
+
+## Use this type
+
+Use PacketDiag to show field positions, field widths, and grouped data.
+
+## Source format
+
+The source format is **PacketDiag text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put the diagram in a `packetdiag` block.
+- Set the column width when the default is not correct.
+- Use bit ranges before field labels.
+- Use attributes for field height or label rotation.
+
+### Example
+
+```text
+packetdiag {
+  colwidth = 16;
+  0-3: Version;
+  4-7: Flags;
+  8-15: Length;
+}
+```
+
+## Related pages
+
+- [Style PacketDiag](/style/types/packetdiag)
+- [General presentation settings](/style/presentation)
+- [Open PacketDiag in the editor](https://diagram.zip/?type=packetdiag)
+
+## Upstream reference
+
+[PacketDiag documentation](http://blockdiag.com/en/nwdiag/packetdiag-examples.html)
+
+---
+id: style-packetdiag
+slug: /style/types/packetdiag
+title: PacketDiag
+description: Style a PacketDiag diagram in diagram.zip.
+sidebar_label: PacketDiag
+---
+
+# Style PacketDiag
+
+PacketDiag supports global layout values and field attributes.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set column width and node height at the start of the block.
+- Set field color, height, and label rotation in field attributes.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `antialias` | Flag | Apply the anti-alias filter. |
+| `size` | `widthxheight` | Set the image size. |
+| `no-doctype` | Flag | Remove the document type declaration from SVG output. |
+
+## Related pages
+
+- [Create a PacketDiag diagram](/create/types/packetdiag)
+- [General presentation settings](/style/presentation)
+- [Open PacketDiag in the editor](https://diagram.zip/?type=packetdiag)
+
+---
+
+---
+id: create-rackdiag
+slug: /create/types/rackdiag
+title: RackDiag
+description: Create a RackDiag diagram in diagram.zip.
+sidebar_label: RackDiag
+---
+
+# RackDiag
+
+RackDiag creates equipment-rack diagrams from rack-unit positions.
+
+## Use this type
+
+Use RackDiag to document servers, switches, power units, and unused rack space.
+
+## Source format
+
+The source format is **RackDiag text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put the diagram in a `rackdiag` block.
+- Declare the total rack height in rack units.
+- Put the start position before each device.
+- Put the device height in square brackets.
+
+### Example
+
+```text
+rackdiag {
+  8U;
+  1: UPS [2U];
+  3: Server [2U];
+  5: Switch;
+}
+```
+
+## Related pages
+
+- [Style RackDiag](/style/types/rackdiag)
+- [General presentation settings](/style/presentation)
+- [Open RackDiag in the editor](https://diagram.zip/?type=rackdiag)
+
+## Upstream reference
+
+[RackDiag documentation](http://blockdiag.com/en/nwdiag/rackdiag-examples.html)
+
+---
+id: style-rackdiag
+slug: /style/types/rackdiag
+title: RackDiag
+description: Style a RackDiag diagram in diagram.zip.
+sidebar_label: RackDiag
+---
+
+# Style RackDiag
+
+RackDiag supports rack and device attributes.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set device labels, colors, and heights in device attributes.
+- Use rack-unit positions to control vertical placement.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `antialias` | Flag | Apply the anti-alias filter. |
+| `size` | `widthxheight` | Set the image size. |
+| `no-doctype` | Flag | Remove the document type declaration from SVG output. |
+
+## Related pages
+
+- [Create a RackDiag diagram](/create/types/rackdiag)
+- [General presentation settings](/style/presentation)
+- [Open RackDiag in the editor](https://diagram.zip/?type=rackdiag)
+
+---
+
+---
+id: create-bpmn
+slug: /create/types/bpmn
+title: BPMN
+description: Create a BPMN diagram in diagram.zip.
+sidebar_label: BPMN
+---
+
+# BPMN
+
+BPMN renders a BPMN 2.0 process definition from XML.
+
+## Use this type
+
+Use BPMN for formal business processes, decisions, events, tasks, and message flows.
+
+## Source format
+
+The source format is **BPMN 2.0 XML**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use a BPMN `definitions` root element.
+- Put process elements in a `process` element.
+- Give each referenced element a unique ID.
+- Include diagram interchange data when the XML must define positions.
+
+### Source structure
+
+This source shows the document structure. It is not a complete document.
+
+```xml
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start" />
+    <bpmn:task id="Create" name="Create diagram" />
+    <bpmn:endEvent id="End" />
+  </bpmn:process>
+</bpmn:definitions>
+```
+
+## Related pages
+
+- [Style BPMN](/style/types/bpmn)
+- [General presentation settings](/style/presentation)
+- [Open BPMN in the editor](https://diagram.zip/?type=bpmn)
+
+## Upstream reference
+
+[BPMN documentation](https://www.omg.org/spec/BPMN/2.0/)
+
+---
+id: style-bpmn
+slug: /style/types/bpmn
+title: BPMN
+description: Style a BPMN diagram in diagram.zip.
+sidebar_label: BPMN
+---
+
+# Style BPMN
+
+BPMN appearance usually comes from BPMN diagram interchange data and renderer defaults.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use BPMN diagram interchange bounds to set element positions.
+- Use BPMN diagram interchange waypoints to set connector paths.
+- Use supported extension attributes only when another BPMN tool must preserve them.
+## Related pages
+
+- [Create a BPMN diagram](/create/types/bpmn)
+- [General presentation settings](/style/presentation)
+- [Open BPMN in the editor](https://diagram.zip/?type=bpmn)
+
+---
+
+---
+id: create-bytefield
+slug: /create/types/bytefield
+title: Bytefield
+description: Create a Bytefield diagram in diagram.zip.
+sidebar_label: Bytefield
+---
+
+# Bytefield
+
+Bytefield creates byte-oriented protocol diagrams from drawing forms.
+
+## Use this type
+
+Use Bytefield for byte layouts, headers, payloads, and protocol documentation.
+
+## Source format
+
+The source format is **bytefield-svg forms**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put one drawing form on each line.
+- Use `draw-box` to add a field.
+- Use a property map to set a span.
+- Use gap and bottom forms to complete the layout.
+
+### Example
+
+```clojure
+(draw-column-headers)
+(draw-box "Type" {:span 2})
+(draw-box "Length" {:span 2})
+(draw-gap "Payload")
+(draw-bottom)
+```
+
+## Limitations
+
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Style Bytefield](/style/types/bytefield)
+- [General presentation settings](/style/presentation)
+- [Open Bytefield in the editor](https://diagram.zip/?type=bytefield)
+
+## Upstream reference
+
+[Bytefield documentation](https://bytefield-svg.deepsymmetry.org/)
+
+---
+id: style-bytefield
+slug: /style/types/bytefield
+title: Bytefield
+description: Style a Bytefield diagram in diagram.zip.
+sidebar_label: Bytefield
+---
+
+# Style Bytefield
+
+Bytefield uses drawing-form properties for spans, labels, and layout.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use property maps on drawing forms.
+- Use custom drawing forms only when the renderer supports them.
+- Keep labels short when a field has a small span.
+## Limitations
+
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Create a Bytefield diagram](/create/types/bytefield)
+- [General presentation settings](/style/presentation)
+- [Open Bytefield in the editor](https://diagram.zip/?type=bytefield)
+
+---
+
+---
+id: create-dbml
+slug: /create/types/dbml
+title: DBML
+description: Create a DBML diagram in diagram.zip.
+sidebar_label: DBML
+---
+
+# DBML
+
+DBML creates database schemas from tables, fields, enums, indexes, and references.
+
+## Use this type
+
+Use DBML to document relational data models with a concise schema language.
+
+## Source format
+
+The source format is **Database Markup Language**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Declare a table with a `Table` block.
+- Declare one field on each line.
+- Put field settings in square brackets.
+- Use `Ref` to define a relationship.
+
+### Example
+
+```sql
+Table users {
+  id integer [primary key]
+  name varchar
+}
+
+Table diagrams {
+  id integer [primary key]
+  user_id integer
+}
+
+Ref: diagrams.user_id > users.id
+```
+
+## Related pages
+
+- [Style DBML](/style/types/dbml)
+- [General presentation settings](/style/presentation)
+- [Open DBML in the editor](https://diagram.zip/?type=dbml)
+
+## Upstream reference
+
+[DBML documentation](https://dbml.dbdiagram.io/docs/)
+
+---
+id: style-dbml
+slug: /style/types/dbml
+title: DBML
+description: Style a DBML diagram in diagram.zip.
+sidebar_label: DBML
+---
+
+# Style DBML
+
+DBML describes schema structure. It does not define visual presentation.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use notes and labels to improve the rendered meaning.
+- Use table groups to express related tables when the syntax version supports them.
+- Use general presentation settings for the outer canvas.
+## Related pages
+
+- [Create a DBML diagram](/create/types/dbml)
+- [General presentation settings](/style/presentation)
+- [Open DBML in the editor](https://diagram.zip/?type=dbml)
+
+---
+
+---
+id: create-diagramsnet
+slug: /create/types/diagramsnet
+title: Diagrams.net
+description: Create a Diagrams.net diagram in diagram.zip.
+sidebar_label: Diagrams.net
+---
+
+# Diagrams.net
+
+Diagrams.net renders a diagram from its native XML document.
+
+## Use this type
+
+Use this type when diagrams.net is the source editor for the diagram.
+
+## Source format
+
+The source format is **diagrams.net XML**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use an `mxfile` document.
+- Put each page in a `diagram` element.
+- Store cells in an `mxGraphModel` structure.
+- Keep element IDs unique inside the document.
+
+### Source structure
+
+This source shows the document structure. It is not a complete document.
+
+```xml
+<mxfile>
+  <diagram name="Page-1">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
+
+## Related pages
+
+- [Style Diagrams.net](/style/types/diagramsnet)
+- [General presentation settings](/style/presentation)
+- [Open Diagrams.net in the editor](https://diagram.zip/?type=diagramsnet)
+
+## Upstream reference
+
+[Diagrams.net documentation](https://www.diagrams.net/doc/faq/diagram-source-edit)
+
+---
+id: style-diagramsnet
+slug: /style/types/diagramsnet
+title: Diagrams.net
+description: Style a Diagrams.net diagram in diagram.zip.
+sidebar_label: Diagrams.net
+---
+
+# Style Diagrams.net
+
+Diagrams.net stores geometry and style values on cells in the XML source.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use the diagrams.net editor to change cell styles safely.
+- The `style` attribute contains semicolon-separated cell settings.
+- The geometry element contains the position and size.
+## Related pages
+
+- [Create a Diagrams.net diagram](/create/types/diagramsnet)
+- [General presentation settings](/style/presentation)
+- [Open Diagrams.net in the editor](https://diagram.zip/?type=diagramsnet)
+
+---
+
+---
+id: create-ditaa
+slug: /create/types/ditaa
+title: Ditaa
+description: Create a Ditaa diagram in diagram.zip.
+sidebar_label: Ditaa
+---
+
+# Ditaa
+
+Ditaa converts an ASCII-art drawing into a clean diagram.
+
+## Use this type
+
+Use Ditaa when the source must remain readable as plain text.
+
+## Source format
+
+The source format is **ASCII diagram text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use ASCII lines to draw boxes and connectors.
+- Put text inside a closed shape.
+- Use arrowheads to set connector direction.
+- Use Ditaa tags to set shape and color behavior.
+
+### Example
+
+```text
++--------+       +-------------+
+|  User  |------>| diagram.zip |
++--------+       +-------------+
+```
+
+## Related pages
+
+- [Style Ditaa](/style/types/ditaa)
+- [General presentation settings](/style/presentation)
+- [Open Ditaa in the editor](https://diagram.zip/?type=ditaa)
+
+## Upstream reference
+
+[Ditaa documentation](https://github.com/stathissideris/ditaa)
+
+---
+id: style-ditaa
+slug: /style/types/ditaa
+title: Ditaa
+description: Style a Ditaa diagram in diagram.zip.
+sidebar_label: Ditaa
+---
+
+# Style Ditaa
+
+Ditaa supports shape tags, color tags, dashed lines, and renderer options.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Add a six-character color tag such as `{cBLU}` inside a shape.
+- Use shape tags such as `{d}` for a document.
+- Use the Ditaa line characters to control corners and connectors.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `no-antialias` | Flag | Turn off anti-aliasing. |
+| `no-separation` | Flag | Do not separate common shape edges. |
+| `round-corners` | Flag | Use round corners. |
+| `scale` | Number; default is `1.0` | Scale the diagram. |
+| `no-shadows` | Flag | Turn off shadows. |
+| `tabs` | Number | Set the tab width. |
+| `background` | Six hexadecimal digits, for example `FFFFFF` | Set the image background. |
+| `transparent` | Flag | Use a transparent background. |
+
+## Related pages
+
+- [Create a Ditaa diagram](/create/types/ditaa)
+- [General presentation settings](/style/presentation)
+- [Open Ditaa in the editor](https://diagram.zip/?type=ditaa)
+
+---
+
+---
+id: create-erd
+slug: /create/types/erd
+title: ERD
+description: Create an ERD diagram in diagram.zip.
+sidebar_label: ERD
+---
+
+# ERD
+
+ERD creates entity-relationship diagrams from entities, attributes, and cardinalities.
+
+## Use this type
+
+Use ERD for compact relational models and domain data models.
+
+## Source format
+
+The source format is **ERD text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put an entity name in square brackets.
+- Put each attribute below its entity.
+- Use `*` for a key attribute.
+- Use a relationship line with cardinality markers.
+
+### Example
+
+```text
+[User]
+*id
+name
+
+[Diagram]
+*id
++user_id
+
+[User] 1--* [Diagram]
+```
+
+## Related pages
+
+- [Style ERD](/style/types/erd)
+- [General presentation settings](/style/presentation)
+- [Open ERD in the editor](https://diagram.zip/?type=erd)
+
+## Upstream reference
+
+[ERD documentation](https://github.com/BurntSushi/erd)
+
+---
+id: style-erd
+slug: /style/types/erd
+title: ERD
+description: Style a ERD diagram in diagram.zip.
+sidebar_label: ERD
+---
+
+# Style ERD
+
+ERD focuses on the data model. The renderer controls most visual values.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use clear entity and attribute names.
+- Use key and relationship markers consistently.
+- Use general presentation settings for the outer canvas.
+## Related pages
+
+- [Create an ERD diagram](/create/types/erd)
+- [General presentation settings](/style/presentation)
+- [Open ERD in the editor](https://diagram.zip/?type=erd)
+
+---
+
+---
+id: create-excalidraw
+slug: /create/types/excalidraw
+title: Excalidraw
+description: Create an Excalidraw diagram in diagram.zip.
+sidebar_label: Excalidraw
+---
+
+# Excalidraw
+
+Excalidraw renders a hand-drawn diagram from an Excalidraw JSON document.
+
+## Use this type
+
+Use this type when Excalidraw is the source editor for the diagram.
+
+## Source format
+
+The source format is **Excalidraw JSON**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use an Excalidraw JSON object.
+- Put drawable objects in the `elements` array.
+- Put document settings in the `appState` object.
+- Keep element IDs unique.
+
+### Source structure
+
+This source shows the document structure. It is not a complete document.
+
+```json
+{
+  "type": "excalidraw",
+  "version": 2,
+  "elements": [],
+  "appState": {
+    "viewBackgroundColor": "#ffffff"
+  }
+}
+```
+
+## Related pages
+
+- [Style Excalidraw](/style/types/excalidraw)
+- [General presentation settings](/style/presentation)
+- [Open Excalidraw in the editor](https://diagram.zip/?type=excalidraw)
+
+## Upstream reference
+
+[Excalidraw documentation](https://docs.excalidraw.com/docs/codebase/json-schema/)
+
+---
+id: style-excalidraw
+slug: /style/types/excalidraw
+title: Excalidraw
+description: Style a Excalidraw diagram in diagram.zip.
+sidebar_label: Excalidraw
+---
+
+# Style Excalidraw
+
+Excalidraw stores the style of each element in the JSON source.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use the Excalidraw editor to change element styles safely.
+- Element values include stroke, fill, roughness, opacity, and font properties.
+- The application state can define the source canvas color.
+## Related pages
+
+- [Create an Excalidraw diagram](/create/types/excalidraw)
+- [General presentation settings](/style/presentation)
+- [Open Excalidraw in the editor](https://diagram.zip/?type=excalidraw)
+
+---
+
+---
+id: create-goat
+slug: /create/types/goat
+title: GoAT
+description: Create a GoAT diagram in diagram.zip.
+sidebar_label: GoAT
+---
+
+# GoAT
+
+GoAT converts ASCII-art diagrams into SVG.
+
+## Use this type
+
+Use GoAT for boxes, arrows, grids, and compact diagrams that remain useful as text.
+
+## Source format
+
+The source format is **ASCII diagram text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use ASCII or supported Unicode line characters.
+- Close shapes when you need filled regions.
+- Add arrowheads at the end of a connector.
+- Keep labels away from connector intersections.
+
+### Example
+
+```text
++-------------------+                           ^                      .---.
+|      ‗A Box‗      |__.--.__    __.-->         |      .-.             |   |
+|                   |        '--'               v     | * |<---        |   |
++-------------------+                                  '-'             |   |
+                        `Round`                                    *---(-. |
+  .-----------------.  .-------.    .----------.         .-------.     | | |
+ |   Mixed Rounded  | |         |  / Diagonals  \        |   |   |     | | |
+ | & Square Corners |  '--. .--'  /              \       |---+---|     '-)-'       .--------.
+ '--+------------+-'  .--. |     '-------+--------'      |   |   |       |        / Search /
+    |            |   |    | '---.        |               '-------'       |       '-+------'
+    |<---------->|   |    |      |       v                Interior                 |     ^
+    '           <---'      '----'   .-----------.              ---.     .---       v     |
+ .------------------.  Diag line    | .-------. +---.              \   /           .     |
+ |   if (a > b)     +---.      .--->| |       | |    |`Curved line` \ /           / \    |
+ |   obj->fcn()     |    \    /     | '-------' |<--'                +           /   \   |
+ '------------------'     '--'      '--+--------'      .--. .--.     |  .-.     +Done?+-'
+    .---+-----.                        |   ^           |\ | | /|  .--+ |   |     \   /
+    |   |     | Join        \|/        |   | `Curved`  | \| |/ | |    \    |      \ /
+    |   |     +---->  o    --o--        '-'  Vertical  '--' '--'  '--  '--'        +  .---.
+ <--+---+-----'       |     /|\                                                    |  | 3 |
+                      v                             not:line    'quotes'        .-'   '---'
+  .-.             .---+--------.            /            A || B   ·bold·       |        ^
+ |   |           |   Not a dot  |      <---+---<--    A dash--is not a line    v        |
+  '-'             '---------+--'          /           Nor/is this.            ---
+```
+
+## Related pages
+
+- [Style GoAT](/style/types/goat)
+- [General presentation settings](/style/presentation)
+- [Open GoAT in the editor](https://diagram.zip/?type=goat)
+
+## Upstream reference
+
+[GoAT documentation](https://github.com/blampe/goat)
+
+---
+id: style-goat
+slug: /style/types/goat
+title: GoAT
+description: Style a GoAT diagram in diagram.zip.
+sidebar_label: GoAT
+---
+
+# Style GoAT
+
+GoAT takes most geometry from the text. Renderer options control SVG colors and character handling.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Change the text geometry to change placement.
+- Use supported line and corner characters for the required shape.
+- Use labels inside or near the related shape.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `svg-color-dark-scheme` | CSS color; default is `#FFF` | Set the foreground color for a dark color scheme. |
+| `svg-color-light-scheme` | CSS color; default is `#000` | Set the foreground color for a light color scheme. |
+| `utf8` | Flag | Treat Unicode box characters as the drawing characters. |
+
+## Related pages
+
+- [Create a GoAT diagram](/create/types/goat)
+- [General presentation settings](/style/presentation)
+- [Open GoAT in the editor](https://diagram.zip/?type=goat)
+
+---
+
+---
+id: create-nomnoml
+slug: /create/types/nomnoml
+title: Nomnoml
+description: Create a Nomnoml diagram in diagram.zip.
+sidebar_label: Nomnoml
+---
+
+# Nomnoml
+
+Nomnoml creates UML-style diagrams from bracketed classifiers and relationships.
+
+## Use this type
+
+Use Nomnoml for fast class, component, and relationship sketches.
+
+## Source format
+
+The source format is **Nomnoml text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put each classifier in square brackets.
+- Separate name, attributes, and methods with a vertical bar.
+- Connect classifiers with a relationship operator.
+- Put directives at the start of the source.
+
+### Example
+
+```text
+#direction: right
+[User]->[Diagram]
+[Diagram|title: string|save(); share()]
+```
+
+## Limitations
+
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Style Nomnoml](/style/types/nomnoml)
+- [General presentation settings](/style/presentation)
+- [Open Nomnoml in the editor](https://diagram.zip/?type=nomnoml)
+
+## Upstream reference
+
+[Nomnoml documentation](https://nomnoml.com/)
+
+---
+id: style-nomnoml
+slug: /style/types/nomnoml
+title: Nomnoml
+description: Style a Nomnoml diagram in diagram.zip.
+sidebar_label: Nomnoml
+---
+
+# Style Nomnoml
+
+Nomnoml uses hash directives and custom classifier styles.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use directives such as `#direction`, `#font`, and `#spacing`.
+- Define a custom classifier style with `#.name`.
+- Apply a classifier style with an angle-bracket type name.
+## Limitations
+
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Create a Nomnoml diagram](/create/types/nomnoml)
+- [General presentation settings](/style/presentation)
+- [Open Nomnoml in the editor](https://diagram.zip/?type=nomnoml)
+
+---
+
+---
+id: create-pikchr
+slug: /create/types/pikchr
+title: Pikchr
+description: Create a Pikchr diagram in diagram.zip.
+sidebar_label: Pikchr
+---
+
+# Pikchr
+
+Pikchr creates precise technical drawings from relative placement commands.
+
+## Use this type
+
+Use Pikchr when you need controlled geometry and readable text source.
+
+## Source format
+
+The source format is **Pikchr text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Create objects with commands such as `box`, `circle`, and `arrow`.
+- Use directions and anchor names for relative placement.
+- Assign a name when another command must reference an object.
+- Put text in quoted strings.
+
+### Example
+
+```text
+box "User"
+arrow right 0.6
+box "diagram.zip"
+```
+
+## Related pages
+
+- [Style Pikchr](/style/types/pikchr)
+- [General presentation settings](/style/presentation)
+- [Open Pikchr in the editor](https://diagram.zip/?type=pikchr)
+
+## Upstream reference
+
+[Pikchr documentation](https://pikchr.org/home/doc/trunk/doc/userman.md)
+
+---
+id: style-pikchr
+slug: /style/types/pikchr
+title: Pikchr
+description: Style a Pikchr diagram in diagram.zip.
+sidebar_label: Pikchr
+---
+
+# Style Pikchr
+
+Pikchr supports dimensions, colors, fills, line widths, and placement controls in the source.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Add `fill` and `color` values to an object.
+- Set global dimensions before the related objects.
+- Use object anchors for stable relative placement.
+## Related pages
+
+- [Create a Pikchr diagram](/create/types/pikchr)
+- [General presentation settings](/style/presentation)
+- [Open Pikchr in the editor](https://diagram.zip/?type=pikchr)
+
+---
+
+---
+id: create-structurizr
+slug: /create/types/structurizr
+title: Structurizr
+description: Create a Structurizr diagram in diagram.zip.
+sidebar_label: Structurizr
+---
+
+# Structurizr
+
+Structurizr creates C4 architecture views from a workspace model.
+
+## Use this type
+
+Use Structurizr when one model must produce multiple software architecture views.
+
+## Source format
+
+The source format is **Structurizr DSL**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put the model and views in a `workspace` block.
+- Declare people, systems, containers, and components in the model.
+- Declare relationships in the model.
+- Select elements and layout rules in each view.
+
+### Example
+
+```text
+workspace {
+  model {
+    user = person "User"
+    app = softwareSystem "diagram.zip"
+    user -> app "Creates diagrams"
+  }
+  views {
+    systemLandscape { include *; autolayout lr }
+  }
+}
+```
+
+## Related pages
+
+- [Style Structurizr](/style/types/structurizr)
+- [General presentation settings](/style/presentation)
+- [Open Structurizr in the editor](https://diagram.zip/?type=structurizr)
+
+## Upstream reference
+
+[Structurizr documentation](https://docs.structurizr.com/dsl)
+
+---
+id: style-structurizr
+slug: /style/types/structurizr
+title: Structurizr
+description: Style a Structurizr diagram in diagram.zip.
+sidebar_label: Structurizr
+---
+
+# Style Structurizr
+
+Structurizr supports workspace styles, themes, tags, and automatic layout.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Add tags to model elements and relationships.
+- Define tag styles in the view configuration.
+- Use a theme when the source is trusted and the theme is available.
+- Use `autolayout` to set layout direction.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `view-key` | A view key | Render one view from a workspace that contains multiple views. |
+| `output` | `diagram` or `legend` | Render the selected view or its legend. |
+
+## Related pages
+
+- [Create a Structurizr diagram](/create/types/structurizr)
+- [General presentation settings](/style/presentation)
+- [Open Structurizr in the editor](https://diagram.zip/?type=structurizr)
+
+---
+
+---
+id: create-svgbob
+slug: /create/types/svgbob
+title: Svgbob
+description: Create a Svgbob diagram in diagram.zip.
+sidebar_label: Svgbob
+---
+
+# Svgbob
+
+Svgbob converts ASCII-art diagrams into SVG.
+
+## Use this type
+
+Use Svgbob for boxes, arrows, circuits, and diagrams that must remain readable as text.
+
+## Source format
+
+The source format is **ASCII diagram text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use ASCII or supported Unicode drawing characters.
+- Close shapes when you need filled regions.
+- Put arrowheads at connector ends.
+- Put labels where they do not touch a line.
+
+### Example
+
+```text
++------+       +---------+
+| User |------>| Diagram |
++------+       +---------+
+```
+
+## Related pages
+
+- [Style Svgbob](/style/types/svgbob)
+- [General presentation settings](/style/presentation)
+- [Open Svgbob in the editor](https://diagram.zip/?type=svgbob)
+
+## Upstream reference
+
+[Svgbob documentation](https://ivanceras.github.io/svgbob-editor/)
+
+---
+id: style-svgbob
+slug: /style/types/svgbob
+title: Svgbob
+description: Style a Svgbob diagram in diagram.zip.
+sidebar_label: Svgbob
+---
+
+# Style Svgbob
+
+Svgbob takes geometry from the text and supports renderer-level SVG settings.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Change the source spacing to change object placement.
+- Use supported characters to select line and corner forms.
+- Use renderer options for uniform color and font changes.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `background` | CSS color; default is `white` | Set the SVG background. |
+| `font-family` | Font family; default is `arial` | Set the label font. |
+| `font-size` | Integer; default is `14` | Set the label font size. |
+| `fill-color` | CSS color; default is `black` | Set the solid-shape fill. |
+| `scale` | Number; default is `1` | Scale the SVG. |
+| `stroke-width` | Number; default is `2` | Set the line width. |
+
+## Related pages
+
+- [Create a Svgbob diagram](/create/types/svgbob)
+- [General presentation settings](/style/presentation)
+- [Open Svgbob in the editor](https://diagram.zip/?type=svgbob)
+
+---
+
+---
+id: create-symbolator
+slug: /create/types/symbolator
+title: Symbolator
+description: Create a Symbolator diagram in diagram.zip.
+sidebar_label: Symbolator
+---
+
+# Symbolator
+
+Symbolator creates a component symbol from a hardware module declaration.
+
+## Use this type
+
+Use Symbolator to document component ports, directions, groups, and data widths.
+
+## Source format
+
+The source format is **VHDL or Verilog source**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Declare a VHDL entity or a Verilog module.
+- Declare the ports that must appear in the symbol.
+- Use supported comments to group ports.
+- Select the component when the source has more than one.
+
+### Example
+
+```text
+module diagram (
+  input wire clock,
+  input wire data_in,
+  output wire data_out
+);
+endmodule
+```
+
+## Related pages
+
+- [Style Symbolator](/style/types/symbolator)
+- [General presentation settings](/style/presentation)
+- [Open Symbolator in the editor](https://diagram.zip/?type=symbolator)
+
+## Upstream reference
+
+[Symbolator documentation](https://github.com/kevinpt/symbolator)
+
+---
+id: style-symbolator
+slug: /style/types/symbolator
+title: Symbolator
+description: Style a Symbolator diagram in diagram.zip.
+sidebar_label: Symbolator
+---
+
+# Style Symbolator
+
+Symbolator gets structure from hardware source. Renderer options control the title, scale, and output details.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use supported port-group comments to organize the symbol.
+- Use clear port and parameter names.
+- Use renderer options for the title and scale.
+
+## Renderer options
+
+| Option | Values | Purpose |
+| --- | --- | --- |
+| `component` | Component name | Select the component to render. |
+| `transparent` | Flag | Use a transparent background. |
+| `title` | Text | Add a title. |
+| `scale` | Number; default is `1.0` | Scale the diagram. |
+| `no-type` | Flag | Remove port type data. |
+| `library-name` | Text | Add a library name when the title is present. |
+
+## Related pages
+
+- [Create a Symbolator diagram](/create/types/symbolator)
+- [General presentation settings](/style/presentation)
+- [Open Symbolator in the editor](https://diagram.zip/?type=symbolator)
+
+---
+
+---
+id: create-tikz
+slug: /create/types/tikz
+title: TikZ
+description: Create a TikZ diagram in diagram.zip.
+sidebar_label: TikZ
+---
+
+# TikZ
+
+TikZ creates precise diagrams with TeX drawing commands.
+
+## Use this type
+
+Use TikZ for mathematical, scientific, geometric, and publication-quality diagrams.
+
+## Source format
+
+The source format is **TeX with TikZ**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Put drawing commands in a `tikzpicture` environment.
+- Create shapes with commands such as `node`, `draw`, and `path`.
+- Put options in square brackets.
+- Terminate each path command with a semicolon.
+
+### Example
+
+```text
+\begin{tikzpicture}
+  \node (user) at (0,0) {User};
+  \node (diagram) at (3,0) {diagram.zip};
+  \draw[->] (user) -- (diagram);
+\end{tikzpicture}
+```
+
+## Related pages
+
+- [Style TikZ](/style/types/tikz)
+- [General presentation settings](/style/presentation)
+- [Open TikZ in the editor](https://diagram.zip/?type=tikz)
+
+## Upstream reference
+
+[TikZ documentation](https://ctan.org/pkg/pgf)
+
+---
+id: style-tikz
+slug: /style/types/tikz
+title: TikZ
+description: Style a TikZ diagram in diagram.zip.
+sidebar_label: TikZ
+---
+
+# Style TikZ
+
+TikZ supports colors, line forms, fills, node styles, scopes, and reusable style definitions.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Put local drawing options in square brackets.
+- Define reusable styles with `tikzset`.
+- Use scopes to apply a style to a group.
+- Load only the libraries that the diagram needs.
+## Related pages
+
+- [Create a TikZ diagram](/create/types/tikz)
+- [General presentation settings](/style/presentation)
+- [Open TikZ in the editor](https://diagram.zip/?type=tikz)
+
+---
+
+---
+id: create-umlet
+slug: /create/types/umlet
+title: UMLet
+description: Create an UMLet diagram in diagram.zip.
+sidebar_label: UMLet
+---
+
+# UMLet
+
+UMLet renders UML elements from a UXF XML document.
+
+## Use this type
+
+Use UMLet when UMLet is the source editor for the diagram.
+
+## Source format
+
+The source format is **UMLet UXF XML**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use a `diagram` root element.
+- Put each diagram item in a `element` block.
+- Use `coordinates` to set position and size.
+- Use `panel_attributes` for labels and element settings.
+
+### Source structure
+
+This source shows the document structure. It is not a complete document.
+
+```xml
+<diagram program="umlet">
+  <element>
+    <id>UMLClass</id>
+    <coordinates><x>20</x><y>20</y><w>160</w><h>80</h></coordinates>
+    <panel_attributes>User</panel_attributes>
+  </element>
+</diagram>
+```
+
+## Related pages
+
+- [Style UMLet](/style/types/umlet)
+- [General presentation settings](/style/presentation)
+- [Open UMLet in the editor](https://diagram.zip/?type=umlet)
+
+## Upstream reference
+
+[UMLet documentation](https://www.umlet.com/)
+
+---
+id: style-umlet
+slug: /style/types/umlet
+title: UMLet
+description: Style a UMLet diagram in diagram.zip.
+sidebar_label: UMLet
+---
+
+# Style UMLet
+
+UMLet stores position and style commands in the UXF XML source.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use the UMLet editor to change element geometry safely.
+- Put supported style commands in `panel_attributes`.
+- Use `additional_attributes` only for the selected UMLet element.
+## Related pages
+
+- [Create an UMLet diagram](/create/types/umlet)
+- [General presentation settings](/style/presentation)
+- [Open UMLet in the editor](https://diagram.zip/?type=umlet)
+
+---
+
+---
+id: create-vega
+slug: /create/types/vega
+title: Vega
+description: Create a Vega diagram in diagram.zip.
+sidebar_label: Vega
+---
+
+# Vega
+
+Vega creates data visualizations from a declarative JSON specification.
+
+## Use this type
+
+Use Vega when you need detailed control of data, scales, signals, marks, and interactions.
+
+## Source format
+
+The source format is **Vega JSON**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use a JSON object with a Vega schema URL.
+- Put inline records in a data source.
+- Define scales and axes before marks use them.
+- Use mark encodings to map data to visual properties.
+
+### Example
+
+```json
+{
+  "$schema": "https://vega.github.io/schema/vega/v6.json",
+  "width": 320,
+  "height": 180,
+  "padding": 5,
+  "data": [{
+    "name": "steps",
+    "values": [
+      {"step": "Create", "count": 8},
+      {"step": "Review", "count": 5},
+      {"step": "Share", "count": 7}
+    ]
+  }],
+  "scales": [
+    {"name": "x", "type": "band", "domain": {"data": "steps", "field": "step"}, "range": "width", "padding": 0.2},
+    {"name": "y", "type": "linear", "domain": {"data": "steps", "field": "count"}, "nice": true, "zero": true, "range": "height"}
+  ],
+  "axes": [
+    {"orient": "bottom", "scale": "x"},
+    {"orient": "left", "scale": "y"}
+  ],
+  "marks": [{
+    "type": "rect",
+    "from": {"data": "steps"},
+    "encode": {"enter": {
+      "x": {"scale": "x", "field": "step"},
+      "width": {"scale": "x", "band": 1},
+      "y": {"scale": "y", "field": "count"},
+      "y2": {"scale": "y", "value": 0},
+      "fill": {"value": "#7c3aed"}
+    }}
+  }]
+}
+```
+
+## Limitations
+
+- URL-backed data and images are not available.
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Style Vega](/style/types/vega)
+- [General presentation settings](/style/presentation)
+- [Open Vega in the editor](https://diagram.zip/?type=vega)
+
+## Upstream reference
+
+[Vega documentation](https://vega.github.io/vega/docs/)
+
+---
+id: style-vega
+slug: /style/types/vega
+title: Vega
+description: Style a Vega diagram in diagram.zip.
+sidebar_label: Vega
+---
+
+# Style Vega
+
+Vega controls presentation through scales, mark encodings, axes, legends, and configuration.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set colors and sizes in mark encodings.
+- Use scales when a visual value depends on data.
+- Use the configuration object for common defaults.
+- Keep all data and images inline.
+## Limitations
+
+- URL-backed data and images are not available.
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Create a Vega diagram](/create/types/vega)
+- [General presentation settings](/style/presentation)
+- [Open Vega in the editor](https://diagram.zip/?type=vega)
+
+---
+
+---
+id: create-vegalite
+slug: /create/types/vegalite
+title: Vega-Lite
+description: Create a Vega-Lite diagram in diagram.zip.
+sidebar_label: Vega-Lite
+---
+
+# Vega-Lite
+
+Vega-Lite creates data visualizations from concise mark and encoding declarations.
+
+## Use this type
+
+Use Vega-Lite for common charts that do not need the full Vega grammar.
+
+## Source format
+
+The source format is **Vega-Lite JSON**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use a JSON object with a Vega-Lite schema URL.
+- Put inline records in `data.values`.
+- Select a mark type.
+- Map fields to channels in the `encoding` object.
+
+### Example
+
+```json
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "data": {"values": [{"name": "A", "value": 4}]},
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "name", "type": "nominal"},
+    "y": {"field": "value", "type": "quantitative"}
+  }
+}
+```
+
+## Limitations
+
+- URL-backed data and images are not available.
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Style Vega-Lite](/style/types/vegalite)
+- [General presentation settings](/style/presentation)
+- [Open Vega-Lite in the editor](https://diagram.zip/?type=vegalite)
+
+## Upstream reference
+
+[Vega-Lite documentation](https://vega.github.io/vega-lite/docs/)
+
+---
+id: style-vegalite
+slug: /style/types/vegalite
+title: Vega-Lite
+description: Style a Vega-Lite diagram in diagram.zip.
+sidebar_label: Vega-Lite
+---
+
+# Style Vega-Lite
+
+Vega-Lite controls presentation through marks, encodings, scales, axes, legends, and configuration.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set mark properties for one mark.
+- Set channel scale and axis properties in the encoding.
+- Use the configuration object for common defaults.
+- Keep all data and images inline.
+## Limitations
+
+- URL-backed data and images are not available.
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Create a Vega-Lite diagram](/create/types/vegalite)
+- [General presentation settings](/style/presentation)
+- [Open Vega-Lite in the editor](https://diagram.zip/?type=vegalite)
+
+---
+
+---
+id: create-wavedrom
+slug: /create/types/wavedrom
+title: WaveDrom
+description: Create a WaveDrom diagram in diagram.zip.
+sidebar_label: WaveDrom
+---
+
+# WaveDrom
+
+WaveDrom creates digital timing diagrams from signal and wave data.
+
+## Use this type
+
+Use WaveDrom for clocks, buses, requests, responses, and protocol timing.
+
+## Source format
+
+The source format is **WaveJSON**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Use an object with a `signal` array.
+- Give each signal a name and a wave string.
+- Use data labels for bus values.
+- Use empty objects to add visual space.
+
+### Example
+
+```json
+{ "signal": [
+  { "name": "clock", "wave": "p...." },
+  { "name": "data", "wave": "x.34x", "data": ["A", "B"] }
+]}
+```
+
+## Limitations
+
+- Only the six bundled diagram.zip skins are available.
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Style WaveDrom](/style/types/wavedrom)
+- [General presentation settings](/style/presentation)
+- [Open WaveDrom in the editor](https://diagram.zip/?type=wavedrom)
+
+## Upstream reference
+
+[WaveDrom documentation](https://wavedrom.com/tutorial.html)
+
+---
+id: style-wavedrom
+slug: /style/types/wavedrom
+title: WaveDrom
+description: Style a WaveDrom diagram in diagram.zip.
+sidebar_label: WaveDrom
+---
+
+# Style WaveDrom
+
+WaveDrom supports source configuration, signal attributes, and a limited set of bundled skins.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Use the `config` object for scale and header settings.
+- Use signal attributes for labels and wave data.
+- Select only a skin that diagram.zip provides.
+## Limitations
+
+- Only the six bundled diagram.zip skins are available.
+- diagram.zip returns SVG for this type.
+
+## Related pages
+
+- [Create a WaveDrom diagram](/create/types/wavedrom)
+- [General presentation settings](/style/presentation)
+- [Open WaveDrom in the editor](https://diagram.zip/?type=wavedrom)
+
+---
+
+---
+id: create-wireviz
+slug: /create/types/wireviz
+title: WireViz
+description: Create a WireViz diagram in diagram.zip.
+sidebar_label: WireViz
+---
+
+# WireViz
+
+WireViz creates wiring-harness diagrams from connectors, cables, and connections.
+
+## Use this type
+
+Use WireViz to document cable assemblies, pins, wire colors, gauges, and connector mappings.
+
+## Source format
+
+The source format is **WireViz YAML**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Declare connectors in the `connectors` map.
+- Declare cables in the `cables` map.
+- Put wiring paths in the `connections` list.
+- Use matching pin and wire lists for grouped connections.
+
+### Example
+
+```yaml
+connectors:
+  X1:
+    type: Molex
+    pinlabels: [GND, DATA]
+cables:
+  W1:
+    wirecount: 2
+connections:
+  - - X1: [1, 2]
+    - W1: [1, 2]
+```
+
+## Related pages
+
+- [Style WireViz](/style/types/wireviz)
+- [General presentation settings](/style/presentation)
+- [Open WireViz in the editor](https://diagram.zip/?type=wireviz)
+
+## Upstream reference
+
+[WireViz documentation](https://github.com/wireviz/WireViz)
+
+---
+id: style-wireviz
+slug: /style/types/wireviz
+title: WireViz
+description: Style a WireViz diagram in diagram.zip.
+sidebar_label: WireViz
+---
+
+# Style WireViz
+
+WireViz uses YAML properties for connector, cable, wire, and output styles.
+
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+
+## Source controls
+
+- Set connector and cable colors in their YAML definitions.
+- Use pin labels and wire colors to improve identification.
+- Use WireViz metadata and output settings only when the renderer supports them.
+## Related pages
+
+- [Create a WireViz diagram](/create/types/wireviz)
+- [General presentation settings](/style/presentation)
+- [Open WireViz in the editor](https://diagram.zip/?type=wireviz)

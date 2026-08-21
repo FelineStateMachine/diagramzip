@@ -1,5 +1,0 @@
-{
-  "engine": "rackdiag",
-  "source": "rackdiag {\n  8U;\n  1: UPS [2U];\n  3: Server [2U];\n  5: Switch;\n}",
-  "sourceKind": "page-example"
-}

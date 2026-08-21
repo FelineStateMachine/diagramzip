@@ -1,0 +1,44 @@
+{
+  "name": "diagramzip-render",
+  "version": "0.2.1",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "cf-typegen": "wrangler types",
+    "build:dbml": "node scripts/build-dbml.mjs",
+    "build:d2-wasm": "node scripts/build-d2-wasm.mjs",
+    "check": "tsc --noEmit",
+    "deploy:dry": "wrangler deploy --dry-run",
+    "deploy:worker-units": "node scripts/deploy-worker-units.mjs",
+    "deploy:python-units": "node scripts/deploy-python-units.mjs",
+    "dev": "wrangler dev",
+    "smoke": "node scripts/smoke.mjs",
+    "smoke:units": "node scripts/smoke-units.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@softwaretechnik/dbml-renderer": "1.0.31",
+    "@viz-js/viz": "3.29.0",
+    "bytefield-svg": "1.11.0",
+    "json5": "2.2.3",
+    "linkedom": "0.18.12",
+    "nomnoml": "1.7.0",
+    "onml": "2.1.0",
+    "saxes": "6.0.0",
+    "vega": "6.3.1",
+    "vega-interpreter": "2.3.2",
+    "vega-lite": "6.4.3",
+    "wavedrom": "3.6.2"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260820.1",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.125.0"
+  }
+}

@@ -1,0 +1,111 @@
+.typeSection {
+  margin: 4rem 0 1rem;
+}
+
+.sectionHeading {
+  align-items: end;
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+}
+
+.eyebrow,
+.category {
+  color: var(--ifm-color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+
+.searchLabel {
+  color: var(--ifm-font-color-base);
+  display: grid;
+  font-size: 0.8rem;
+  font-weight: 600;
+  gap: 0.4rem;
+  max-width: 19rem;
+  width: 100%;
+}
+
+.searchLabel input {
+  background: var(--ifm-background-color);
+  border: 1px solid var(--ifm-color-emphasis-400);
+  border-radius: 0.4rem;
+  color: var(--ifm-font-color-base);
+  font: inherit;
+  padding: 0.65rem 0.75rem;
+}
+
+.searchLabel input:focus {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 3px var(--ifm-color-primary-lightest);
+  outline: none;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.card {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 12rem;
+  padding: 1.1rem;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.card:hover {
+  border-color: var(--ifm-color-primary);
+  transform: translateY(-2px);
+}
+
+.card h3 {
+  font-size: 1.05rem;
+  margin: 0 0 0.55rem;
+}
+
+.card p:not(.category) {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.links a {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.resultCount,
+.empty {
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.85rem;
+  margin: 1rem 0 0;
+}
+
+@media (max-width: 996px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .sectionHeading { align-items: stretch; flex-direction: column; gap: 1rem; }
+  .grid { grid-template-columns: 1fr; }
+}

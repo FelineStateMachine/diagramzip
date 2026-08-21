@@ -1,0 +1,11 @@
+[package]
+name = "svgbob-wasm"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+svgbob = { git = "https://github.com/ivanceras/svgbob", rev = "04a9d85c4b1879051f205e9e434e058864c3d36f" }
+wasm-bindgen = "0.2.127"

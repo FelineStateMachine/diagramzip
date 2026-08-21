@@ -1,0 +1,5 @@
+{
+  "engine": "blockdiag",
+  "source": "blockdiag {\n  idea -> agent -> diagram;\n  agent [color = \"#dbeafe\"];\n}",
+  "sourceKind": "page-example"
+}

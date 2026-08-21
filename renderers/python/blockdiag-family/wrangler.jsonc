@@ -1,0 +1,23 @@
+{
+  "$schema": "../../edge/node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-blockdiag-family",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["python_workers"],
+  "rules": [
+    { "type": "Data", "globs": ["**/*.ttf"], "fallthrough": true }
+  ],
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
+  "vars": { "RENDERER_BUILD": "blockdiag-3.4.2-family-python-1" },
+  "routes": [
+    { "pattern": "blockdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "seqdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "actdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "nwdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "packetdiag.render.diagram.zip", "custom_domain": true },
+    { "pattern": "rackdiag.render.diagram.zip", "custom_domain": true }
+  ],
+  "python_modules": {
+    "excludes": ["**/*.pyc", "**/__pycache__", "**/tests/**", "**/test/**"]
+  }
+}

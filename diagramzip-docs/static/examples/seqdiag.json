@@ -1,5 +1,0 @@
-{
-  "engine": "seqdiag",
-  "source": "seqdiag {\n  user -> agent [label = \"Create diagram\"];\n  user <-- agent [label = \"Return link\"];\n}",
-  "sourceKind": "page-example"
-}

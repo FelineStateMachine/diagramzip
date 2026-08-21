@@ -1,5 +1,0 @@
-{
-  "engine": "actdiag",
-  "source": "actdiag {\n  write -> review -> share\n  lane user {\n    write; share;\n  }\n  lane agent {\n    review;\n  }\n}",
-  "sourceKind": "page-example"
-}

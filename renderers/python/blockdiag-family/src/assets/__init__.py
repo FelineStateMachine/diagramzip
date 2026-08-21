@@ -1,0 +1,1 @@
+"""Bundled deterministic renderer assets."""

@@ -1,0 +1,5 @@
+{
+  "engine": "nomnoml",
+  "source": "#direction: right\n[User]->[Diagram]\n[Diagram|title: string|save(); share()]",
+  "sourceKind": "page-example"
+}

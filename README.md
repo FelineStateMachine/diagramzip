@@ -6,18 +6,19 @@
 
 | Path | Purpose |
 | --- | --- |
-| `diagramzip/` | Browser editor and local development entry point |
-| `diagramzip-api/` | Cloudflare Worker for encrypted, accountless persistence |
-| `diagramzip-docs/` | Docusaurus site published at [docs.diagram.zip](https://docs.diagram.zip) |
-| `diagramzip-render/` | Renderer catalog, shared contracts, and Worker-based renderer units |
-| `diagramzip-client-units/` | Sandboxed browser renderers |
-| `diagramzip-python-units/` | Python renderer and translation units |
-| `diagramzip-shell/` | Cloudflare shell and routing layer |
-| `diagramzip-svg/` | Shared SVG normalization and presentation logic |
+| `apps/editor/` | Browser editor and local development entry point |
+| `apps/docs/` | Docusaurus site published at [docs.diagram.zip](https://docs.diagram.zip) |
+| `workers/api/` | Cloudflare Worker for encrypted, accountless persistence |
+| `workers/shell/` | Cloudflare shell and routing layer |
+| `renderers/edge/` | Renderer catalog, shared contracts, and Worker-based renderer units |
+| `renderers/client/` | Sandboxed browser renderers |
+| `renderers/python/` | Python renderer and translation units |
+| `packages/svg/` | Shared SVG normalization and presentation logic |
 | `examples/diagrams/` | Canonical diagram corpus shared by the editor and renderer tests |
+| `vendor/diagramsnet/` | Pinned diagrams.net browser runtime assets |
 | `skills/` | Diagram-specific agent skills and reference material |
 
-Some top-level renderer directories retain foundation sources used to build the isolated units. The production application and renderer plane run on Cloudflare; there is no JVM gateway or shared rendering server.
+Top-level directories describe architectural roles. The production application and renderer plane run on Cloudflare; there is no JVM gateway or shared rendering server.
 
 ## Development
 
@@ -34,8 +35,8 @@ Useful checks:
 npm run test:diagramzip
 npm run build:diagramzip
 npm run build:diagramzip-docs
-npm --prefix diagramzip-render test
-npm --prefix diagramzip-api test
+npm --prefix renderers/edge test
+npm --prefix workers/api test
 ```
 
 Individual services have their own README and package scripts. Run deployment commands from the service directory whose `wrangler.jsonc` you intend to use.
@@ -44,7 +45,7 @@ Individual services have their own README and package scripts. Run deployment co
 
 The editor runs at `diagram.zip`. Rendering is split into isolated units selected by hostname at `{engine}.render.diagram.zip`; the renderer catalog documents the contract and capabilities for all supported engines. Five renderers run in sandboxed browser frames, while the remaining renderers run in JavaScript, Python, or WebAssembly Workers.
 
-Saved diagrams use encrypted client-side content, mutable aliases in D1, and immutable content-addressed objects in R2. See [`diagramzip/PERSISTENCE.md`](diagramzip/PERSISTENCE.md) for the persistence and security contract.
+Saved diagrams use encrypted client-side content, mutable aliases in D1, and immutable content-addressed objects in R2. See [`apps/editor/PERSISTENCE.md`](apps/editor/PERSISTENCE.md) for the persistence and security contract.
 
 ## Project history and licensing
 

@@ -1,0 +1,9 @@
+/*
+  Cache-Control: public, max-age=300, no-transform
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), geolocation=(), microphone=()
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; connect-src 'self' https://diagram.zip https://*.render.diagram.zip; font-src 'self' data:; form-action 'self'; frame-ancestors 'none'; frame-src https://*.render.diagram.zip; img-src 'self' data: blob:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

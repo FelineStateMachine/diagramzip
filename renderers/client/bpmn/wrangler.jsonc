@@ -1,0 +1,15 @@
+{
+  "$schema": "../../edge/node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-bpmn",
+  "main": "./unit/worker.js",
+  "compatibility_date": "2026-08-20",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    "run_worker_first": ["/v1/*"]
+  },
+  "observability": { "enabled": true },
+  "routes": [{ "pattern": "bpmn.render.diagram.zip", "custom_domain": true }]
+}

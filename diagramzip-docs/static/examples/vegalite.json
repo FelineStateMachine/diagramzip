@@ -1,5 +1,0 @@
-{
-  "engine": "vegalite",
-  "source": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v6.json\",\n  \"data\": {\"values\": [{\"name\": \"A\", \"value\": 4}]},\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\"field\": \"name\", \"type\": \"nominal\"},\n    \"y\": {\"field\": \"value\", \"type\": \"quantitative\"}\n  }\n}",
-  "sourceKind": "page-example"
-}

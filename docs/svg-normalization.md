@@ -3,9 +3,9 @@
 ## Purpose
 
 SVG is the rendering contract between a diagram engine and its consumers. An
-engine may use any language, runtime, renderer, layout algorithm, or deployment
-topology, but its accepted output becomes a safe, deterministic SVG that can be
-presented with one of seven Diagram.zip appearance presets:
+engine can use any language, runtime, renderer, layout algorithm, or deployment
+topology. Its accepted output becomes safe, deterministic SVG. Consumers can
+present it with one of seven Diagram.zip appearance presets:
 
 ```text
 raw
@@ -67,8 +67,8 @@ process as the engine. Their location does not change their contracts.
 
 The engine render is the only stage allowed to change diagram geometry as part
 of layout. Later stages may normalize document bounds and add presentation
-padding or a frame, but they must not reroute connectors, reflow labels, change
-font metrics after layout, or otherwise reinterpret the source language.
+padding or a frame. They must not reroute connectors, reflow labels, or change
+font metrics after layout. They must not reinterpret the source language.
 
 Sanitization occurs before semantic processing. Normalization rules must never
 depend on active content, external stylesheets, remote resources, or other
@@ -98,7 +98,7 @@ use an opaque dark surface for the same reason.
 
 The transparent variants are intended for a surrounding surface of the same
 lightness. Free-standing text and connectors in a light-transparent diagram may
-not be readable on an arbitrary dark page, and the reverse is true for a
+not be readable on an arbitrary dark page. The reverse is true for a
 dark-transparent diagram. Framed variants are self-contained and must remain
 readable regardless of the embedding page.
 
@@ -234,18 +234,18 @@ Surface numbers describe hierarchy, not fixed lightness: the appearance preset
 chooses appropriate values in light and dark modes.
 
 Accent slots preserve distinctions, not literal shades. An authored blue and
-an authored orange may map to stable blue-like and orange-like accent slots,
-while the light and dark presets choose different shades for contrast. Color
-must not be the sole carrier of meaning when the source format provides shape,
-label, line, or pattern distinctions.
+an authored orange can map to stable blue-like and orange-like accent slots.
+The light and dark presets select different shades for contrast. Color must not
+be the sole carrier of meaning when the source format provides shape, label,
+line, or pattern distinctions.
 
 ## Palette contract
 
 The palette is a small, pinned data set embedded into materialized SVG. It must
 not depend on a remote CSS resource or on the embedding page. A versioned subset
-of the [Pico color palette](https://picocss.com/docs/colors) is a suitable source
-for neutral surfaces and accent ramps, but Diagram.zip role assignments and
-contrast pairs are their own versioned contract.
+of the [Pico color palette](https://picocss.com/docs/colors) can supply neutral
+surfaces and accent ramps. Diagram.zip role assignments and contrast pairs have
+their own versioned contract.
 
 The palette contains only the families and shades used by the role table. At a
 minimum it defines:
@@ -259,9 +259,9 @@ minimum it defines:
 
 Selected foreground/background pairs must be measured rather than assumed to
 be accessible because they came from a color library. Text contrast is checked
-against the surface that actually owns the text. Strong accent fills should use
-a known `on-accent` value; subtle categorical fills should use a tinted surface
-with a stronger accent border when that provides more reliable contrast.
+against the surface that owns the text. Strong accent fills should use a known
+`on-accent` value. Subtle categorical fills should use a tinted surface and a
+stronger accent border when that combination provides more reliable contrast.
 
 Palette changes create a new palette build. Existing artifacts remain tied to
 the palette build with which they were produced.
@@ -293,10 +293,10 @@ need source-language knowledge. Examples include:
 - adding the Diagram.zip frame;
 - embedding metadata and the selected appearance.
 
-Do not render separate native light and dark layouts merely to obtain theme
-support unless the renderer proves that the two modes have identical geometry
+Do not render separate native light and dark layouts only to obtain theme
+support. The renderer must first prove that both modes have identical geometry
 and semantic structure. Native themes can change font selection, layout,
-filters, markup, and measurements. A single canonical geometry is preferred.
+filters, markup, and measurements. Prefer one canonical geometry.
 
 Do not replace fonts after layout unless the profile proves metric
 compatibility. A color-only post-processing step is generally safe; a font
@@ -391,9 +391,9 @@ The profile distinguishes at least:
 - filters and shadows.
 
 SVG defaults and inheritance matter. An absent `fill` does not necessarily mean
-transparent, and an explicit `fill="none"` does not reveal whether a shape is a
-node boundary or an open decorative path. The normalizer must inspect computed
-intent within the bounded styling model supported by the profile.
+transparent. An explicit `fill="none"` does not identify a shape as a node
+boundary or an open decorative path. The normalizer must inspect computed intent
+within the bounded styling model that the profile supports.
 
 A profile may turn an unfilled boundary into an opaque themed surface only
 when it has identified the element as an object surface. It must not infer that
@@ -403,8 +403,8 @@ elements are common counterexamples.
 
 Text is assigned an ink role relative to its owning surface. Text without an
 identifiable owner uses the scheme's canvas ink. A profile must account for
-text rendered through ordinary SVG text, paths, and approved embedded markup;
-support for one form does not imply support for the others.
+ordinary SVG text, paths, and approved embedded markup. Support for one form
+does not imply support for the others.
 
 Markers should inherit or be assigned the connector's role. If the renderer
 reuses one marker definition across differently colored connectors, the
@@ -413,17 +413,17 @@ mechanism.
 
 Gradients and patterns require explicit profile rules. Mapping only a gradient
 reference while leaving incompatible stops unchanged is not normalization.
-When safe adaptation is unavailable, preserve the authored paint in `raw` and
-report the themed appearance as unsupported or incomplete rather than silently
-producing misleading output.
+When safe adaptation is unavailable, preserve the authored paint in `raw`.
+Report the themed appearance as unsupported or incomplete. Do not silently
+produce misleading output.
 
 ## Raw preservation and themed overrides
 
 Raw values remain available independently of Diagram.zip role values. A
-canonical representation may preserve renderer paint in its original
-attributes and apply scoped appearance overrides, or it may store normalized
-raw fallbacks in deterministic custom properties. The exact mechanism is an
-implementation choice as long as these invariants hold:
+canonical representation can preserve renderer paint and apply scoped
+appearance overrides. It can instead store normalized raw fallbacks in
+deterministic custom properties. The exact mechanism is an implementation
+choice when these invariants hold:
 
 - selecting `raw` restores the safe renderer appearance;
 - selecting a themed appearance does not require rerendering geometry;
@@ -437,10 +437,9 @@ difficult to compare by pixels.
 
 ## Materialization
 
-Canonical SVG is the reusable geometry and role representation. Materializing
-an appearance selects a root appearance value, embeds the required palette
-tokens and role rules, applies canvas or frame geometry, and serializes a
-self-contained SVG.
+Canonical SVG is the reusable geometry and role representation. Materialization
+selects a root appearance value and embeds the required palette tokens and role
+rules. It applies canvas or frame geometry and serializes a self-contained SVG.
 
 Consumers may inline canonical SVG and change its root appearance in a trusted
 environment. Consumers displaying SVG through an image element cannot assume

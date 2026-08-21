@@ -1,0 +1,5 @@
+{
+  "engine": "mermaid",
+  "source": "flowchart LR\n  Idea[Idea] --> Agent[Agent]\n  Agent --> Diagram[Shared diagram]",
+  "sourceKind": "page-example"
+}

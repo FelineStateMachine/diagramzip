@@ -1,0 +1,11 @@
+{
+  "name": "diagramzip-render-tikz-client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "test": "npm run build && node ./scripts/check.mjs",
+    "deploy": "../../edge/node_modules/.bin/wrangler deploy --config wrangler.jsonc"
+  },
+  "devDependencies": { "esbuild": "0.27.7" }
+}

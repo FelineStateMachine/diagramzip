@@ -1,6 +1,0 @@
-/*
-  Access-Control-Allow-Origin: *
-  Cache-Control: public, max-age=300, no-transform
-  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; frame-src 'none'; base-uri 'none'; form-action 'none'
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: no-referrer

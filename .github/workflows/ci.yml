@@ -24,18 +24,18 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            diagramzip-api/package-lock.json
-            diagramzip-docs/package-lock.json
-            diagramzip-render/package-lock.json
-            diagramzip-shell/package-lock.json
+            apps/docs/package-lock.json
+            renderers/edge/package-lock.json
+            workers/api/package-lock.json
+            workers/shell/package-lock.json
 
       - name: Install workspace dependencies
         run: |
           npm ci
-          npm ci --prefix diagramzip-api
-          npm ci --prefix diagramzip-docs
-          npm ci --prefix diagramzip-render
-          npm ci --prefix diagramzip-shell
+          npm ci --prefix apps/docs
+          npm ci --prefix renderers/edge
+          npm ci --prefix workers/api
+          npm ci --prefix workers/shell
 
       - name: Test editor
         run: npm run test:diagramzip
@@ -47,10 +47,10 @@ jobs:
         run: npm run build:diagramzip-docs
 
       - name: Test persistence API
-        run: npm test --prefix diagramzip-api
+        run: npm test --prefix workers/api
 
       - name: Test renderer plane
-        run: npm test --prefix diagramzip-render
+        run: npm test --prefix renderers/edge
 
       - name: Test shell
-        run: npm test --prefix diagramzip-shell
+        run: npm test --prefix workers/shell

@@ -1,0 +1,11 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-umlet",
+  "main": "../src/units/umlet.ts",
+  "compatibility_date": "2026-08-20",
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
+  "vars": { "RENDERER_BUILD": "umlet-direct-svg-2" },
+  "routes": [
+    { "pattern": "umlet.render.diagram.zip", "custom_domain": true }
+  ]
+}

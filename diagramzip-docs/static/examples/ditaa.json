@@ -1,5 +1,0 @@
-{
-  "engine": "ditaa",
-  "source": "+--------+       +-------------+\n|  User  |------>| diagram.zip |\n+--------+       +-------------+",
-  "sourceKind": "page-example"
-}
