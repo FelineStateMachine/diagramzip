@@ -12,14 +12,16 @@
     "url": "https://github.com/FelineStateMachine/diagramzip.git"
   },
   "scripts": {
-    "build:diagramzip": "vite build --config apps/editor/vite.config.js",
-    "generate:diagramzip-docs": "npm --prefix apps/docs run generate",
-    "check:diagramzip-docs": "npm --prefix apps/docs run check",
-    "build:diagramzip-docs": "npm --prefix apps/docs run build",
-    "dev:diagramzip": "vite --config apps/editor/vite.config.js",
-    "test": "npm run test:diagramzip && npm test --prefix workers/api && npm test --prefix renderers/edge && npm test --prefix workers/shell",
-    "test:diagramzip": "node --test apps/editor/test/*.test.js",
-    "test:workers": "npm test --prefix workers/api && npm test --prefix renderers/edge && npm test --prefix workers/shell"
+    "dev:editor": "vite --config apps/editor/vite.config.js",
+    "build:editor": "vite build --config apps/editor/vite.config.js",
+    "generate:docs": "npm --prefix apps/docs run generate",
+    "check:docs": "npm --prefix apps/docs run check",
+    "build:docs": "npm --prefix apps/docs run build",
+    "test": "npm run test:editor && npm run test:api && npm run test:edge && npm run test:shell",
+    "test:editor": "node --test apps/editor/test/*.test.js",
+    "test:api": "npm --prefix services/api test",
+    "test:edge": "npm --prefix renderers/edge test",
+    "test:shell": "npm --prefix services/shell test"
   },
   "volta": {
     "node": "24.19.0"

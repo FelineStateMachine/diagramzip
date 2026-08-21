@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "npm run generate && docusaurus start",
+    "dev": "npm run generate && docusaurus start",
     "generate": "node scripts/generate-docs.mjs",
     "check": "node scripts/check-docs.mjs",
     "check:rendered-examples": "node scripts/check-rendered-examples.mjs",

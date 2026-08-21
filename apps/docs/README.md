@@ -10,10 +10,10 @@ Use Node.js 20 or a later version.
 
 ```sh
 npm install
-npm start
+npm run dev
 ```
 
-The `start` command generates the diagram reference before it starts the local server.
+The `dev` command generates the diagram reference before it starts the local server.
 
 ## Checks
 

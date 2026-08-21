@@ -368,8 +368,8 @@ application state.
 
 ### Build and asset tests
 
-- `npm run test:diagramzip`
-- `npm run build:diagramzip`
+- `npm run test:editor`
+- `npm run build:editor`
 - Inspect emitted HTML, chunks, and worker URLs under the production
   `/diagram.zip/` base.
 - Assert the production assets contain no CodeMirror packages.
