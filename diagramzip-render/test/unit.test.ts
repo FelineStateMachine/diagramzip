@@ -62,6 +62,12 @@ describe('renderer unit protocol', () => {
       id: 'vegalite',
       kind: 'translate',
       pipeline: ['vegalite', 'vega'],
+      normalization: {
+        schema: '1',
+        profile: 'safe-raw-1',
+        conformance: 'raw',
+        appearances: ['raw'],
+      },
     })
   })
 })

@@ -1,4 +1,5 @@
 import { ENGINE_IDS, type EngineId, type EngineRuntime } from './types'
+import { RAW_NORMALIZATION, type NormalizationCapability } from '../../diagramzip-svg/index.js'
 
 export interface EngineCatalogEntry {
   id: EngineId
@@ -6,6 +7,7 @@ export interface EngineCatalogEntry {
   activeRuntime: EngineRuntime
   version: string
   knownLosses: readonly string[]
+  normalization: NormalizationCapability
 }
 
 const targetRuntime: Record<EngineId, EngineRuntime> = {
@@ -219,6 +221,7 @@ export const ENGINE_CATALOG: readonly EngineCatalogEntry[] = ENGINE_IDS.map(id =
   activeRuntime: activeRuntime[id],
   version: versions[id],
   knownLosses: losses[id] ?? [],
+  normalization: RAW_NORMALIZATION,
 }))
 
 export const ENGINE_CATALOG_BY_ID = new Map(ENGINE_CATALOG.map(entry => [entry.id, entry]))

@@ -2,6 +2,7 @@ import { RenderError, RequestError } from './errors'
 import { sanitizeAndDecorateSvg } from './svg'
 import type { EngineId, RendererAdapter, RenderRequest } from './types'
 import { parseUnitRenderRequest } from './validation'
+import { RAW_NORMALIZATION } from '../../diagramzip-svg/index.js'
 
 const CACHE_MAX_AGE = 1_800
 const CACHE_SCHEMA = '2'
@@ -105,6 +106,7 @@ function capabilities(unitId: string, descriptor: RendererUnitDescriptor, build:
     build,
     pipeline: [unitId, ...(descriptor.pipeline ?? [])],
     knownLosses: descriptor.knownLosses ?? [],
+    normalization: RAW_NORMALIZATION,
   }, { headers: { 'Cache-Control': 'public, max-age=300' } })
 }
 

@@ -9,6 +9,18 @@ describe('engine catalog', () => {
     expect(ENGINE_CATALOG.map(engine => engine.id)).toEqual(ENGINE_IDS)
   })
 
+  it('reports raw-only normalization until an engine profile earns themed support', () => {
+    for (const engine of ENGINE_CATALOG) {
+      expect(engine.normalization).toMatchObject({
+        schema: '1',
+        normalizer: 'svg-normalizer-1',
+        profile: 'safe-raw-1',
+        conformance: 'raw',
+        appearances: ['raw'],
+      })
+    }
+  })
+
   it('marks the BlockDiag family as edge Python', () => {
     const family = ENGINE_CATALOG.filter(engine => [
       'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
