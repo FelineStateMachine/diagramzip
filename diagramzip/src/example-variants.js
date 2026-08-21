@@ -6,7 +6,7 @@ export function exampleVariant(index, context) {
   const gray = grayCode(index)
   return {
     meta: {
-      title: gray & 1 ? context.title : '',
+      title: context.title,
       description: gray & 2 ? context.description : '',
     },
     presentation: {
