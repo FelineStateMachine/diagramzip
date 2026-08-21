@@ -42,6 +42,7 @@ const sharedUnits = {
   packetdiag: 'blockdiag-family',
   rackdiag: 'blockdiag-family',
   graphviz: 'graphviz-family',
+  dbml: 'graphviz-family',
   erd: 'graphviz-family',
   vega: 'vega-family',
   vegalite: 'vega-family',
