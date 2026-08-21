@@ -1,0 +1,266 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  dependencyDashboard: true,
+  // the server/pom.xml <parent> points at this repo's own root pom.xml,
+  // it's never published so Renovate can't (and shouldn't) look it up
+  ignoreDeps: [
+    'io.kroki:kroki',
+  ],
+  labels: [
+    '🔗 dependencies',
+  ],
+  separateMajorMinor: true,
+  // wait at least 7 days after a release before proposing it
+  minimumReleaseAge: '7 days',
+  // batch all PRs on monday morning instead of creating them continuously
+  timezone: 'Europe/Paris',
+  schedule: [
+    'before 6am on monday',
+  ],
+  // major updates wait for manual approval from the dependency dashboard
+  major: {
+    dependencyDashboardApproval: true,
+  },
+  // avoid PR bursts and cascading rebases
+  prConcurrentLimit: 5,
+  prHourlyLimit: 2,
+  extends: [
+    ':preserveSemverRanges',
+  ],
+  // security fixes should not wait
+  vulnerabilityAlerts: {
+    minimumReleaseAge: null,
+  },
+  // PLANTUML_VERSION is a plain ARG (not a FROM tag) used to download the native
+  // PlantUML binary, so it needs a custom manager to be tracked at all
+  customManagers: [
+    {
+      customType: 'regex',
+      managerFilePatterns: [
+        '/^server/ops/docker/Dockerfile$/',
+      ],
+      matchStrings: [
+        'ARG PLANTUML_VERSION="(?<currentValue>.*?)"',
+      ],
+      datasourceTemplate: 'github-releases',
+      depNameTemplate: 'plantuml/plantuml',
+      // plain "vX.Y.Z" tags only: excludes the "snapshot"/"snapshot-native"
+      // pre-release tags (GitHub-flagged prereleases, filtered anyway by the
+      // ignoreUnstable rule below) as well as the "-native" variant tags that
+      // are a different release flavour and would break the download URL
+      extractVersionTemplate: '^v(?<version>\\d+\\.\\d+\\.\\d+)$',
+    },
+  ],
+  packageRules: [
+    {
+      "matchManagers": ["cargo"],
+      "groupName": "Rust crate",
+      "versioning": "cargo",
+      "rangeStrategy": "bump"
+    },
+    {
+      matchManagers: [
+        'github-actions',
+      ],
+      groupName: 'GitHub Actions',
+    },
+    {
+      matchManagers: [
+        'dockerfile',
+      ],
+      matchUpdateTypes: [
+        'major',
+      ],
+      enabled: false,
+      matchPackageNames: [
+        '/node/',
+      ],
+    },
+    {
+      matchManagers: [
+        'dockerfile',
+      ],
+      groupName: 'Docker images',
+    },
+    {
+      matchManagers: [
+        'pip_requirements',
+      ],
+      groupName: 'Python dependencies',
+    },
+    {
+      matchManagers: [
+        'npm',
+      ],
+      groupName: 'Node dependencies',
+    },
+    // each diagram library lives in its own service directory; group updates
+    // per directory so e.g. a bpmn-js bump doesn't wait on / get bundled with
+    // an unrelated wavedrom bump (overrides the generic "Node dependencies"
+    // bucket above for these specific files)
+    {
+      matchManagers: [
+        'npm',
+      ],
+      matchFileNames: [
+        'mermaid/package.json',
+      ],
+      groupName: 'Mermaid',
+    },
+    {
+      matchManagers: [
+        'npm',
+      ],
+      matchFileNames: [
+        'bpmn/package.json',
+      ],
+      groupName: 'bpmn-js',
+    },
+    {
+      matchManagers: [
+        'npm',
+      ],
+      matchFileNames: [
+        'nomnoml/package.json',
+      ],
+      groupName: 'nomnoml',
+    },
+    {
+      matchManagers: [
+        'npm',
+      ],
+      matchFileNames: [
+        'bytefield/package.json',
+      ],
+      groupName: 'Bytefield',
+    },
+    {
+      matchManagers: [
+        'npm',
+      ],
+      matchFileNames: [
+        'wavedrom/package.json',
+      ],
+      groupName: 'WaveDrom',
+    },
+    {
+      matchManagers: [
+        'npm',
+      ],
+      matchFileNames: [
+        'excalidraw/package.json',
+      ],
+      groupName: 'Excalidraw',
+    },
+    {
+      matchManagers: [
+        'npm',
+      ],
+      matchFileNames: [
+        'dbml/package.json',
+      ],
+      groupName: 'DBML',
+    },
+    // @biomejs/biome, esbuild, postject and the volta node pin are identical
+    // build tooling duplicated across every diagram-library package.json
+    // (mermaid/, bpmn/, wavedrom/, ...). Without this rule each directory's
+    // groupName above would bundle these internal-only bumps together with
+    // the actual diagram library version (e.g. PR #2122 mixed a wavedrom
+    // bump with @biomejs/biome, esbuild and node), which is wrong per the
+    // changelog rule: library bumps are user-visible, tooling bumps aren't.
+    // Placed after the per-directory rules so it wins on groupName for
+    // these package names and collapses them into one shared PR.
+    {
+      matchManagers: [
+        'npm',
+      ],
+      matchPackageNames: [
+        '@biomejs/biome',
+        'esbuild',
+        'postject',
+        'node',
+      ],
+      groupName: 'Build tooling',
+    },
+    // vega and vega-lite are tracked via vega/deno.json (Renovate's "imports"
+    // manager, not "npm"), so they're already excluded from the "Node
+    // dependencies" bucket above and get one PR per package by default —
+    // no rule needed here to keep them independent of each other.
+    {
+      matchManagers: [
+        'npm',
+      ],
+      enabled: false,
+      matchPackageNames: [
+        '/puppeteer/',
+      ],
+    },
+    {
+      // lockfile regeneration resolves versions published at least 14 days ago
+      // (Renovate passes --before to npm, covering transitive dependencies too)
+      matchManagers: [
+        'npm',
+      ],
+      matchUpdateTypes: [
+        'lockFileMaintenance',
+      ],
+      minimumReleaseAge: '14 days',
+    },
+    {
+      matchManagers: [
+        'maven',
+      ],
+      groupName: 'Java dependencies',
+    },
+    {
+      matchManagers: [
+        'maven',
+      ],
+      groupName: 'Java testing packages',
+      matchPackageNames: [
+        '/^org.mockito/',
+        '/^org.junit.jupiter/',
+        '/^org.assertj/',
+      ],
+    },
+    {
+      matchManagers: [
+        'maven',
+      ],
+      groupName: 'Maven plugins',
+      matchPackageNames: [
+        '/^org.apache.maven.plugins/',
+      ],
+    },
+    {
+      matchManagers: [
+        'maven',
+      ],
+      groupName: 'Structurizr packages',
+      matchPackageNames: [
+        '/^com.structurizr/',
+      ],
+    },
+    {
+      // updating PlantUML touches several non-automatable spots (Dockerfile,
+      // docs/antora.yml, Plantuml.java, ...), so only surface it on the
+      // dependency dashboard and wait for manual approval instead of raising a PR
+      matchDepNames: [
+        'plantuml/plantuml',
+      ],
+      matchDatasources: [
+        'github-releases',
+      ],
+      groupName: 'PlantUML',
+      dependencyDashboardApproval: true,
+      // belt-and-suspenders: never suggest the "snapshot" pre-release, only
+      // the latest stable tag, even though extractVersionTemplate already
+      // filters it out
+      ignoreUnstable: true,
+    },
+  ],
+  lockFileMaintenance: {
+    enabled: true,
+    automerge: true,
+  },
+}

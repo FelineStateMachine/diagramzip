@@ -1,0 +1,18 @@
+{
+  "version": "5",
+  "specifiers": {
+    "npm:blocked-at@^1.2.0": "1.2.0"
+  },
+  "npm": {
+    "blocked-at@1.2.0": {
+      "integrity": "sha512-Ba9yhK4KcFrgqEPgsU0qVGiMimf+VrD9QJo9pgwjg4yl0GXwgOJS8IRx2rPepQjalrmUdGTqX47bSuJLUMLX7w=="
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:blocked-at@^1.2.0"
+      ]
+    }
+  }
+}

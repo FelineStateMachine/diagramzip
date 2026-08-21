@@ -1,0 +1,148 @@
+#!/bin/sh
+
+# Usage: tikz2svg <output-format> <input.tex >output
+#
+# Converts PGF/TikZ on stdin to one of the supported output formats (jpeg,
+# pdf, png, svg) on stdout.
+
+set -e
+
+# Latex Options:
+#
+# * -no-shell-escape - Prevent the ability to run shell commands restricted or
+#   otherwise since we are potentially processing untrusted input.
+# * -halt-on-error - Halt on first error.
+LATEX_OPTIONS="-no-shell-escape -halt-on-error"
+
+# Dvisvgm Options:
+#
+# * --font-format=woff - Embeds fonts in the SVG using the Web Open Font
+#   Format. This increases the size of the SVG but improves font rendering.
+# * --no-specials=ps - Disables processing of PostScript specials. Without
+#   this, dvisvgm hands PostScript specials (\special{ps:...}) off to
+#   Ghostscript, which it runs with -dDELAYSAFER instead of -dSAFER. That
+#   allows the %pipe% device and arbitrary command execution regardless of
+#   KROKI_SAFE_MODE, since safe mode only restricts kpathsea (LaTeX) file
+#   access and has no effect on Ghostscript's file access layer.
+DVISVGM_OPTIONS="--font-format=woff --no-specials=ps"
+
+backend_driver() {
+    output_format=$1
+
+    case $output_format in
+        jpeg)
+            echo
+            ;;
+        pdf)
+            echo
+            ;;
+        png)
+            echo
+            ;;
+        svg)
+            echo dvisvgm
+            ;;
+    esac
+}
+
+intermediate_format() {
+    output_format=$1
+
+    case $output_format in
+        jpeg|pdf|png)
+            echo pdf
+            ;;
+        svg)
+            echo dvi
+            ;;
+    esac
+}
+
+documentclass_present() {
+    raw_input=$1
+    grep '^\s*\\documentclass\b' $raw_input >/dev/null 2>&1
+}
+
+infer_documentclass() {
+    output_format=$1
+    echo "\\documentclass[tikz,$(backend_driver $output_format)]{standalone}"
+}
+
+add_documentclass() {
+    documentclass=$1
+    raw_input=$2
+
+    echo $documentclass
+    cat $raw_input
+}
+
+replace_documentclass() {
+    documentclass=$1
+    raw_input=$2
+
+    sed "s/\\documentclass.*\\?}/$documentclass/" $raw_input
+}
+
+fixup_documentclass() {
+    output_format=$1
+    raw_input=$2
+    documentclass=$(infer_documentclass $output_format)
+    if documentclass_present $raw_input; then
+        replace_documentclass $documentclass $raw_input
+    else
+        add_documentclass $documentclass $raw_input
+    fi
+}
+
+output_format="$1"
+
+safe_mode="$2"
+
+tempdir=$(mktemp --directory)
+
+cleanup() {
+    if [ -f "$tempdir/file.log" ]; then
+      # retrieve errors
+      cat "$tempdir/file.log" | awk '/^\!/,/^l\.[0-9]+/ { print $0 }'
+    fi
+    rm -rf $tempdir
+}
+
+trap cleanup 0
+
+cd $tempdir
+
+# Write stdin to raw_input.tex
+cat >raw_input.tex
+
+if [ "$safe_mode" -ge "10" ]; then
+  # SECURE mode or above.
+  #
+  # Restrict TeX's kpathsea file lookup (openin_any/openout_any) to the
+  # current working directory instead of blocklisting specific commands.
+  # LaTeX has many primitives/macros that can read or write files
+  # (\input, \include, \openin+\read, \lstinputlisting,
+  # \pgfplotstableread, ...) and any one of them can be aliased or
+  # invoked indirectly, so blocking individual command names (e.g. only
+  # \verbatiminput) is not effective. "paranoid" mode rejects absolute
+  # paths and directory traversal ("..") for both reads and writes,
+  # which is all that's needed since diagrams never legitimately need
+  # to reference files outside of this temporary directory.
+  export openin_any=p
+  export openout_any=p
+fi
+
+fixup_documentclass $output_format raw_input.tex > file.tex
+latex $LATEX_OPTIONS -output-format=$(intermediate_format $output_format) file.tex >/dev/null
+
+case "$output_format" in
+    jpeg|png)
+        pdftocairo -singlefile -$output_format file.pdf -
+        ;;
+    pdf)
+        cat file.pdf
+        ;;
+    svg)
+        dvisvgm --stdout $DVISVGM_OPTIONS file.dvi
+        ;;
+esac

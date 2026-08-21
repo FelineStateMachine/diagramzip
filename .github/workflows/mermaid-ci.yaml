@@ -1,0 +1,39 @@
+name: Mermaid CI
+
+on:
+  push:
+    paths:
+      - 'mermaid/**'
+      - 'lib/**'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'mermaid/**'
+      - 'lib/**'
+    branches:
+      - '*'
+
+permissions:
+  contents: read
+
+jobs:
+  mermaid-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 'Setup Node.js 24'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm i
+        working-directory: mermaid
+      - name: Install Chrome for Puppeteer
+        run: |
+          rm -rf ~/.cache/puppeteer/chrome
+          npx puppeteer browsers install chrome
+        working-directory: mermaid
+      - name: Lint & tests
+        run: npm run lint && npm t
+        working-directory: mermaid
