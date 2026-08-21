@@ -60,11 +60,11 @@ catalog engine.
 | --- | --- |
 | Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
 | Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag); WireViz → DOT → GraphViz |
-| Worker WebAssembly | GraphViz family (GraphViz, DBML → DOT → GraphViz, and ERD → DOT → GraphViz); GoAT; Pikchr; Svgbob |
+| Worker WebAssembly | PlantUML family (PlantUML and bounded C4 → PlantUML); GraphViz family (GraphViz, DBML → DOT → GraphViz, and ERD → DOT → GraphViz); GoAT; Pikchr; Svgbob |
 | Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
-| Compatibility unit | 8 dependency units covering the remaining 9 engines |
+| Compatibility unit | 7 dependency units covering the remaining 7 engines |
 
-The current split is 21/30 engines off Fly and 9/30 still dependent on it.
+The current split is 23/30 engines off Fly and 7/30 still dependent on it.
 Compatibility units are extraction seams, not final runtimes or fallbacks for
 an engine after cutover. DBML retains the upstream parser/checker/DOT model in
 an explicitly rebuilt Worker bundle, then shares the GraphViz-Wasm runtime.
@@ -74,6 +74,9 @@ language to DOT and reuses the same in-process GraphViz runtime. WireViz runs
 its vendored upstream parser and DOT composer in a separate Python Worker, then
 calls that same GraphViz deployment through a service binding. Pikchr compiles
 the pinned upstream C source into a small, isolated precompiled Wasm unit.
+PlantUML runs its pinned TeaVM browser core with a precompiled GraphViz module;
+C4-PlantUML lowers a bounded, documented macro surface into ordinary PlantUML
+inside the same dependency unit.
 
 All returned SVG passes through the same sanitizer. Scripts, event handlers,
 external resources, and active embedded HTML are removed. Mermaid's

@@ -21,13 +21,14 @@ test('does not route client renderers through an HTTP unit', () => {
 test('requires every migrated engine to stay on its dedicated runtime', () => {
   for (const engine of [
     'mermaid', 'bpmn', 'excalidraw',
+    'plantuml', 'c4plantuml',
     'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
     'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
     'graphviz', 'erd', 'dbml', 'pikchr', 'svgbob', 'wireviz',
   ]) {
     assert.equal(requiresDedicatedRenderer(engine), true)
   }
-  assert.equal(requiresDedicatedRenderer('plantuml'), false)
+  assert.equal(requiresDedicatedRenderer('plantuml'), true)
   assert.equal(requiresDedicatedRenderer('graphviz'), true)
   assert.equal(requiresDedicatedRenderer('erd'), true)
 })

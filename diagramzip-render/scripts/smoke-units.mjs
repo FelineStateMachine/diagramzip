@@ -55,6 +55,7 @@ const pikchrEngines = new Set(['pikchr'])
 const svgbobEngines = new Set(['svgbob'])
 const goatEngines = new Set(['goat'])
 const wirevizEngines = new Set(['wireviz'])
+const plantumlEngines = new Set(['plantuml', 'c4plantuml'])
 
 async function smoke([engine, filename]) {
   const source = await readFile(resolve(fixtureDirectory, filename), 'utf8')
@@ -134,6 +135,14 @@ async function smoke([engine, filename]) {
     }
     if (!response.headers.get('X-Renderer-Build')?.startsWith('wireviz-0.3.2-python-dot-')) {
       throw new Error(`${engine}: unexpected WireViz Worker build ${response.headers.get('X-Renderer-Build')}`)
+    }
+  }
+  if (plantumlEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-wasm') {
+      throw new Error(`${engine}: expected edge-wasm renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    }
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('plantuml-family-edge-wasm-')) {
+      throw new Error(`${engine}: unexpected PlantUML-family Worker build ${response.headers.get('X-Renderer-Build')}`)
     }
   }
   return `${engine.padEnd(10)} ${response.headers.get('X-Diagram-Cache')?.padEnd(4)} ${body.length} bytes`

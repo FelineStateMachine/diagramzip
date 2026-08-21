@@ -2,8 +2,7 @@ import { spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 
 const units = [
-  'plantuml-family', 'd2',
-  'diagramsnet', 'ditaa',
+  'd2', 'diagramsnet', 'ditaa',
   'structurizr', 'symbolator', 'tikz', 'umlet',
 ]
 const wrangler = resolve(import.meta.dirname, '../node_modules/.bin/wrangler')

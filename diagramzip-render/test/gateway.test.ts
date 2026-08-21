@@ -3,6 +3,7 @@ import worker from '../src/index'
 
 const migrated = [
   'mermaid', 'bpmn', 'excalidraw',
+  'plantuml', 'c4plantuml',
   'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
   'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
   'graphviz', 'erd', 'dbml', 'pikchr', 'svgbob', 'wireviz',

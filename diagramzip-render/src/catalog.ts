@@ -10,11 +10,11 @@ export interface EngineCatalogEntry {
 }
 
 const targetRuntime: Record<EngineId, EngineRuntime> = {
-  plantuml: 'client',
+  plantuml: 'edge-wasm',
   mermaid: 'client',
   graphviz: 'edge-wasm',
   d2: 'edge-wasm',
-  c4plantuml: 'client',
+  c4plantuml: 'edge-wasm',
   blockdiag: 'edge-python',
   seqdiag: 'edge-python',
   actdiag: 'edge-python',
@@ -43,6 +43,8 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
 }
 
 const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
+  plantuml: 'edge-wasm',
+  c4plantuml: 'edge-wasm',
   mermaid: 'client',
   bpmn: 'client',
   bytefield: 'edge-js',
@@ -67,6 +69,8 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
 }
 
 const versions: Partial<Record<EngineId, string>> = {
+  plantuml: 'plantuml@1.2026.6/edge-wasm-1',
+  c4plantuml: 'c4plantuml@2.7.0-lowered+plantuml@1.2026.6/edge-wasm-1',
   mermaid: 'mermaid@11.17.0',
   bpmn: 'bpmn-js@18.25.1',
   bytefield: 'bytefield-svg@1.11.0',
@@ -91,6 +95,16 @@ const versions: Partial<Record<EngineId, string>> = {
 }
 
 const losses: Partial<Record<EngineId, readonly string[]>> = {
+  plantuml: [
+    'Only SVG is supported.',
+    'Remote, filesystem, arbitrary standard-library includes, and source-level theme directives are disabled.',
+    'The browser-derived renderer uses bounded approximate DOM text metrics, so layout may differ from the native PlantUML Docker image.',
+  ],
+  c4plantuml: [
+    'Only SVG is supported.',
+    'The supported C4-PlantUML core is lowered to ordinary PlantUML primitives; advanced macros, icon sprites, and custom style macros are rejected explicitly.',
+    'People, systems, containers, components, boundaries, core relationships, technology labels, tags, and the default C4 palette are retained semantically, but output is not pixel-compatible with native C4-PlantUML 2.7.0.',
+  ],
   mermaid: ['External links and resource-loading elements are removed; XHTML labels retain only safe text formatting.'],
   bpmn: ['External links and resource-loading elements are removed from exported SVG.'],
   graphviz: [

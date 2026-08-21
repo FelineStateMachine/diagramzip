@@ -53,6 +53,15 @@ describe('engine catalog', () => {
     expect(goat.version).toContain('goat@0.5.1')
   })
 
+  it('marks PlantUML and lowered C4 as one edge-Wasm family', () => {
+    const family = ENGINE_CATALOG.filter(engine => ['plantuml', 'c4plantuml'].includes(engine.id))
+    expect(family).toHaveLength(2)
+    for (const engine of family) {
+      expect(engine.activeRuntime).toBe('edge-wasm')
+      expect(engine.version).toContain('plantuml@1.2026.6')
+    }
+  })
+
   it('does not retain a silent origin fallback for any engine', () => {
     for (const engine of ENGINE_CATALOG) {
       if (engine.activeRuntime === 'origin') expect(engine.version).toBe('compatibility-origin')

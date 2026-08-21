@@ -30,6 +30,7 @@ export const HTTP_RENDERER_UNITS = Object.freeze({
 
 export const NO_GATEWAY_FALLBACK_ENGINES = Object.freeze([
   'mermaid', 'bpmn', 'excalidraw',
+  'plantuml', 'c4plantuml',
   'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
   'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
   'graphviz', 'erd', 'dbml', 'goat', 'pikchr', 'svgbob', 'wireviz',

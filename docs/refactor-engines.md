@@ -134,8 +134,8 @@ These engines should primarily stop being live-preview server responsibilities.
 | Catalog type | Browser implementation | Static SVG plan | Caveat |
 | --- | --- | --- | --- |
 | Mermaid | Official `mermaid.render()` | Worker/browser-render service initially, then a compatible edge adapter if justified | Use the official renderer; alternative Mermaid-like renderers have syntax and visual differences |
-| PlantUML | Official TeaVM/browser implementation using Viz.js | Origin initially | Bundle compatible standard-library assets; the browser implementation's worker/coroutine assumptions make edge use a separate project |
-| C4-PlantUML | PlantUML browser path plus pinned C4 macros/includes | Origin initially | Pin and test the precise macro set rather than permitting arbitrary remote includes |
+| PlantUML | Official TeaVM/browser implementation using Viz.js | Dependency-grouped edge-Wasm Worker | The pinned core runs with a bounded DOM shim and a precompiled GraphViz module; remote, filesystem, and arbitrary standard-library includes are disabled |
+| C4-PlantUML | Bounded C4-to-ordinary-PlantUML lowering | Shared PlantUML edge-Wasm Worker | Core people, systems, containers, components, boundaries, relationships, tags, technology labels, and palette are retained; advanced macros and sprites fail explicitly |
 | BPMN | `bpmn-js`: import XML and export SVG | Frozen SVG or browser-render service | No backend renderer is required for normal preview/export |
 | Excalidraw | Official `exportToSvg()` | Frozen SVG or browser-render service | Lazy-load fonts and assets; preserve Excalidraw semantics |
 | diagrams.net | Pinned diagrams.net 29.6.1 export application in a sandboxed iframe | Existing origin fallback initially | The official export application is browser/DOM-bound; keep its immutable asset tree isolated from the core application bundle |
@@ -379,8 +379,6 @@ This is substantial compatibility work, but it is bounded and removes Structuriz
 | Ditaa | Java/native ASCII-art recognition behavior | A compatible TypeScript ASCII renderer after a parity corpus exists |
 | Symbolator | Python/native dependencies | Keep on origin until traffic justifies a rewrite |
 | TikZ | Full TeX toolchain | Keep on origin; it is not a reasonable Worker port |
-| WireViz | Vendored Python/YAML parser and DOT composition through the GraphViz-family service binding | Keep its dependency-isolated Python translator; replace only if Python Workers fail measured limits |
-| GoAT | Dedicated precompiled WebAssembly Worker | Cut over with no origin fallback |
 
 The origin is a compatibility bridge, not the target architecture for standardized diagram families. It should be consolidated for organization and operational efficiency. A separate public Fly app per renderer is not a product requirement. One application can contain grouped machines or services, with internal routing and enough isolation for the few engines that need it. Split an engine only when its resource profile, security boundary, release cadence, or failure mode warrants independent deployment.
 
@@ -388,11 +386,11 @@ The origin is a compatibility bridge, not the target architecture for standardiz
 
 | Type | Primary v2 path | Initial fallback |
 | --- | --- | --- |
-| PlantUML | Client | Origin |
+| PlantUML | Dependency-grouped edge WebAssembly Worker | None after cutover |
 | Mermaid | Client | Browser-render/origin |
 | GraphViz | Edge WebAssembly | Origin |
 | D2 | Client + edge WebAssembly adapter | Origin |
-| C4-PlantUML | Client | Origin |
+| C4-PlantUML | Bounded lowering → PlantUML edge WebAssembly Worker | None after cutover |
 | BlockDiag | Upstream Python Worker | None after cutover |
 | SeqDiag | Upstream Python Worker | None after cutover |
 | ActDiag | Upstream Python Worker | None after cutover |
@@ -519,7 +517,7 @@ Port the upstream ERD grammar, model, defaults, validation, and DOT mapping to T
 
 ### Phase 5: client-native preview
 
-Move Mermaid first because of its likely usage and mature browser API. Follow with BPMN and Excalidraw, then PlantUML/C4, UMLet, and diagrams.net. Keep the gateway fallback available until browser preview and saved static render routes cover each engine reliably.
+Move Mermaid first because of its likely usage and mature browser API. Follow with BPMN and Excalidraw, then UMLet and diagrams.net. PlantUML/C4 now use their shared direct Worker and no longer need a browser-render fallback.
 
 ### Phase 6: consolidate the origin
 
@@ -559,13 +557,14 @@ Use production traffic and latency data to choose the remaining rewrites. WireVi
 
 ## Implementation status — 2026-08-20
 
-The coverage plane is implemented across dedicated renderer hostnames. Twenty-one
+The coverage plane is implemented across dedicated renderer hostnames. Twenty-three
 of 30 catalog engines no longer depend on Fly: five execute in JavaScript
 Workers, six share the `blockdiag-family` Python Worker, GraphViz, DBML, and ERD share
-the `graphviz-family` WebAssembly Worker, GoAT, Pikchr, and Svgbob run in dedicated WebAssembly Workers, and Mermaid, BPMN, and Excalidraw
+the `graphviz-family` WebAssembly Worker, PlantUML and bounded C4 share the
+`plantuml-family` WebAssembly Worker, GoAT, Pikchr, and Svgbob run in dedicated WebAssembly Workers, and Mermaid, BPMN, and Excalidraw
 render in sandboxed browser units. WireViz preserves its upstream Python parser
 and DOT composer, then calls GraphViz through an internal service binding. The
-remaining 9 engines use 8
+remaining 7 engines use 7
 dependency-grouped compatibility units. Repository and production smokes require
 structurally valid SVG; pixel comparison remains intentionally deferred.
 
@@ -605,12 +604,21 @@ It rejects filesystem images and raw GraphViz tweaks, bounds YAML expansion,
 and forwards generated DOT to `graphviz-family`. BOM, HTML, and PNG sidecars
 remain outside the SVG rendering contract.
 
-The same hard boundary now applies to all twenty-one migrated engines: direct
+The same hard boundary now applies to all twenty-three migrated engines: direct
 unit or client-renderer failure is surfaced to the editor, the gateway rejects
 their engine IDs before consulting its cache or origin adapter, and every
 catalog fallback is `null`.
 
 The first feasibility findings are already reflected in routing and the loss ledger. DBML's parser/checker/DOT path is deterministically repacked without its legacy Viz.js SVG branch and shares GraphViz 15.1.1. GraphViz's published wrapper required a small vendored backend change so Wrangler could bind the binary as a precompiled module; version drift, unsupported `scale`, and the lack of an image asset loader are explicit losses rather than hidden fallbacks. D2 remains on its compatibility unit because the official Wasm package both embeds the wrong renderer version and invokes runtime code generation from its Dagre and ELK layout paths, which Workerd rejects during rendering. A future D2 extraction needs a no-eval layout build or a semantics-preserving lowering that retains nested-board animation.
+
+The PlantUML-family unit vendors the official `@plantuml/core` 1.2026.6 TeaVM
+artifact and supplies its extracted GraphViz module as a precompiled Worker
+module. The same deployment serves PlantUML and C4-PlantUML through distinct
+hostnames. C4 source is lowered to ordinary PlantUML for the documented core
+macro surface; arbitrary includes, advanced style macros, and icon sprites are
+rejected. Real workerd checks cover sequence, class, repeated rendering, the
+repository banking C4 fixture, presentation, syntax-error handling, and both
+hostname identities.
 
 The SVG compatibility boundary preserves CDATA-backed text and embedded font styles used by Ditaa, Symbolator, diagrams.net, and TikZ. Mermaid retains a narrow allowlist of XHTML label formatting inside `foreignObject`, while scripts, event handlers, external links, and resource-loading elements remain blocked. When a user selects a canvas color, known full-size white renderer backdrops are removed before the chosen background is applied; internal white diagram shapes are left intact.
 
