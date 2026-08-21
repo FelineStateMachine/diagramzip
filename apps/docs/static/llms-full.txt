@@ -79,6 +79,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a PlantUML diagram](/create/types/plantuml)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open PlantUML in the editor](https://diagram.zip/?type=plantuml)
 
 ---
@@ -169,6 +170,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Mermaid diagram](/create/types/mermaid)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Mermaid in the editor](https://diagram.zip/?type=mermaid)
 
 ---
@@ -255,6 +257,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Graphviz diagram](/create/types/graphviz)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Graphviz in the editor](https://diagram.zip/?type=graphviz)
 
 ---
@@ -338,6 +341,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a D2 diagram](/create/types/d2)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open D2 in the editor](https://diagram.zip/?type=d2)
 
 ---
@@ -421,6 +425,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a C4 PlantUML diagram](/create/types/c4plantuml)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open C4 PlantUML in the editor](https://diagram.zip/?type=c4plantuml)
 
 ---
@@ -503,6 +508,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a BlockDiag diagram](/create/types/blockdiag)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open BlockDiag in the editor](https://diagram.zip/?type=blockdiag)
 
 ---
@@ -585,6 +591,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a SeqDiag diagram](/create/types/seqdiag)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open SeqDiag in the editor](https://diagram.zip/?type=seqdiag)
 
 ---
@@ -672,6 +679,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create an ActDiag diagram](/create/types/actdiag)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open ActDiag in the editor](https://diagram.zip/?type=actdiag)
 
 ---
@@ -756,6 +764,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a NwDiag diagram](/create/types/nwdiag)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open NwDiag in the editor](https://diagram.zip/?type=nwdiag)
 
 ---
@@ -839,6 +848,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a PacketDiag diagram](/create/types/packetdiag)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open PacketDiag in the editor](https://diagram.zip/?type=packetdiag)
 
 ---
@@ -922,6 +932,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a RackDiag diagram](/create/types/rackdiag)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open RackDiag in the editor](https://diagram.zip/?type=rackdiag)
 
 ---
@@ -1000,6 +1011,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a BPMN diagram](/create/types/bpmn)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open BPMN in the editor](https://diagram.zip/?type=bpmn)
 
 ---
@@ -1082,6 +1094,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Bytefield diagram](/create/types/bytefield)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Bytefield in the editor](https://diagram.zip/?type=bytefield)
 
 ---
@@ -1162,6 +1175,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a DBML diagram](/create/types/dbml)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open DBML in the editor](https://diagram.zip/?type=dbml)
 
 ---
@@ -1243,6 +1257,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Diagrams.net diagram](/create/types/diagramsnet)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Diagrams.net in the editor](https://diagram.zip/?type=diagramsnet)
 
 ---
@@ -1329,6 +1344,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Ditaa diagram](/create/types/ditaa)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Ditaa in the editor](https://diagram.zip/?type=ditaa)
 
 ---
@@ -1407,6 +1423,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create an ERD diagram](/create/types/erd)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open ERD in the editor](https://diagram.zip/?type=erd)
 
 ---
@@ -1486,6 +1503,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create an Excalidraw diagram](/create/types/excalidraw)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Excalidraw in the editor](https://diagram.zip/?type=excalidraw)
 
 ---
@@ -1588,6 +1606,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a GoAT diagram](/create/types/goat)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open GoAT in the editor](https://diagram.zip/?type=goat)
 
 ---
@@ -1668,6 +1687,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Nomnoml diagram](/create/types/nomnoml)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Nomnoml in the editor](https://diagram.zip/?type=nomnoml)
 
 ---
@@ -1740,6 +1760,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Pikchr diagram](/create/types/pikchr)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Pikchr in the editor](https://diagram.zip/?type=pikchr)
 
 ---
@@ -1828,6 +1849,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Structurizr diagram](/create/types/structurizr)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Structurizr in the editor](https://diagram.zip/?type=structurizr)
 
 ---
@@ -1912,6 +1934,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Svgbob diagram](/create/types/svgbob)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Svgbob in the editor](https://diagram.zip/?type=svgbob)
 
 ---
@@ -1999,6 +2022,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Symbolator diagram](/create/types/symbolator)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Symbolator in the editor](https://diagram.zip/?type=symbolator)
 
 ---
@@ -2074,6 +2098,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a TikZ diagram](/create/types/tikz)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open TikZ in the editor](https://diagram.zip/?type=tikz)
 
 ---
@@ -2152,6 +2177,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create an UMLet diagram](/create/types/umlet)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open UMLet in the editor](https://diagram.zip/?type=umlet)
 
 ---
@@ -2265,6 +2291,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Vega diagram](/create/types/vega)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Vega in the editor](https://diagram.zip/?type=vega)
 
 ---
@@ -2354,6 +2381,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Vega-Lite diagram](/create/types/vegalite)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Vega-Lite in the editor](https://diagram.zip/?type=vegalite)
 
 ---
@@ -2437,6 +2465,7 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a WaveDrom diagram](/create/types/wavedrom)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open WaveDrom in the editor](https://diagram.zip/?type=wavedrom)
 
 ---
@@ -2517,4 +2546,5 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a WireViz diagram](/create/types/wireviz)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open WireViz in the editor](https://diagram.zip/?type=wireviz)

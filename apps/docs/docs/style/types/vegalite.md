@@ -27,4 +27,5 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Vega-Lite diagram](/create/types/vegalite)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Vega-Lite in the editor](https://diagram.zip/?type=vegalite)

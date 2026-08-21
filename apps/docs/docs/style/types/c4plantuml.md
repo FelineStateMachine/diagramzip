@@ -29,4 +29,5 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a C4 PlantUML diagram](/create/types/c4plantuml)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open C4 PlantUML in the editor](https://diagram.zip/?type=c4plantuml)

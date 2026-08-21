@@ -33,4 +33,5 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Graphviz diagram](/create/types/graphviz)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Graphviz in the editor](https://diagram.zip/?type=graphviz)

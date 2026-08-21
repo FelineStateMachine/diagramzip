@@ -35,4 +35,5 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Ditaa diagram](/create/types/ditaa)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Ditaa in the editor](https://diagram.zip/?type=ditaa)

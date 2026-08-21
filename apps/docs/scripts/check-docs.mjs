@@ -184,6 +184,7 @@ for (const id of expected) {
   assert(create.includes(`<DiagramExample engine="${id}"`), `Creation page ${id} has no rendered example.`)
   assert(style.includes(`/create/types/${id}`), `Style page ${id} has no paired creation link.`)
   assert(style.includes('## Source controls'), `Style page ${id} has no source controls.`)
+  assert(style.includes('/style/svg-normalization'), `Style page ${id} has no SVG normalization link.`)
   assert(style.includes('## Renderer options') === Boolean(type.rendererOptions?.length), `Style page ${id} has the wrong renderer options section.`)
   const renderedExample = JSON.parse(await source(join(examples, `${id}.json`)))
   assert(renderedExample.engine === id, `Rendered example ${id} has the wrong engine.`)

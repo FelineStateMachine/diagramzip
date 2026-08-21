@@ -21,4 +21,5 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a BPMN diagram](/create/types/bpmn)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open BPMN in the editor](https://diagram.zip/?type=bpmn)

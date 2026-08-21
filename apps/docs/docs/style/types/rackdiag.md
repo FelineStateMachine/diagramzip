@@ -29,4 +29,5 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a RackDiag diagram](/create/types/rackdiag)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open RackDiag in the editor](https://diagram.zip/?type=rackdiag)

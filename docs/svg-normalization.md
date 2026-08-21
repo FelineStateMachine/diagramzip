@@ -466,11 +466,11 @@ invariants. Capability reporting should distinguish:
 - `presentation-only`: only the canvas and frame are normalized;
 - `unsupported`: the appearance cannot be produced honestly.
 
-The four themed appearances require `semantic` or `adaptive` conformance.
-`presentation-only` output may be useful for experimentation, but it must not
-be presented as a normalized dark or light diagram. A production engine
-upgrade should remain on its last conforming renderer/profile pair until the
-new output contract passes normalization tests.
+Palette adaptation requires `semantic` or `adaptive` conformance.
+`presentation-only` output may support framed appearances, but only the outer
+canvas and frame adapt. The authored drawing remains unchanged. A production
+engine upgrade should remain on its last conforming renderer/profile pair
+until the new output contract passes normalization tests.
 
 If a profile selector does not recognize a renderer build or structural
 signature, it fails closed. It must not silently apply rules written for a
@@ -610,5 +610,5 @@ frame. Materialization combines one canonical geometry with one explicit
 appearance to produce a deterministic, self-contained SVG.
 
 Engines and their versions may change normalization patterns freely. Consumers
-continue to receive the same five appearance names and the same semantic visual
-contract.
+continue to receive the same seven appearance names and the same semantic
+visual contract.

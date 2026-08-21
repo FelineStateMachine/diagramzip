@@ -21,7 +21,11 @@ The shared appearances apply one Diagram.zip palette to supported renderer outpu
 - **Transparent** does not add an outer canvas.
 - **Framed** adds a matching canvas, standard padding, and a border.
 
-The editor disables appearances that the current renderer profile cannot support. Diagrams.net, Excalidraw, and TikZ currently support framed appearances only. Their authored paint remains unchanged inside the shared frame.
+The editor disables appearances that the current renderer profile cannot support. Diagrams.net supports raw and framed appearances while its authored paint remains unchanged.
+
+Excalidraw and TikZ support every appearance. Their neutral canvas, ink, and line paint adapt while authored non-neutral paint remains renderer-defined.
+
+Read [SVG normalization and version contracts](/style/svg-normalization) for capability levels, renderer version selection, and artifact metadata.
 
 ## Background
 

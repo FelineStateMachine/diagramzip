@@ -33,4 +33,5 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a Symbolator diagram](/create/types/symbolator)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open Symbolator in the editor](https://diagram.zip/?type=symbolator)

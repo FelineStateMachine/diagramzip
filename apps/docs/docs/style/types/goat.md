@@ -30,4 +30,5 @@ Start with the [general presentation settings](/style/presentation). Choose a sh
 
 - [Create a GoAT diagram](/create/types/goat)
 - [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
 - [Open GoAT in the editor](https://diagram.zip/?type=goat)

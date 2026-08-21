@@ -98,6 +98,7 @@
 ## General pages
 
 - [General presentation](https://docs.diagram.zip/style/presentation/)
+- [SVG normalization and version contracts](https://docs.diagram.zip/style/svg-normalization/)
 - [Share a diagram](https://docs.diagram.zip/collaboration/sharing/)
 - [Password encryption](https://docs.diagram.zip/collaboration/encryption/)
 - [Working state and saved state](https://docs.diagram.zip/collaboration/working-and-saved-state/)
