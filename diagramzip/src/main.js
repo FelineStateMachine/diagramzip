@@ -58,7 +58,7 @@ const typeDrafts = new Map()
 document.querySelector('#app').innerHTML = `
   <main class="app-shell">
     <header class="app-header">
-      <a class="brand" href="/" aria-label="New diagram"><img class="brand-mark" src="/diagram.zip/icon.svg" alt=""><span>diagram.zip</span></a>
+      <a class="brand" href="/" aria-label="New diagram"><img class="brand-mark" src="/diagram.zip/icon.svg?v=2" alt=""><span>diagram.zip</span></a>
       <div class="header-meta">
         <span class="render-status" data-state="idle" role="status">Ready</span>
         <label class="type-picker">
