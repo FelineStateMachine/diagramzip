@@ -3,6 +3,11 @@ import 'monaco-editor/languages/definitions/sql/register.js'
 import 'monaco-editor/languages/definitions/xml/register.js'
 import 'monaco-editor/languages/definitions/yaml/register.js'
 import { jsonDefaults } from 'monaco-editor/language/json/monaco.contribution.js'
+import {
+  DETAILS_DOCUMENT_SCHEMA,
+  DETAILS_MODEL_URI,
+  DETAILS_SCHEMA_URI,
+} from '../details-document.js'
 import { GENERIC_LANGUAGE_ID, JSON5_LANGUAGE_ID } from '../editor-languages.js'
 
 const keywords = [
@@ -21,10 +26,14 @@ export function registerMonacoLanguages(monaco) {
   jsonDefaults.setDiagnosticsOptions({
     validate: true,
     allowComments: false,
-    schemas: [],
+    schemas: [{
+      uri: DETAILS_SCHEMA_URI,
+      fileMatch: [DETAILS_MODEL_URI],
+      schema: DETAILS_DOCUMENT_SCHEMA,
+    }],
     enableSchemaRequest: false,
     schemaRequest: 'ignore',
-    schemaValidation: 'warning',
+    schemaValidation: 'error',
     comments: 'error',
     trailingCommas: 'error',
   })

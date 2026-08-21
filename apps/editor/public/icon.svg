@@ -1,4 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <path d="M16,15,12,7,8,15Zm-1,0L11.5,8" fill="none" stroke="#2ca9bc" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-  <circle cx="12" cy="12" r="9" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <style>
+    .accent { stroke: #80ff80; }
+    .ring { stroke: #000; }
+    @media (prefers-color-scheme: dark) {
+      .accent { stroke: #213f21; }
+      .ring { stroke: #fff; }
+    }
+  </style>
+  <path class="accent" d="M16,15,12,7,8,15Zm-1,0L11.5,8" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <circle class="ring" cx="12" cy="12" r="9" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
 </svg>

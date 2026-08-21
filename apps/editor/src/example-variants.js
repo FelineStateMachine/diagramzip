@@ -2,6 +2,10 @@ export function grayCode(index) {
   return index ^ (index >> 1)
 }
 
+export function defaultExampleAppearance(type) {
+  return type === 'diagramsnet' ? 'auto-framed' : 'auto-transparent'
+}
+
 export function exampleVariant(index, context) {
   const gray = grayCode(index)
   return {

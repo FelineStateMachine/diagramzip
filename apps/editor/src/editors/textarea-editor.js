@@ -1,10 +1,18 @@
-export function createEditor({ element, source, diagramType, onChange, onSave }) {
+export function createEditor({
+  element,
+  source,
+  diagramType,
+  language,
+  ariaLabel = 'Diagram source editor',
+  onChange,
+  onSave,
+}) {
   let suppressChanges = 0
   const textarea = document.createElement('textarea')
   textarea.className = 'source-editor-textarea'
   textarea.value = source
-  textarea.dataset.language = diagramType
-  textarea.setAttribute('aria-label', 'Diagram source editor')
+  textarea.dataset.language = language ?? diagramType
+  textarea.setAttribute('aria-label', ariaLabel)
   textarea.setAttribute('autocapitalize', 'off')
   textarea.setAttribute('autocomplete', 'off')
   textarea.setAttribute('autocorrect', 'off')
@@ -27,13 +35,13 @@ export function createEditor({ element, source, diagramType, onChange, onSave })
   return {
     backend: 'textarea',
     getValue: () => textarea.value,
-    setDocument({ source: nextSource, diagramType: nextType }) {
+    setDocument({ source: nextSource, diagramType: nextType = diagramType, language: nextLanguage = language }) {
       suppressChanges += 1
       try {
         const start = Math.min(textarea.selectionStart, nextSource.length)
         const end = Math.min(textarea.selectionEnd, nextSource.length)
         textarea.value = nextSource
-        textarea.dataset.language = nextType
+        textarea.dataset.language = nextLanguage ?? nextType
         textarea.setSelectionRange(start, end)
       } finally {
         suppressChanges -= 1

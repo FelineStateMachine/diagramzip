@@ -6,15 +6,41 @@ const STATUS_LABELS = {
   idle: 'Ready',
   loading: 'Rendering',
   ready: 'Rendered',
-  error: 'Error',
 }
 
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), maximum)
 }
 
+export function previewThemeForAppearance(appearance) {
+  if (appearance.startsWith('dark-')) return 'dark'
+  if (appearance.startsWith('auto-')) return 'auto'
+  return 'light'
+}
+
+export function previewBackgroundForAppearance(appearance, rawBackground) {
+  if (appearance.startsWith('dark-')) return 'var(--preview-dark-bg)'
+  if (appearance.startsWith('light-')) return 'var(--preview-light-bg)'
+  if (appearance.startsWith('auto-')) return 'var(--preview-auto-bg)'
+  return rawBackground
+}
+
+export function previewViewKey({ type, source, options = {} }) {
+  return JSON.stringify({ type, source, options })
+}
+
 export class PreviewController {
-  constructor({ stage, image, status, minimap, minimapImage, minimapViewport, onAppearances = () => {} }) {
+  constructor({
+    stage,
+    image,
+    status,
+    minimap,
+    minimapImage,
+    minimapViewport,
+    autoTheme = 'light',
+    onAppearances = () => {},
+    onError = () => {},
+  }) {
     this.stage = stage
     this.image = image
     this.status = status
@@ -22,6 +48,8 @@ export class PreviewController {
     this.minimapImage = minimapImage
     this.minimapViewport = minimapViewport
     this.onAppearances = onAppearances
+    this.onError = onError
+    this.autoTheme = autoTheme
     this.scale = 1
     this.x = 0
     this.y = 0
@@ -31,18 +59,19 @@ export class PreviewController {
     this.pendingRender = null
     this.renderLoop = null
     this.latestRenderKey = null
+    this.latestViewKey = null
+    this.fitOnNextLoad = false
     this.latestSvgBlob = null
+    this.latestCanonicalSvg = null
+    this.latestPresentation = null
+    this.latestAppearance = null
     this.latestRendererIdentity = null
+    this.previousImageSize = null
     this.imageFallbackUrl = null
     this.activeImageUrl = null
     this.drag = null
 
-    this.image.addEventListener('load', () => {
-      if (this.image.src !== this.activeImageUrl) return
-      this.imageFallbackUrl = null
-      this.setStatus('Rendered', 'ready')
-      this.fit()
-    })
+    this.image.addEventListener('load', () => this.handleImageLoad())
     this.image.addEventListener('error', () => this.retryBlockedImage())
     this.stage.addEventListener('pointerdown', event => this.startPan(event))
     this.stage.addEventListener('pointermove', event => this.pan(event))
@@ -53,6 +82,24 @@ export class PreviewController {
     new ResizeObserver(() => this.updateTransform()).observe(this.stage)
   }
 
+  handleImageLoad() {
+    if (this.image.src !== this.activeImageUrl) return
+    this.imageFallbackUrl = null
+    this.setStatus('Rendered', 'ready')
+    if (this.fitOnNextLoad) {
+      this.fitOnNextLoad = false
+      this.previousImageSize = null
+      this.fit()
+    } else {
+      if (this.previousImageSize) {
+        this.x += (this.previousImageSize.width - this.image.naturalWidth) * this.scale / 2
+        this.y += (this.previousImageSize.height - this.image.naturalHeight) * this.scale / 2
+        this.previousImageSize = null
+      }
+      this.updateTransform()
+    }
+  }
+
   render({ type, source, options = {}, meta = {}, presentation = {} }) {
     if (!source.trim()) {
       this.requestNumber++
@@ -60,6 +107,12 @@ export class PreviewController {
       this.abortController?.abort()
       this.setStatus('Write something to render.', 'idle')
       return
+    }
+
+    const viewKey = previewViewKey({ type, source, options })
+    if (this.latestViewKey !== viewKey) {
+      this.latestViewKey = viewKey
+      this.fitOnNextLoad = true
     }
 
     const renderKey = JSON.stringify({ type, source, options, meta, presentation })
@@ -116,30 +169,55 @@ export class PreviewController {
       const requestedAppearance = presentation.appearance ?? 'raw'
       const appearance = appearances.includes(requestedAppearance) ? requestedAppearance : 'raw'
       this.onAppearances(appearances, appearance)
-      const displayedSvg = appearance === 'raw'
-        ? materializePresentation(canonicalSvg, presentation)
-        : materializeSvg(canonicalSvg, appearance)
-      const displayed = this.normalizedSvgBlob(displayedSvg)
       this.latestRenderKey = renderKey
       this.latestSvgBlob = canonical.blob
+      this.latestCanonicalSvg = canonicalSvg
+      this.latestPresentation = presentation
+      this.latestAppearance = appearance
       this.latestRendererIdentity = rendered.identity
-      this.imageFallbackUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(await displayed.blob.text())}`
-      this.stage.style.setProperty('--render-background', displayed.background)
-      const nextObjectUrl = URL.createObjectURL(displayed.blob)
-      const previousObjectUrl = this.objectUrl
-      this.objectUrl = nextObjectUrl
-      this.activeImageUrl = nextObjectUrl
-      this.image.src = nextObjectUrl
-      this.minimapImage.src = nextObjectUrl
-      this.image.hidden = false
-      this.setStatus('Loading image…', 'loading')
-      if (previousObjectUrl) URL.revokeObjectURL(previousObjectUrl)
+      this.displayCanonical(canonicalSvg, presentation, appearance)
     } catch (error) {
       if (error.name === 'AbortError') return
-      this.setStatus(error.message || 'Could not render this diagram.', 'error')
+      this.handleRenderError(error.message || 'Could not render this diagram.')
     } finally {
       if (this.abortController === abortController) this.abortController = null
     }
+  }
+
+  setAutoTheme(theme) {
+    if (!['light', 'dark'].includes(theme) || this.autoTheme === theme) return
+    this.autoTheme = theme
+    if (this.latestCanonicalSvg && this.latestAppearance?.startsWith('auto-')) {
+      this.displayCanonical(this.latestCanonicalSvg, this.latestPresentation, this.latestAppearance)
+    }
+  }
+
+  displayCanonical(canonicalSvg, presentation, appearance) {
+    const displayAppearance = appearance.startsWith('auto-')
+      ? `${this.autoTheme}-${appearance.slice('auto-'.length)}`
+      : appearance
+    const displayedSvg = displayAppearance === 'raw'
+      ? materializePresentation(canonicalSvg, presentation)
+      : materializeSvg(canonicalSvg, displayAppearance)
+    const displayed = this.normalizedSvgBlob(displayedSvg)
+    this.previousImageSize = !this.fitOnNextLoad && this.image.naturalWidth && this.image.naturalHeight
+      ? { width: this.image.naturalWidth, height: this.image.naturalHeight }
+      : null
+    this.imageFallbackUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(displayedSvg)}`
+    this.stage.dataset.previewTheme = previewThemeForAppearance(displayAppearance)
+    this.stage.style.setProperty(
+      '--render-background',
+      previewBackgroundForAppearance(displayAppearance, displayed.background),
+    )
+    const nextObjectUrl = URL.createObjectURL(displayed.blob)
+    const previousObjectUrl = this.objectUrl
+    this.objectUrl = nextObjectUrl
+    this.activeImageUrl = nextObjectUrl
+    this.image.src = nextObjectUrl
+    this.minimapImage.src = nextObjectUrl
+    this.image.hidden = false
+    this.setStatus('Loading image…', 'loading')
+    if (previousObjectUrl) URL.revokeObjectURL(previousObjectUrl)
   }
 
   async renderThroughUnit({ type, source, options, meta, presentation }, signal) {
@@ -200,7 +278,7 @@ export class PreviewController {
       this.minimapImage.src = fallback
       return
     }
-    this.setStatus('The rendered image was blocked or invalid.', 'error')
+    this.handleRenderError('The rendered image was blocked or invalid.')
   }
 
   svgBlobFor(state) {
@@ -252,9 +330,14 @@ export class PreviewController {
   setStatus(message, state) {
     const label = STATUS_LABELS[state] ?? 'Ready'
     this.status.textContent = label
-    this.status.title = message === label ? '' : message
-    this.status.setAttribute('aria-label', message === label ? label : `${label}: ${message}`)
+    this.status.title = ''
+    this.status.setAttribute('aria-label', label)
     this.status.dataset.state = state
+  }
+
+  handleRenderError(message) {
+    this.setStatus('Ready', 'idle')
+    this.onError(message)
   }
 
   zoom(factor) {

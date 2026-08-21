@@ -20,7 +20,7 @@ import vegalite from '../../../examples/diagrams/discretizing-scale.vlite?raw'
 import wavedrom from '../../../examples/diagrams/wavedrom.json5?raw'
 import wireviz from '../../../examples/diagrams/wireviz.yaml?raw'
 import { diagramTypes } from './diagram-types.js'
-import { exampleVariant } from './example-variants.js'
+import { defaultExampleAppearance, exampleVariant } from './example-variants.js'
 import { DEFAULT_SOURCE } from './state.js'
 
 const EXAMPLES = {
@@ -226,10 +226,15 @@ export function exampleFor(type) {
 export function exampleStateFor(type) {
   const index = diagramTypes.findIndex(diagramType => diagramType.id === type)
   const [title, description] = EXAMPLE_CONTEXT[type] ?? ['Diagram example', 'A diagram.zip catalog example.']
+  const variant = exampleVariant(Math.max(index, 0), { title, description })
   return {
     type,
     source: exampleFor(type),
     options: {},
-    ...exampleVariant(Math.max(index, 0), { title, description }),
+    ...variant,
+    presentation: {
+      ...variant.presentation,
+      appearance: defaultExampleAppearance(type),
+    },
   }
 }

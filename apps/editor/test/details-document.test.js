@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import {
+  detailsDocumentFor,
+  parseDetailsDocument,
+  serializeDetailsDocument,
+} from '../src/details-document.js'
+
+const state = {
+  meta: { title: 'Connections', description: 'A small D2 example.' },
+  presentation: { appearance: 'dark-transparent', background: '', padding: 0, frame: false },
+}
+
+test('round trips the schema-backed details document', () => {
+  assert.deepEqual(parseDetailsDocument(serializeDetailsDocument(state)), {
+    meta: state.meta,
+    presentation: state.presentation,
+  })
+  assert.deepEqual(detailsDocumentFor(state), {
+    title: 'Connections',
+    description: 'A small D2 example.',
+    presentation: state.presentation,
+  })
+})
+
+test('rejects malformed, incomplete, and extended details documents', () => {
+  assert.throws(() => parseDetailsDocument('{'), /valid JSON/)
+  assert.throws(() => parseDetailsDocument('{}'), /missing required property "title"/)
+  assert.throws(() => parseDetailsDocument(JSON.stringify({
+    ...detailsDocumentFor(state),
+    extra: true,
+  })), /unknown property "extra"/)
+})
+
+test('communicates metadata and presentation restrictions', () => {
+  assert.throws(() => parseDetailsDocument(JSON.stringify({
+    ...detailsDocumentFor(state),
+    title: 'x'.repeat(201),
+  })), /at most 200/)
+  assert.throws(() => parseDetailsDocument(JSON.stringify({
+    ...detailsDocumentFor(state),
+    presentation: { ...state.presentation, padding: 257 },
+  })), /invalid appearance/)
+})

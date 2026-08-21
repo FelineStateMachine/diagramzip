@@ -1,8 +1,14 @@
 import { diagramTypeFromQuery, diagramTypes, isKnownDiagramType, urlWithDiagramType } from './diagram-types.js'
 import { exampleStateFor } from './examples.js'
 import { refreshMatchingExampleMetadata } from './example-variants.js'
+import {
+  DETAILS_MODEL_URI,
+  parseDetailsDocument,
+  serializeDetailsDocument,
+} from './details-document.js'
 import { createSourceEditor } from './source-editor.js'
 import { stateForTypeChange } from './type-drafts.js'
+import { workingStateIsDirty, workingStateSnapshot } from './working-state.js'
 import {
   DEFAULT_DIAGRAM_TYPE,
   documentTitle,
@@ -32,12 +38,15 @@ import './style.css'
 const LOCAL_DRAFT_KEY = 'diagram.zip:draft:local:v2'
 const ALIAS_DRAFT_PREFIX = 'diagram.zip:draft:alias:v1:'
 const WRITE_CAPABILITY_PREFIX = 'diagram.zip:write:v1:'
-// TODO: Reintroduce dark mode once every renderer has a native or renderer-specific dark theme.
 const persistence = new PersistenceClient()
+const systemColorScheme = matchMedia('(prefers-color-scheme: dark)')
+document.documentElement.dataset.theme = systemColorScheme.matches ? 'dark' : 'light'
 let renderTimer
+let detailsCommitTimer
 let activeType
 let saving = false
 let initialLoadError = ''
+let restoredDetailsSource = null
 let remote = {
   aliasId: null,
   contentId: null,
@@ -61,8 +70,8 @@ document.querySelector('#app').innerHTML = `
   <main class="app-shell">
     <header class="app-header">
       <div class="document-identity">
-        <a class="brand" href="/" aria-label="New diagram" title="New diagram"><img class="brand-mark" src="/icon.svg?v=2" alt=""></a>
-        <input class="document-title" id="diagram-title" maxlength="200" placeholder="Untitled diagram" aria-label="Diagram title">
+        <a class="brand" href="/" aria-label="New diagram" title="New diagram"><img class="brand-mark" src="/icon.svg?v=3" alt=""></a>
+        <span class="document-title" id="diagram-title">Untitled</span>
       </div>
       <div class="header-meta">
         <span class="render-status" data-state="idle" role="status">Ready</span>
@@ -77,12 +86,6 @@ document.querySelector('#app').innerHTML = `
               <path d="M12 7.5v12"/>
             </svg>
           </a>
-          <button class="header-icon-action" id="details" type="button" aria-label="Details" title="Details">
-            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M6 3.5h8l4 4v13H6v-17Z"/>
-              <path d="M14 3.5V8h4M9 12h6M9 15.5h6"/>
-            </svg>
-          </button>
           <button class="header-icon-action" id="save" type="button" data-save-state="save" data-dirty="true" aria-label="Save" title="Save">
             <svg class="header-action-icon save-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <g data-save-icon="save">
@@ -117,29 +120,72 @@ document.querySelector('#app').innerHTML = `
     <aside class="draft-bar" id="draft-bar" aria-live="polite" hidden>
       <p>This device has changes that are not part of the saved share link.</p>
       <div>
-        <button class="secondary-action" id="restore-saved" type="button">Restore saved</button>
+        <button class="secondary-action" id="restore-saved" type="button">
+          <span>Restore saved</span>
+          <svg class="draft-reset-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4.5 9V4.5H9"/>
+            <path d="M5.2 7.2A8 8 0 1 1 4.6 16"/>
+          </svg>
+        </button>
         <button class="primary-action" id="make-copy" type="button">Make a copy</button>
       </div>
     </aside>
 
     <div class="mobile-tabs" role="tablist" aria-label="Workspace panel">
-      <button type="button" role="tab" aria-selected="true" data-panel="editor">Edit</button>
-      <button type="button" role="tab" aria-selected="false" data-panel="preview">Preview</button>
+      <button type="button" role="tab" aria-selected="true" aria-controls="editor-panel" data-panel="editor" tabindex="0">Edit</button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="preview-panel" data-panel="preview" tabindex="-1">Preview</button>
     </div>
 
     <div class="workspace" data-mobile-panel="editor">
-      <section class="editor-panel" aria-label="Diagram source">
-        <div id="editor"></div>
+      <section class="editor-panel" id="editor-panel" aria-label="Diagram input">
+        <div class="editor-tabs" role="tablist" aria-label="Diagram input">
+          <button id="source-tab" type="button" role="tab" aria-selected="true" aria-controls="editor" tabindex="0">Source</button>
+          <button id="details-tab" type="button" role="tab" aria-selected="false" aria-controls="details-editor" tabindex="-1">Details</button>
+        </div>
+        <div class="editor-surfaces">
+          <div id="editor" role="tabpanel" aria-labelledby="source-tab"></div>
+          <div id="details-editor" role="tabpanel" aria-labelledby="details-tab" hidden></div>
+        </div>
+        <div class="syntax-dock" id="syntax-dock" aria-label="Diagnostics" data-severity="none">
+          <span class="syntax-dock-summary" id="syntax-dock-summary" aria-label="No diagnostics" title="No diagnostics">
+            <svg class="diagnostic-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <g data-diagnostic-icon="none"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12 2.2 2.2 4.8-5"/></g>
+              <g data-diagnostic-icon="error"><circle cx="12" cy="12" r="8.5"/><path d="m9 9 6 6m0-6-6 6"/></g>
+              <g data-diagnostic-icon="warning"><path d="M12 3.5 21 20H3L12 3.5Z"/><path d="M12 9v5m0 2.7v.1"/></g>
+              <g data-diagnostic-icon="info"><circle cx="12" cy="12" r="8.5"/><path d="M12 10.5V16m0-8.5v.1"/></g>
+            </svg>
+            <span id="syntax-message-count">0</span>
+          </span>
+          <span class="details-validation" id="details-validation" role="status">No problems</span>
+        </div>
       </section>
-      <section class="preview-panel" aria-label="Diagram preview">
+      <section class="preview-panel" id="preview-panel" aria-label="Diagram preview">
         <div class="preview-stage" id="preview-stage">
           <img id="preview-image" alt="Rendered diagram" draggable="false" hidden>
           <p class="preview-empty">Your diagram will appear here.</p>
           <div class="preview-toolbar" aria-label="Preview controls">
-            <button type="button" data-preview-action="zoom-out" aria-label="Zoom out">−</button>
-            <button type="button" data-preview-action="zoom-in" aria-label="Zoom in">+</button>
-            <button type="button" data-preview-action="fit">Fit</button>
-            <button type="button" data-preview-action="one-to-one">1:1</button>
+            <div class="preview-zoom-controls" role="group" aria-label="Zoom">
+              <button type="button" data-preview-action="zoom-out" aria-label="Zoom out">−</button>
+              <button type="button" data-preview-action="zoom-in" aria-label="Zoom in">+</button>
+              <button type="button" data-preview-action="fit">Fit</button>
+              <button type="button" data-preview-action="one-to-one">1:1</button>
+            </div>
+            <span class="preview-toolbar-divider" aria-hidden="true"></span>
+            <div class="preview-appearance-controls" aria-label="Preview appearance">
+              <button id="preview-raw" type="button" aria-pressed="false" title="Show the renderer's original appearance">Raw</button>
+              <button id="preview-theme-toggle" type="button" data-preview-theme="light" aria-pressed="false" aria-label="Preview theme: Light" title="Preview theme: Light · click for dark">
+                <svg class="preview-control-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="12" r="8"/>
+                  <path class="preview-theme-fill" d="M12 4a8 8 0 0 1 0 16Z"/>
+                </svg>
+              </button>
+              <button id="preview-transparent" type="button" aria-pressed="true" aria-label="Transparent background" title="Transparent background">
+                <svg class="preview-control-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect x="4" y="4" width="16" height="16" rx="1.5"/>
+                  <path class="preview-transparency-fill" d="M4 4h8v8H4zM12 12h8v8h-8z"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <div class="minimap" id="minimap" aria-label="Preview minimap" hidden>
             <img id="minimap-image" alt="" draggable="false">
@@ -150,65 +196,6 @@ document.querySelector('#app').innerHTML = `
     </div>
   </main>
 
-  <dialog id="details-dialog" aria-labelledby="details-title">
-    <form method="dialog" class="dialog-card">
-      <div class="dialog-header">
-        <h1 id="details-title">Diagram details</h1>
-        <button class="icon-button" value="cancel" aria-label="Close">×</button>
-      </div>
-      <div class="details-fields">
-        <label>
-          <span>Description</span>
-          <textarea id="diagram-description" maxlength="2000" rows="4" placeholder="What does this diagram show?"></textarea>
-        </label>
-        <fieldset class="presentation-fields">
-          <legend>Presentation</legend>
-          <label class="appearance-field">
-            <span>Appearance</span>
-            <select id="diagram-appearance">
-              <option value="raw">Renderer default</option>
-              <option value="auto-transparent">Match device · transparent</option>
-              <option value="light-transparent">Light · transparent</option>
-              <option value="dark-transparent">Dark · transparent</option>
-              <option value="auto-framed">Match device · framed</option>
-              <option value="light-framed">Light · framed</option>
-              <option value="dark-framed">Dark · framed</option>
-            </select>
-            <small id="appearance-note">Renderer default keeps the renderer's paint and enables the canvas controls below.</small>
-          </label>
-          <label>
-            <span>Canvas</span>
-            <select id="diagram-background">
-              <option value="">Renderer default</option>
-              <option value="#ffffff">White</option>
-              <option value="#f4f4f4">Soft gray</option>
-            </select>
-          </label>
-          <label>
-            <span>Padding</span>
-            <div class="number-field"><input id="diagram-padding" type="number" min="0" max="256" step="4"><span>px</span></div>
-          </label>
-          <label class="checkbox-field"><input id="diagram-frame" type="checkbox"><span>Frame</span></label>
-        </fieldset>
-        <fieldset class="privacy-fields">
-          <legend>Privacy</legend>
-          <div>
-            <strong id="privacy-label">Open</strong>
-            <p id="privacy-description">Anyone with the read link can open and embed this diagram.</p>
-          </div>
-          <div class="privacy-actions">
-            <button class="secondary-action" id="lock-diagram" type="button">Lock with password</button>
-            <button class="secondary-action" id="change-password" type="button" hidden>Change password</button>
-            <button class="secondary-action" id="unlock-diagram" type="button" hidden>Remove password</button>
-          </div>
-        </fieldset>
-      </div>
-      <div class="dialog-actions">
-        <button class="primary-action" value="done">Done</button>
-      </div>
-    </form>
-  </dialog>
-
   <dialog id="share-dialog" aria-labelledby="share-title">
     <form method="dialog" class="dialog-card">
       <div class="dialog-header">
@@ -216,6 +203,18 @@ document.querySelector('#app').innerHTML = `
         <button class="icon-button" value="cancel" aria-label="Close">×</button>
       </div>
       <p class="share-status" id="share-status"></p>
+      <fieldset class="privacy-fields share-privacy-fields">
+        <legend>Privacy</legend>
+        <div>
+          <strong id="privacy-label">Open</strong>
+          <p id="privacy-description">Anyone with the read link can open and embed this diagram.</p>
+        </div>
+        <div class="privacy-actions">
+          <button class="secondary-action" id="lock-diagram" type="button">Lock with password</button>
+          <button class="secondary-action" id="change-password" type="button" hidden>Change password</button>
+          <button class="secondary-action" id="unlock-diagram" type="button" hidden>Remove password</button>
+        </div>
+      </fieldset>
       <div class="share-options">
         <label><span>Read link</span><div><input id="viewer-link" readonly><button type="button" data-copy="viewer-link">Copy</button></div></label>
         <label><span>Edit link</span><div><input id="editor-link" readonly><button type="button" data-copy="editor-link">Copy</button></div><small id="editor-link-note">Anyone with this link can update the diagram.</small></label>
@@ -260,31 +259,33 @@ document.querySelector('#app').innerHTML = `
     </form>
   </dialog>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" popover="manual"></div>
 `
 
 const typePicker = document.querySelector('#diagram-type')
-const titleInput = document.querySelector('#diagram-title')
-const descriptionInput = document.querySelector('#diagram-description')
-const appearanceInput = document.querySelector('#diagram-appearance')
-const backgroundInput = document.querySelector('#diagram-background')
-const paddingInput = document.querySelector('#diagram-padding')
-const frameInput = document.querySelector('#diagram-frame')
+const titleLabel = document.querySelector('#diagram-title')
+const previewRawButton = document.querySelector('#preview-raw')
+const previewTransparentButton = document.querySelector('#preview-transparent')
+const previewThemeButton = document.querySelector('#preview-theme-toggle')
+let supportedPreviewAppearances = new Set(['raw'])
+let previewTheme = systemColorScheme.matches ? 'dark' : 'light'
+let previewTransparent = true
+let detailsValid = true
+let detailsError = ''
+let detailsState
+let detailsEditor = null
+let previewHasBeenRevealed = false
 for (const { id, label } of diagramTypes) {
   typePicker.add(new Option(label, id))
 }
 
 const initialState = await loadInitialState()
-const initialMetadata = normalizeMetadata(initialState.meta)
-const initialPresentation = normalizePresentation(initialState.presentation)
+detailsState = {
+  meta: normalizeMetadata(initialState.meta),
+  presentation: normalizePresentation(initialState.presentation),
+}
 typePicker.value = initialState.type
-titleInput.value = initialMetadata.title
-descriptionInput.value = initialMetadata.description
-appearanceInput.value = initialPresentation.appearance
-backgroundInput.value = initialPresentation.background
-paddingInput.value = String(initialPresentation.padding)
-frameInput.checked = initialPresentation.frame
-syncPresentationControls()
+syncPreviewAppearanceControls()
 updateDocumentMetadata()
 activeType = initialState.type
 typeDrafts.set(initialState.type, initialState)
@@ -297,6 +298,19 @@ const sourceEditor = await createSourceEditor({
   onSave: saveDiagram,
 })
 
+detailsEditor = await createSourceEditor({
+  element: document.querySelector('#details-editor'),
+  source: restoredDetailsSource ?? serializeDetailsDocument(initialState),
+  diagramType: initialState.type,
+  language: 'json',
+  modelUri: DETAILS_MODEL_URI,
+  ariaLabel: 'Diagram details editor',
+  onChange: scheduleDetailsUpdate,
+  onSave: saveDiagram,
+})
+validateDetailsDocument(false)
+applySystemTheme()
+
 const preview = new PreviewController({
   stage: document.querySelector('#preview-stage'),
   image: document.querySelector('#preview-image'),
@@ -304,28 +318,28 @@ const preview = new PreviewController({
   minimap: document.querySelector('#minimap'),
   minimapImage: document.querySelector('#minimap-image'),
   minimapViewport: document.querySelector('#minimap-viewport'),
+  autoTheme: previewTheme,
   onAppearances: updateAppearanceOptions,
+  onError: message => showToast(message, 4000),
+})
+systemColorScheme.addEventListener('change', () => {
+  applySystemTheme()
+  if (detailsState.presentation.appearance.startsWith('auto-')) {
+    preview.setAutoTheme(systemColorScheme.matches ? 'dark' : 'light')
+    syncPreviewAppearanceControls()
+  }
 })
 
 typePicker.addEventListener('change', () => {
+  if (!ensureValidDetails()) {
+    typePicker.value = activeType
+    return
+  }
   const type = typePicker.value
   history.replaceState(null, '', urlWithDiagramType(location.href, type))
   applyState(stateForTypeChange(typeDrafts, activeType, type, currentState(), exampleStateFor))
 })
 
-document.querySelector('#details').addEventListener('click', () => {
-  document.querySelector('#details-dialog').showModal()
-  descriptionInput.focus()
-})
-for (const input of [titleInput, descriptionInput, appearanceInput, backgroundInput, paddingInput, frameInput]) {
-  input.addEventListener('input', () => {
-    syncPresentationControls()
-    updateDocumentMetadata()
-    clearTimeout(commitDetails.timeout)
-    commitDetails.timeout = setTimeout(commitDetails, 220)
-  })
-}
-document.querySelector('#details-dialog').addEventListener('close', commitDetails)
 document.querySelector('#lock-diagram').addEventListener('click', lockDiagram)
 document.querySelector('#change-password').addEventListener('click', changeDiagramPassword)
 document.querySelector('#unlock-diagram').addEventListener('click', unlockDiagram)
@@ -339,8 +353,25 @@ document.querySelector('#share-save').addEventListener('click', async () => {
 })
 document.querySelector('.brand').addEventListener('click', event => {
   event.preventDefault()
-  if (!confirm('Start a new diagram?')) return
+  if (remote.dirty && !confirm('Discard these local changes and start a new diagram?')) return
   startNewDiagram()
+})
+
+previewRawButton.addEventListener('click', () => {
+  if (detailsState.presentation.appearance === 'raw') {
+    setPreviewAppearance(`${previewTheme}-${previewTransparent ? 'transparent' : 'framed'}`)
+  } else {
+    setPreviewAppearance('raw')
+  }
+})
+previewTransparentButton.addEventListener('click', () => {
+  const prefix = appearancePrefix(detailsState.presentation.appearance)
+  const transparent = !previewTransparent
+  setPreviewAppearance(`${prefix}-${transparent ? 'transparent' : 'framed'}`)
+})
+previewThemeButton.addEventListener('click', () => {
+  const theme = previewTheme === 'light' ? 'dark' : 'light'
+  setPreviewAppearance(`${theme}-${previewTransparent ? 'transparent' : 'framed'}`)
 })
 
 document.querySelectorAll('[data-preview-action]').forEach(button => {
@@ -353,23 +384,36 @@ document.querySelectorAll('[data-preview-action]').forEach(button => {
   })
 })
 
-document.querySelectorAll('.mobile-tabs button').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelector('.workspace').dataset.mobilePanel = button.dataset.panel
-    document.querySelectorAll('.mobile-tabs button').forEach(tab => {
-      tab.setAttribute('aria-selected', String(tab === button))
-    })
-    if (button.dataset.panel === 'preview') preview.fit()
-    if (button.dataset.panel === 'editor') sourceEditor.layout()
-  })
+wireTabs(document.querySelector('.editor-tabs'), button => {
+  const details = button.id === 'details-tab'
+  document.querySelector('#editor').hidden = details
+  document.querySelector('#details-editor').hidden = !details
+  if (details) detailsEditor.layout()
+  else sourceEditor.layout()
+})
+
+wireTabs(document.querySelector('.mobile-tabs'), button => {
+  document.querySelector('.workspace').dataset.mobilePanel = button.dataset.panel
+  if (button.dataset.panel === 'preview') {
+    if (!previewHasBeenRevealed) {
+      previewHasBeenRevealed = true
+      requestAnimationFrame(() => preview.fit())
+    }
+  } else {
+    activeInputEditor().layout()
+  }
 })
 
 document.querySelectorAll('[data-copy]').forEach(button => {
   button.addEventListener('click', async () => {
     const input = document.querySelector(`#${button.dataset.copy}`)
     if (!input.value) return
-    await copy(input.value)
-    showToast('Copied')
+    try {
+      await copy(input.value)
+      showToast('Copied')
+    } catch {
+      showToast('Could not copy to the clipboard.', 4000)
+    }
   })
 })
 
@@ -383,39 +427,128 @@ window.addEventListener('keydown', event => {
   }
 })
 
+function wireTabs(tablist, onSelect) {
+  const tabs = [...tablist.querySelectorAll('[role="tab"]')]
+  const activate = button => {
+    for (const tab of tabs) {
+      const selected = tab === button
+      tab.setAttribute('aria-selected', String(selected))
+      tab.tabIndex = selected ? 0 : -1
+    }
+    onSelect(button)
+  }
+  tablist.activateTab = activate
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => activate(tab))
+    tab.addEventListener('keydown', event => {
+      let index
+      if (event.key === 'ArrowRight') index = (tabs.indexOf(tab) + 1) % tabs.length
+      else if (event.key === 'ArrowLeft') index = (tabs.indexOf(tab) - 1 + tabs.length) % tabs.length
+      else if (event.key === 'Home') index = 0
+      else if (event.key === 'End') index = tabs.length - 1
+      else return
+      event.preventDefault()
+      tabs[index].focus()
+      activate(tabs[index])
+    })
+  }
+}
+
+function selectTab(button) {
+  button.closest('[role="tablist"]')?.activateTab?.(button)
+}
+
+function activeInputEditor() {
+  return document.querySelector('#details-tab').getAttribute('aria-selected') === 'true'
+    ? detailsEditor
+    : sourceEditor
+}
+
 function currentState() {
-  const padding = Math.min(256, Math.max(0, Number.parseInt(paddingInput.value, 10) || 0))
   return {
     type: typePicker.value,
     source: sourceEditor.getValue(),
     options: {},
-    meta: normalizeMetadata({ title: titleInput.value, description: descriptionInput.value }),
-    presentation: normalizePresentation({
-      appearance: appearanceInput.value,
-      background: backgroundInput.value,
-      padding,
-      frame: frameInput.checked,
-    }),
+    meta: detailsState.meta,
+    presentation: detailsState.presentation,
   }
 }
 
-function syncPresentationControls() {
-  const usesRendererPresentation = appearanceInput.value === 'raw'
-  backgroundInput.disabled = !usesRendererPresentation
-  paddingInput.disabled = !usesRendererPresentation
-  frameInput.disabled = !usesRendererPresentation
-  document.querySelector('#appearance-note').textContent = usesRendererPresentation
-    ? "Renderer default keeps the renderer's paint and enables the canvas controls below."
-    : 'This appearance uses the shared Diagram.zip palette. Canvas, padding, and frame come from that appearance.'
+function applySystemTheme() {
+  const resolved = systemColorScheme.matches ? 'dark' : 'light'
+  document.documentElement.dataset.theme = resolved
+  document.querySelector('meta[name="theme-color"]').content = resolved === 'dark' ? '#18191b' : '#ffffff'
+  sourceEditor.setTheme?.()
+  detailsEditor.setTheme?.()
+}
+
+function appearancePrefix(appearance) {
+  if (appearance.startsWith('auto-')) return 'auto'
+  if (appearance.startsWith('dark-')) return 'dark'
+  if (appearance.startsWith('light-')) return 'light'
+  return previewTheme
+}
+
+function setPreviewAppearance(appearance) {
+  if (!ensureValidDetails()) return
+  if (!supportedPreviewAppearances.has(appearance)) {
+    showToast('This renderer does not support that appearance.')
+    return
+  }
+  setDetailsState({
+    ...detailsState,
+    presentation: { ...detailsState.presentation, appearance },
+  })
+  syncPreviewAppearanceControls()
+  commitState()
+}
+
+function syncPreviewAppearanceControls() {
+  const appearance = detailsState.presentation.appearance
+  const raw = appearance === 'raw'
+  if (!raw) {
+    const prefix = appearancePrefix(appearance)
+    previewTheme = prefix === 'auto' ? (systemColorScheme.matches ? 'dark' : 'light') : prefix
+    previewTransparent = appearance.endsWith('-transparent')
+  }
+
+  previewRawButton.setAttribute('aria-pressed', String(raw))
+  previewRawButton.disabled = raw && supportedPreviewAppearances.size === 1
+  previewTransparentButton.setAttribute('aria-pressed', String(!raw && previewTransparent))
+  previewTransparentButton.disabled = raw || !supportedPreviewAppearances.has(
+    `${appearancePrefix(appearance)}-${previewTransparent ? 'framed' : 'transparent'}`,
+  )
+  const oppositeTheme = previewTheme === 'light' ? 'dark' : 'light'
+  previewThemeButton.dataset.previewTheme = previewTheme
+  previewThemeButton.setAttribute('aria-pressed', String(!raw && previewTheme === 'dark'))
+  previewThemeButton.setAttribute('aria-label', `Preview theme: ${previewTheme === 'dark' ? 'Dark' : 'Light'}`)
+  previewThemeButton.title = `Preview theme: ${previewTheme === 'dark' ? 'Dark' : 'Light'} · click for ${oppositeTheme}`
+  previewThemeButton.disabled = raw || !supportedPreviewAppearances.has(
+    `${oppositeTheme}-${previewTransparent ? 'transparent' : 'framed'}`,
+  )
 }
 
 function updateAppearanceOptions(appearances, appliedAppearance) {
-  const supported = new Set(appearances)
-  for (const option of appearanceInput.options) option.disabled = !supported.has(option.value)
-  if (appearanceInput.value === appliedAppearance) return
-  appearanceInput.value = appliedAppearance
-  syncPresentationControls()
-  queueMicrotask(commitDetails)
+  supportedPreviewAppearances = new Set(appearances)
+  if (!detailsValid) {
+    syncPreviewAppearanceControls()
+    return
+  }
+  const requested = detailsState.presentation.appearance
+  if (!supportedPreviewAppearances.has(requested)) {
+    const prefix = appearancePrefix(requested)
+    const alternateSurface = requested.endsWith('-transparent') ? 'framed' : 'transparent'
+    const alternate = `${prefix}-${alternateSurface}`
+    setDetailsState({
+      ...detailsState,
+      presentation: {
+        ...detailsState.presentation,
+        appearance: supportedPreviewAppearances.has(alternate) ? alternate : appliedAppearance,
+      },
+    })
+  }
+  syncPreviewAppearanceControls()
+  if (detailsState.presentation.appearance !== requested) queueMicrotask(commitState)
 }
 
 function scheduleUpdate(delay = 1200) {
@@ -425,16 +558,87 @@ function scheduleUpdate(delay = 1200) {
 
 function commitState(render = true) {
   const state = currentState()
-  storeDraft(state)
-  remote.dirty = remote.keyEnvelopeDirty || remote.savedSnapshot !== stateSnapshot(state, remote.mode)
+  remote.dirty = !detailsValid || workingStateIsDirty(state, {
+    mode: remote.mode,
+    keyEnvelopeDirty: remote.keyEnvelopeDirty,
+    savedSnapshot: remote.savedSnapshot,
+    defaultStateFor: exampleStateFor,
+  })
+  syncStoredDraft(state)
   updateSaveButton()
   updatePrivacyControls()
   if (render) preview.render(state)
 }
 
-function commitDetails() {
-  clearTimeout(commitDetails.timeout)
-  commitState()
+function scheduleDetailsUpdate() {
+  clearTimeout(detailsCommitTimer)
+  validateDetailsDocument(false)
+  detailsCommitTimer = setTimeout(() => {
+    if (detailsValid) commitState()
+    else commitState(false)
+  }, 220)
+}
+
+function validateDetailsDocument(showError = false) {
+  try {
+    detailsState = parseDetailsDocument(detailsEditor.getValue())
+    detailsValid = true
+    detailsError = ''
+    updateDetailsValidation()
+    updateDocumentMetadata()
+    syncPreviewAppearanceControls()
+    return true
+  } catch (error) {
+    detailsValid = false
+    detailsError = error instanceof Error ? error.message : 'Details are invalid.'
+    updateDetailsValidation()
+    if (showError) showToast(detailsError, 4000)
+    return false
+  }
+}
+
+function ensureValidDetails() {
+  if (validateDetailsDocument(true)) return true
+  selectTab(document.querySelector('#details-tab'))
+  detailsEditor.focus()
+  return false
+}
+
+function setDetailsState(nextDetails) {
+  detailsState = {
+    meta: normalizeMetadata(nextDetails.meta),
+    presentation: normalizePresentation(nextDetails.presentation),
+  }
+  detailsValid = true
+  detailsError = ''
+  detailsEditor.setDocument({
+    source: serializeDetailsDocument(detailsState),
+    diagramType: typePicker.value,
+    language: 'json',
+  })
+  updateDetailsValidation()
+  updateDocumentMetadata()
+}
+
+function updateDetailsValidation() {
+  const status = document.querySelector('#details-validation')
+  const tab = document.querySelector('#details-tab')
+  const dock = document.querySelector('#syntax-dock')
+  const summary = document.querySelector('#syntax-dock-summary')
+  const count = document.querySelector('#syntax-message-count')
+  status.textContent = detailsValid ? 'No problems' : detailsError
+  status.title = detailsError
+  count.textContent = detailsValid ? '0' : '1'
+  dock.dataset.severity = detailsValid ? 'none' : 'error'
+  summary.setAttribute('aria-label', detailsValid ? 'No diagnostics' : '1 error')
+  summary.title = detailsValid ? 'No diagnostics' : '1 error'
+  tab.dataset.invalid = String(!detailsValid)
+  tab.setAttribute('aria-invalid', String(!detailsValid))
+  if (detailsValid) {
+    tab.removeAttribute('aria-describedby')
+  } else {
+    tab.setAttribute('aria-describedby', 'details-validation')
+  }
 }
 
 async function loadInitialState() {
@@ -459,7 +663,10 @@ async function loadInitialState() {
       }
       setRemoteAlias(alias, writeCapability, alias.state)
       const draft = loadDraft(`${ALIAS_DRAFT_PREFIX}${aliasId}`)
-      if (draft?.revision === alias.revision) return draft.state
+      if (draft?.revision === alias.revision) {
+        restoredDetailsSource = draft.detailsSource
+        return draft.state
+      }
       return alias.state
     } catch (error) {
       initialLoadError = error instanceof PersistenceError
@@ -472,13 +679,17 @@ async function loadInitialState() {
   const draft = loadDraft(LOCAL_DRAFT_KEY)
   if (requestedType) {
     if (draft?.state.type === requestedType) {
+      restoredDetailsSource = draft.detailsSource
       const state = refreshMatchingExampleMetadata(draft.state, exampleStateFor(requestedType))
       if (state !== draft.state) storeDraft(state)
       return state
     }
     return exampleStateFor(requestedType)
   }
-  if (draft) return draft.state
+  if (draft) {
+    restoredDetailsSource = draft.detailsSource
+    return draft.state
+  }
   return exampleStateFor(DEFAULT_DIAGRAM_TYPE)
 }
 
@@ -489,20 +700,15 @@ function applyState(state, commit = true) {
   activeType = state.type
   typeDrafts.set(state.type, { ...state, meta, presentation })
   typePicker.value = state.type
-  titleInput.value = meta.title
-  descriptionInput.value = meta.description
-  appearanceInput.value = presentation.appearance
-  backgroundInput.value = presentation.background
-  paddingInput.value = String(presentation.padding)
-  frameInput.checked = presentation.frame
-  syncPresentationControls()
-  updateDocumentMetadata()
+  setDetailsState({ meta, presentation })
+  syncPreviewAppearanceControls()
   sourceEditor.setDocument({ source: state.source, diagramType: state.type })
   if (commit) commitState()
   else preview.render(currentState())
 }
 
 function openShareDialog() {
+  if (!ensureValidDetails()) return
   commitState()
   populateShareDialog()
   document.querySelector('#share-dialog').showModal()
@@ -574,6 +780,7 @@ function setShareField(id, value, placeholder) {
 
 async function saveDiagram() {
   if (saving) return false
+  if (!ensureValidDetails()) return false
   commitState(false)
   const state = currentState()
   if (remote.aliasId && !remote.dirty) {
@@ -639,7 +846,7 @@ async function lockedPayloadForState(state) {
     throw new Error('This diagram is missing its browser encryption key.')
   }
   const contentIsUnchanged = remote.savedMode === 'locked'
-    && remote.savedSnapshot === stateSnapshot(state, 'locked')
+    && remote.savedSnapshot === workingStateSnapshot(state, 'locked')
     && remote.encryptedContent
     && remote.encryptedMetadata
   if (contentIsUnchanged) {
@@ -684,7 +891,7 @@ async function cacheSavedRenders(state) {
   })
   const results = await Promise.allSettled(uploads)
   if (results.every(result => result.status === 'rejected')) {
-    preview.setStatus('Saved; render cache unavailable', 'ready')
+    showToast('Saved, but the render cache is unavailable.', 4000)
   }
 }
 
@@ -713,6 +920,7 @@ async function svgToPngBlob(svg) {
 }
 
 async function lockDiagram() {
+  if (!ensureValidDetails()) return
   const password = await askPassword({
     title: 'Lock diagram',
     copy: 'The source, metadata, and saved render will be encrypted in this browser. The password cannot be recovered.',
@@ -882,17 +1090,6 @@ function askConflict() {
   })
 }
 
-function stateSnapshot(state, mode = 'open') {
-  return JSON.stringify({
-    mode,
-    type: state.type,
-    source: state.source,
-    options: state.options ?? {},
-    meta: normalizeMetadata(state.meta),
-    presentation: normalizePresentation(state.presentation),
-  })
-}
-
 function normalizeStoredState(value) {
   if (!value || typeof value !== 'object' || !isKnownDiagramType(value.type) || typeof value.source !== 'string') {
     return null
@@ -915,7 +1112,11 @@ function loadDraft(key) {
     const draft = JSON.parse(localStorage.getItem(key))
     const state = normalizeStoredState(draft?.state)
     if (!state) return null
-    return { state, revision: draft.revision ?? null }
+    return {
+      state,
+      revision: draft.revision ?? null,
+      detailsSource: typeof draft.detailsSource === 'string' ? draft.detailsSource : null,
+    }
   } catch {
     return null
   }
@@ -925,10 +1126,20 @@ function storeDraft(state) {
   if (remote.mode === 'locked') return
   const key = remote.aliasId ? `${ALIAS_DRAFT_PREFIX}${remote.aliasId}` : LOCAL_DRAFT_KEY
   try {
-    localStorage.setItem(key, JSON.stringify({ state, revision: remote.revision }))
+    const detailsSource = !detailsValid && detailsEditor
+      ? detailsEditor.getValue()
+      : null
+    localStorage.setItem(key, JSON.stringify({ state, revision: remote.revision, detailsSource }))
   } catch {
     // The editor remains usable when storage is unavailable.
   }
+}
+
+function syncStoredDraft(state) {
+  if (remote.mode === 'locked') return
+  const key = remote.aliasId ? `${ALIAS_DRAFT_PREFIX}${remote.aliasId}` : LOCAL_DRAFT_KEY
+  if (remote.dirty) storeDraft(state)
+  else removeDraft(key)
 }
 
 function removeDraft(key) {
@@ -965,7 +1176,7 @@ function setRemoteAlias(alias, writeCapability, state, bundleKey = null) {
     savedMode: alias.mode,
     writeCapability,
     savedState: state,
-    savedSnapshot: stateSnapshot(state, alias.mode),
+    savedSnapshot: workingStateSnapshot(state, alias.mode),
     bundleKey,
     keyEnvelope: alias.mode === 'locked' ? alias.keyEnvelope : null,
     encryptedContent: alias.mode === 'locked' ? alias.encryptedContent : null,
@@ -1004,16 +1215,37 @@ function updateSaveButton() {
 
 function updateDraftControls() {
   const bar = document.querySelector('#draft-bar')
-  const hasLocalOverlay = Boolean(remote.aliasId && remote.savedState && remote.dirty)
-  bar.hidden = !hasLocalOverlay
-  document.querySelector('#restore-saved').disabled = saving
-  document.querySelector('#make-copy').disabled = saving
+  const restore = document.querySelector('#restore-saved')
+  const makeCopy = document.querySelector('#make-copy')
+  const hasAliasOverlay = Boolean(remote.aliasId && remote.savedState && remote.dirty)
+  const hasAnonymousDraft = Boolean(!remote.aliasId && remote.dirty)
+  bar.hidden = !hasAliasOverlay && !hasAnonymousDraft
+  restore.disabled = saving
+  makeCopy.disabled = saving
+  makeCopy.hidden = hasAnonymousDraft
+  bar.dataset.anonymous = String(hasAnonymousDraft)
+  if (hasAnonymousDraft) {
+    const type = typePicker.selectedOptions[0]?.textContent ?? 'diagram'
+    bar.querySelector('p').textContent = `This device has changes to the ${type} example.`
+    restore.querySelector('span').textContent = ''
+    restore.setAttribute('aria-label', 'Reset')
+    restore.title = 'Reset'
+  } else {
+    bar.querySelector('p').textContent = 'This device has changes that are not part of the saved share link.'
+    restore.querySelector('span').textContent = 'Restore saved'
+    restore.removeAttribute('aria-label')
+    restore.removeAttribute('title')
+  }
 }
 
 function restoreSavedDiagram() {
+  if (!remote.aliasId) {
+    resetAnonymousExample()
+    return
+  }
   if (!remote.aliasId || !remote.savedState || !remote.dirty) return
   clearTimeout(renderTimer)
-  clearTimeout(commitDetails.timeout)
+  clearTimeout(detailsCommitTimer)
   remote.mode = remote.savedMode
   remote.keyEnvelopeDirty = false
   remote.dirty = false
@@ -1026,8 +1258,24 @@ function restoreSavedDiagram() {
   showToast('Restored saved diagram')
 }
 
+function resetAnonymousExample() {
+  if (remote.aliasId || !remote.dirty) return
+  if (!confirm('Discard local changes and reset this example?')) return
+  clearTimeout(renderTimer)
+  clearTimeout(detailsCommitTimer)
+  removeDraft(LOCAL_DRAFT_KEY)
+  typeDrafts.clear()
+  const state = exampleStateFor(typePicker.value)
+  applyState(state, false)
+  remote.dirty = false
+  history.replaceState(null, '', urlWithDiagramType(location.href, state.type))
+  updateSaveButton()
+  showToast('Example reset')
+}
+
 async function makeDraftCopy() {
   if (saving || !remote.aliasId || !remote.dirty) return
+  if (!ensureValidDetails()) return
   commitState(false)
   const state = currentState()
   saving = true
@@ -1055,6 +1303,7 @@ function updatePrivacyControls() {
 }
 
 function startNewDiagram() {
+  if (!remote.aliasId) removeDraft(LOCAL_DRAFT_KEY)
   remote = {
     aliasId: null,
     contentId: null,
@@ -1070,7 +1319,7 @@ function startNewDiagram() {
     encryptedContent: null,
     encryptedMetadata: null,
     keyEnvelopeDirty: false,
-    dirty: true,
+    dirty: false,
   }
   typeDrafts.clear()
   history.pushState(null, '', urlWithDiagramType('/', DEFAULT_DIAGRAM_TYPE))
@@ -1078,28 +1327,46 @@ function startNewDiagram() {
 }
 
 function updateDocumentMetadata() {
-  const title = titleInput.value.trim()
-  const description = descriptionInput.value.trim()
+  const title = detailsState.meta.title.trim()
+  const description = detailsState.meta.description.trim()
+  titleLabel.textContent = title || 'Untitled'
   document.title = documentTitle(title)
   document.querySelector('meta[name="description"]').content = description || 'Create diagrams from text and share them as a link.'
 }
 
 async function copy(value) {
-  if (navigator.clipboard) return navigator.clipboard.writeText(value)
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(value)
+      return
+    } catch {
+      // Fall back for browsers that expose Clipboard without granting write access.
+    }
+  }
   const textarea = document.createElement('textarea')
   textarea.value = value
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
   document.body.append(textarea)
   textarea.select()
-  document.execCommand('copy')
+  const copied = document.execCommand('copy')
   textarea.remove()
+  if (!copied) throw new Error('Clipboard access is unavailable.')
 }
 
-function showToast(message) {
+function showToast(message, duration = 1800) {
   const toast = document.querySelector('#toast')
   toast.textContent = message
+  clearTimeout(showToast.hideTimeout)
+  if (typeof toast.showPopover === 'function' && !toast.matches(':popover-open')) toast.showPopover()
   toast.dataset.visible = 'true'
   clearTimeout(showToast.timeout)
-  showToast.timeout = setTimeout(() => delete toast.dataset.visible, 1800)
+  showToast.timeout = setTimeout(() => {
+    delete toast.dataset.visible
+    showToast.hideTimeout = setTimeout(() => {
+      if (typeof toast.hidePopover === 'function' && toast.matches(':popover-open')) toast.hidePopover()
+    }, 160)
+  }, duration)
 }
 
 commitState()

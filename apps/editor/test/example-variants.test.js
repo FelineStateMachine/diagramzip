@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  defaultExampleAppearance,
   exampleVariant,
   grayCode,
   refreshMatchingExampleMetadata,
 } from '../src/example-variants.js'
+
+test('uses adaptive normalized appearances for catalog examples', () => {
+  assert.equal(defaultExampleAppearance('d2'), 'auto-transparent')
+  assert.equal(defaultExampleAppearance('diagramsnet'), 'auto-framed')
+})
 
 test('changes one example axis at a time across the catalog', () => {
   for (let index = 1; index < 30; index++) {

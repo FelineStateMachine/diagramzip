@@ -10,7 +10,16 @@ import { configureMonacoWorkers } from './monaco-workers.js'
 
 const THEME_NAME = 'diagramzip'
 
-export function createEditor({ element, source, diagramType, onChange, onSave }) {
+export function createEditor({
+  element,
+  source,
+  diagramType,
+  language,
+  modelUri,
+  ariaLabel = 'Diagram source editor',
+  onChange,
+  onSave,
+}) {
   configureMonacoWorkers()
   registerMonacoLanguages(monaco)
   defineTheme()
@@ -18,13 +27,13 @@ export function createEditor({ element, source, diagramType, onChange, onSave })
   let suppressChanges = 0
   const model = monaco.editor.createModel(
     source,
-    editorLanguageFor(diagramType),
-    monaco.Uri.parse('inmemory://diagram.zip/source'),
+    language ?? editorLanguageFor(diagramType),
+    monaco.Uri.parse(modelUri ?? 'inmemory://diagram.zip/source'),
   )
   const rootStyle = getComputedStyle(document.documentElement)
   const editor = monaco.editor.create(element, {
     model,
-    ariaLabel: 'Diagram source editor',
+    ariaLabel,
     automaticLayout: true,
     contextmenu: true,
     fixedOverflowWidgets: true,
@@ -52,12 +61,12 @@ export function createEditor({ element, source, diagramType, onChange, onSave })
   return {
     backend: 'monaco',
     getValue: () => model.getValue(),
-    setDocument({ source: nextSource, diagramType: nextType }) {
+    setDocument({ source: nextSource, diagramType: nextType = diagramType, language: nextLanguage = language }) {
       suppressChanges += 1
       try {
         const previousPosition = editor.getPosition()
         model.setValue(nextSource)
-        monaco.editor.setModelLanguage(model, editorLanguageFor(nextType))
+        monaco.editor.setModelLanguage(model, nextLanguage ?? editorLanguageFor(nextType))
         if (previousPosition) {
           const lineNumber = Math.min(previousPosition.lineNumber, model.getLineCount())
           const column = Math.min(previousPosition.column, model.getLineMaxColumn(lineNumber))
@@ -70,6 +79,10 @@ export function createEditor({ element, source, diagramType, onChange, onSave })
     },
     focus: () => editor.focus(),
     layout: () => editor.layout(),
+    setTheme() {
+      defineTheme()
+      monaco.editor.setTheme(THEME_NAME)
+    },
     dispose() {
       contentSubscription.dispose()
       editor.dispose()
@@ -81,7 +94,7 @@ export function createEditor({ element, source, diagramType, onChange, onSave })
 function defineTheme() {
   const style = getComputedStyle(document.documentElement)
   monaco.editor.defineTheme(THEME_NAME, {
-    base: 'vs',
+    base: document.documentElement.dataset.theme === 'dark' ? 'vs-dark' : 'vs',
     inherit: true,
     rules: [
       { token: 'keyword', foreground: tokenColor(style, '--syntax-keyword'), fontStyle: 'bold' },
@@ -98,7 +111,7 @@ function defineTheme() {
     colors: {
       'editor.background': themeColor(style, '--surface'),
       'editor.foreground': themeColor(style, '--ink'),
-      'editorCursor.foreground': themeColor(style, '--ink'),
+      'editorCursor.foreground': themeColor(style, '--accent'),
       'editorGutter.background': themeColor(style, '--surface'),
       'editorLineNumber.foreground': themeColor(style, '--muted'),
       'editor.lineHighlightBackground': themeColor(style, '--editor-active-line'),
