@@ -16,3 +16,18 @@ export function exampleVariant(index, context) {
     },
   }
 }
+
+export function refreshMatchingExampleMetadata(state, exampleState) {
+  if (state?.source !== exampleState?.source || state?.meta?.title?.trim()) return state
+
+  return {
+    ...state,
+    meta: {
+      ...state.meta,
+      title: exampleState.meta.title,
+      description: state.meta?.description?.trim()
+        ? state.meta.description
+        : exampleState.meta.description,
+    },
+  }
+}

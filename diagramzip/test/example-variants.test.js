@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { exampleVariant, grayCode } from '../src/example-variants.js'
+import {
+  exampleVariant,
+  grayCode,
+  refreshMatchingExampleMetadata,
+} from '../src/example-variants.js'
 
 test('changes one example axis at a time across the catalog', () => {
   for (let index = 1; index < 30; index++) {
@@ -18,4 +22,35 @@ test('names every example while varying descriptions and padding', () => {
   assert.ok(variants.some(variant => variant.presentation.padding))
   assert.ok(variants.every(variant => variant.presentation.background === ''))
   assert.ok(variants.every(variant => variant.presentation.frame === false))
+})
+
+test('refreshes metadata for an untitled draft matching its bundled example', () => {
+  const state = {
+    type: 'd2',
+    source: 'a -> b',
+    meta: { title: '', description: '' },
+    presentation: { padding: 24 },
+  }
+  const example = {
+    type: 'd2',
+    source: 'a -> b',
+    meta: { title: 'Connection styles', description: 'D2 syntax.' },
+  }
+
+  assert.deepEqual(refreshMatchingExampleMetadata(state, example), {
+    ...state,
+    meta: { title: 'Connection styles', description: 'D2 syntax.' },
+  })
+})
+
+test('preserves named and edited drafts', () => {
+  const example = {
+    source: 'a -> b',
+    meta: { title: 'Connection styles', description: 'D2 syntax.' },
+  }
+  const named = { source: example.source, meta: { title: 'Mine', description: '' } }
+  const edited = { source: 'a -> b: edited', meta: { title: '', description: '' } }
+
+  assert.equal(refreshMatchingExampleMetadata(named, example), named)
+  assert.equal(refreshMatchingExampleMetadata(edited, example), edited)
 })

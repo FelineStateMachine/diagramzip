@@ -1,5 +1,6 @@
 import { diagramTypeFromQuery, diagramTypes, isKnownDiagramType, urlWithDiagramType } from './diagram-types.js'
 import { exampleStateFor } from './examples.js'
+import { refreshMatchingExampleMetadata } from './example-variants.js'
 import { createSourceEditor } from './source-editor.js'
 import { stateForTypeChange } from './type-drafts.js'
 import {
@@ -470,7 +471,11 @@ async function loadInitialState() {
   const requestedType = diagramTypeFromQuery(location.search)
   const draft = loadDraft(LOCAL_DRAFT_KEY)
   if (requestedType) {
-    if (draft?.state.type === requestedType) return draft.state
+    if (draft?.state.type === requestedType) {
+      const state = refreshMatchingExampleMetadata(draft.state, exampleStateFor(requestedType))
+      if (state !== draft.state) storeDraft(state)
+      return state
+    }
     return exampleStateFor(requestedType)
   }
   if (draft) return draft.state
