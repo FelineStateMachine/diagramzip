@@ -1,10 +1,10 @@
 const CHANNEL = 'diagram.zip:renderer:v1'
 const ENGINE = 'tikz'
 const VERSION = '@planktimerr/tikzjax@1.0.63'
-const BUILD = 'tikzjax-1.0.63-client-unit-1'
+const BUILD = 'tikzjax-1.0.63-client-unit-2'
 const MAX_SOURCE_LENGTH = 262_144
 const MAX_OUTPUT_LENGTH = 4_194_304
-const RENDER_TIMEOUT = 20_000
+const RENDER_TIMEOUT = 60_000
 
 let latest = 0
 let queue = Promise.resolve()

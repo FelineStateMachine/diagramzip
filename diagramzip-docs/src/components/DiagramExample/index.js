@@ -4,7 +4,7 @@ import {clientFrameUrlFor, httpRendererUrlFor} from './rendererRouting.mjs';
 import styles from './styles.module.css';
 
 const CHANNEL = 'diagram.zip:renderer:v1';
-const RENDER_TIMEOUT = 20_000;
+const RENDER_TIMEOUT = 60_000;
 const clientFrames = new Map();
 
 class RendererFrame {

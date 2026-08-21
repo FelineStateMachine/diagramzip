@@ -13,11 +13,17 @@ async function check(name) {
     const frameUrl = CLIENT_RENDERERS[example.engine]
     const response = await fetch(frameUrl)
     const body = await response.text()
-    const scriptMatch = body.match(/<script[^>]+src="([^"]+)"/i)
-    const scriptUrl = scriptMatch && new URL(scriptMatch[1], frameUrl).href
-    const scriptResponse = scriptUrl && await fetch(scriptUrl)
-    const script = scriptResponse ? await scriptResponse.text() : ''
-    if (!response.ok || !scriptResponse?.ok || !script.includes('diagram.zip:renderer:v1')) {
+    const scriptUrls = [...body.matchAll(/<script[^>]+src="([^"]+)"/gi)]
+      .map((match) => new URL(match[1], frameUrl).href)
+    const scripts = await Promise.all(scriptUrls.map(async (scriptUrl) => {
+      const scriptResponse = await fetch(scriptUrl)
+      return {
+        ok: scriptResponse.ok,
+        body: await scriptResponse.text(),
+      }
+    }))
+    const hasProtocol = scripts.some((script) => script.ok && script.body.includes('diagram.zip:renderer:v1'))
+    if (!response.ok || !hasProtocol) {
       throw new Error(`${example.engine}: client frame unavailable (HTTP ${response.status})`)
     }
     return `${example.engine} client frame`

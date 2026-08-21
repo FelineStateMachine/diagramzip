@@ -1,5 +1,5 @@
 const CHANNEL = 'diagram.zip:renderer:v1'
-const RENDER_TIMEOUT = 20_000
+const RENDER_TIMEOUT = 60_000
 
 export const CLIENT_RENDERERS = Object.freeze({
   mermaid: Object.freeze({ frameUrl: 'https://mermaid.render.diagram.zip/index.html?v=1' }),
