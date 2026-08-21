@@ -49,6 +49,7 @@ dialog,
 .monaco-editor,
 .monaco-editor .view-lines,
 .source-editor-textarea,
+.document-title,
 .share-options input,
 .details-fields input,
 .details-fields textarea,
@@ -76,7 +77,7 @@ button { cursor: pointer; }
 
 .app-shell {
   display: grid;
-  grid-template-rows: 58px auto minmax(0, 1fr);
+  grid-template-rows: 64px auto minmax(0, 1fr);
   height: 100%;
 }
 
@@ -96,17 +97,44 @@ button { cursor: pointer; }
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   color: var(--ink);
-  font-weight: 780;
-  letter-spacing: -.025em;
   text-decoration: none;
 }
 
 .brand-mark {
-  width: 24px;
-  height: 24px;
+  width: 40px;
+  height: 40px;
   display: block;
+}
+
+.document-identity {
+  display: flex;
+  align-items: center;
+  flex: 1 1 320px;
+  gap: 12px;
+  min-width: 0;
+}
+
+.document-title {
+  width: min(38vw, 420px);
+  min-width: 90px;
+  padding: 4px 7px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 440;
+  letter-spacing: -.025em;
+  outline: none;
+  text-overflow: ellipsis;
+}
+
+.document-title:hover { border-color: var(--line); }
+.document-title:focus {
+  border-color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--ink);
 }
 
 .header-meta {
@@ -501,7 +529,7 @@ dialog::backdrop {
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 @media (max-width: 760px) {
-  .app-shell { grid-template-rows: 58px auto 42px minmax(0, 1fr); }
+  .app-shell { grid-template-rows: 64px auto 42px minmax(0, 1fr); }
   .render-status { display: none; }
   .render-status[data-state="error"] {
     position: fixed;
@@ -521,7 +549,9 @@ dialog::backdrop {
     white-space: normal;
   }
   .app-header { padding-left: 14px; }
-  .brand span:last-child { display: none; }
+  .brand-mark { width: 36px; height: 36px; }
+  .document-identity { flex-basis: 140px; gap: 8px; }
+  .document-title { width: 100%; font-size: 18px; }
   .header-meta { flex: 1; justify-content: flex-end; gap: 6px; }
   .draft-bar { align-items: stretch; flex-direction: column; gap: 7px; padding: 9px 14px; }
   .draft-bar div { display: grid; grid-template-columns: 1fr 1fr; }
@@ -568,6 +598,8 @@ dialog::backdrop {
   .header-meta { gap: 6px; }
   .type-picker { flex-basis: 108px; }
   .type-picker select { max-width: 108px; }
+  .document-identity { flex-basis: 76px; }
+  .document-title { min-width: 40px; padding-inline: 4px; font-size: 16px; }
   #details {
     width: 36px;
     padding-inline: 0;

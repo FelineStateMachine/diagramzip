@@ -4,6 +4,7 @@ import { createSourceEditor } from './source-editor.js'
 import { stateForTypeChange } from './type-drafts.js'
 import {
   DEFAULT_DIAGRAM_TYPE,
+  documentTitle,
   normalizeMetadata,
   normalizePresentation,
 } from './state.js'
@@ -58,7 +59,10 @@ const typeDrafts = new Map()
 document.querySelector('#app').innerHTML = `
   <main class="app-shell">
     <header class="app-header">
-      <a class="brand" href="/" aria-label="New diagram"><img class="brand-mark" src="/icon.svg?v=2" alt=""><span>diagram.zip</span></a>
+      <div class="document-identity">
+        <a class="brand" href="/" aria-label="New diagram" title="New diagram"><img class="brand-mark" src="/icon.svg?v=2" alt=""></a>
+        <input class="document-title" id="diagram-title" maxlength="200" placeholder="Untitled diagram" aria-label="Diagram title">
+      </div>
       <div class="header-meta">
         <span class="render-status" data-state="idle" role="status">Ready</span>
         <label class="type-picker">
@@ -120,10 +124,6 @@ document.querySelector('#app').innerHTML = `
         <button class="icon-button" value="cancel" aria-label="Close">×</button>
       </div>
       <div class="details-fields">
-        <label>
-          <span>Title</span>
-          <input id="diagram-title" maxlength="200" placeholder="Untitled diagram">
-        </label>
         <label>
           <span>Description</span>
           <textarea id="diagram-description" maxlength="2000" rows="4" placeholder="What does this diagram show?"></textarea>
@@ -265,7 +265,7 @@ typePicker.addEventListener('change', () => {
 
 document.querySelector('#details').addEventListener('click', () => {
   document.querySelector('#details-dialog').showModal()
-  titleInput.focus()
+  descriptionInput.focus()
 })
 for (const input of [titleInput, descriptionInput, backgroundInput, paddingInput, frameInput]) {
   input.addEventListener('input', () => {
@@ -994,7 +994,7 @@ function startNewDiagram() {
 function updateDocumentMetadata() {
   const title = titleInput.value.trim()
   const description = descriptionInput.value.trim()
-  document.title = title ? `${title} — diagram.zip` : 'diagram.zip'
+  document.title = documentTitle(title)
   document.querySelector('meta[name="description"]').content = description || 'Create diagrams from text and share them as a link.'
 }
 

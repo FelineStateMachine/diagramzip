@@ -15,6 +15,33 @@ type D2Response = { svg?: string; error?: string }
 let initPromise: Promise<void> | undefined
 let renderTail: Promise<void> = Promise.resolve()
 
+function styleDeclaration(style: string, name: string): string | null {
+  for (const declaration of style.split(';')) {
+    const separator = declaration.indexOf(':')
+    if (separator < 0 || declaration.slice(0, separator).trim().toLowerCase() !== name) continue
+    return declaration.slice(separator + 1).trim()
+  }
+  return null
+}
+
+export function imageCompatibleAnimations(svg: string): string {
+  return svg.replace(/<path\b(?=[^>]*\bclass="[^"]*\banimated-connection\b[^"]*")(?=[^>]*\bstyle="([^"]*)")[^>]*>/g, (tag, style: string) => {
+    const offset = styleDeclaration(style, 'stroke-dashoffset')
+    const animation = styleDeclaration(style, 'animation')
+    const duration = animation?.match(/^dashdraw\s+(\d+(?:\.\d+)?)s\s+linear\s+infinite$/)?.[1]
+    if (!offset || !/^-?\d+(?:\.\d+)?(?:px)?$/.test(offset) || !duration) return tag
+    const withoutCssAnimation = style
+      .split(';')
+      .filter(declaration => declaration.trim() && !/^\s*animation\s*:/i.test(declaration))
+      .join(';')
+    const normalizedTag = tag.replace(/\bstyle="[^"]*"/, `style="${withoutCssAnimation};"`)
+    const animate = `<animate attributeName="stroke-dashoffset" from="0" to="${offset}" dur="${duration}s" calcMode="linear" repeatCount="indefinite"></animate>`
+    return /\/\s*>$/.test(normalizedTag)
+      ? `${normalizedTag.replace(/\/\s*>$/, '>')}${animate}</path>`
+      : `${normalizedTag}${animate}`
+  })
+}
+
 async function init(): Promise<void> {
   if (initPromise) return initPromise
   initPromise = (async () => {
@@ -70,7 +97,7 @@ export const d2Adapter: RendererAdapter = {
       }
       if (result.error) throw new RenderError(422, 'render_failed', result.error.slice(0, 500))
       if (!result.svg || result.svg.trim() === '') throw new RenderError(422, 'empty_render', 'D2 returned no SVG.')
-      return edgeResult('d2', VERSION, result.svg, 'edge-wasm')
+      return edgeResult('d2', VERSION, imageCompatibleAnimations(result.svg), 'edge-wasm')
     })
   },
 }

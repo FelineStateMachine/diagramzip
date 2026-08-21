@@ -8,7 +8,7 @@ describe('diagram.zip shell', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toContain('text/html')
     expect(response.headers.get('cache-control')).toBe('no-cache')
-    expect(await response.text()).toContain('<title>diagram.zip</title>')
+    expect(await response.text()).toContain('<title>untitled.zip</title>')
   })
 
   it('serves the application for a valid alias', async () => {

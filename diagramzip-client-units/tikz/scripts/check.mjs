@@ -25,7 +25,7 @@ for (const path of (await files(assets.pathname)).sort()) {
 if (hash.digest('hex') !== expectedTree) throw new Error('TikZJax asset tree does not match the pinned 1.0.63 package.')
 
 const frame = await readFile(new URL('../src/frame.js', import.meta.url), 'utf8')
-for (const marker of ['diagram.zip:renderer:v1', 'MAX_SOURCE_LENGTH', 'MAX_OUTPUT_LENGTH', 'event.source !== parent', 'container.contains(event.target)']) {
+for (const marker of ['diagram.zip:renderer:v1', 'MAX_SOURCE_LENGTH', 'MAX_OUTPUT_LENGTH', 'event.source !== parent', 'container.contains(event.target)', 'data:font/woff2;base64', 'embedUsedFonts']) {
   if (!frame.includes(marker)) throw new Error(`TikZ client protocol is missing ${marker}.`)
 }
 

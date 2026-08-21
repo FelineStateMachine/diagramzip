@@ -4,9 +4,9 @@ const CAPABILITIES = Object.freeze({
   format: 'svg',
   runtime: 'client',
   version: '@planktimerr/tikzjax@1.0.63',
-  build: 'tikzjax-1.0.63-client-unit-3',
+  build: 'tikzjax-1.0.63-client-unit-4',
   pipeline: ['tikz'],
-  frame: '/index.html?v=1',
+  frame: '/index.html?v=2',
   knownLosses: [
     'The browser unit uses the bundled TeX/PGF package set, not the full TeX Live installation.',
     'Layout, fonts, and SVG details can differ from the native dvisvgm renderer.',

@@ -10,9 +10,9 @@ export function exampleVariant(index, context) {
       description: gray & 2 ? context.description : '',
     },
     presentation: {
-      background: gray & 4 ? '#f4f4f4' : '',
+      background: '',
       padding: gray & 8 ? 24 : 0,
-      frame: Boolean(gray & 16),
+      frame: false,
     },
   }
 }

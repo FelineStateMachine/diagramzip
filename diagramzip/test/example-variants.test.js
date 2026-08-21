@@ -9,12 +9,12 @@ test('changes one example axis at a time across the catalog', () => {
   }
 })
 
-test('maps the five Gray-code bits to metadata and presentation axes', () => {
+test('varies metadata and padding without applying an example canvas or frame', () => {
   const context = { title: 'Title', description: 'Description' }
   const variants = Array.from({ length: 30 }, (_, index) => exampleVariant(index, context))
   assert.ok(variants.some(variant => variant.meta.title))
   assert.ok(variants.some(variant => variant.meta.description))
-  assert.ok(variants.some(variant => variant.presentation.background))
   assert.ok(variants.some(variant => variant.presentation.padding))
-  assert.ok(variants.some(variant => variant.presentation.frame))
+  assert.ok(variants.every(variant => variant.presentation.background === ''))
+  assert.ok(variants.every(variant => variant.presentation.frame === false))
 })

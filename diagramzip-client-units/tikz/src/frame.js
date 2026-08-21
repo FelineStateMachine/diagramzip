@@ -1,7 +1,7 @@
 const CHANNEL = 'diagram.zip:renderer:v1'
 const ENGINE = 'tikz'
 const VERSION = '@planktimerr/tikzjax@1.0.63'
-const BUILD = 'tikzjax-1.0.63-client-unit-3'
+const BUILD = 'tikzjax-1.0.63-client-unit-4'
 const MAX_SOURCE_LENGTH = 262_144
 const MAX_OUTPUT_LENGTH = 4_194_304
 const RENDER_TIMEOUT = 60_000
@@ -27,7 +27,48 @@ function normalizedSource(source) {
   return { body: source.slice(begin + beginMatch[0].length, end), preamble }
 }
 
-function safeSvg(svg) {
+function fontFamilyNames(documentSvg) {
+  const names = new Set()
+  for (const element of documentSvg.querySelectorAll('[font-family], [style*="font-family"]')) {
+    const value = element.getAttribute('font-family') || element.style.fontFamily
+    for (const family of value.split(',')) {
+      const name = family.trim().replace(/^(['"])(.*)\1$/, '$2')
+      if (/^[a-z0-9_-]{1,64}$/i.test(name)) names.add(name)
+    }
+  }
+  return [...names]
+}
+
+function base64(bytes) {
+  let binary = ''
+  const chunkSize = 0x8000
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize))
+  }
+  return btoa(binary)
+}
+
+async function embedUsedFonts(documentSvg) {
+  const rules = []
+  for (const family of fontFamilyNames(documentSvg)) {
+    const response = await fetch(`/fonts/${encodeURIComponent(family)}.woff2`)
+    if (!response.ok) continue
+    const encoded = base64(new Uint8Array(await response.arrayBuffer()))
+    rules.push(`@font-face{font-family:"${family}";src:url("data:font/woff2;base64,${encoded}") format("woff2");font-display:block}`)
+  }
+  if (rules.length === 0) return
+  const namespace = 'http://www.w3.org/2000/svg'
+  let defs = documentSvg.querySelector(':scope > defs')
+  if (!defs) {
+    defs = document.createElementNS(namespace, 'defs')
+    documentSvg.prepend(defs)
+  }
+  const style = document.createElementNS(namespace, 'style')
+  style.textContent = rules.join('')
+  defs.prepend(style)
+}
+
+async function safeSvg(svg) {
   if (typeof svg === 'string') {
     const start = svg.indexOf('<svg')
     const end = svg.lastIndexOf('</svg>')
@@ -44,6 +85,7 @@ function safeSvg(svg) {
       if (/^(href|src|xlink:href)$/i.test(attribute.name) && !attribute.value.startsWith('#') && !attribute.value.startsWith('data:')) element.removeAttribute(attribute.name)
     }
   }
+  await embedUsedFonts(documentSvg)
   return new XMLSerializer().serializeToString(documentSvg)
 }
 
@@ -82,7 +124,7 @@ async function renderMessage(message, origin, sequence) {
   try {
     const svg = await finished
     if (sequence !== latest) return
-    const output = safeSvg(svg.outerHTML)
+    const output = await safeSvg(svg.outerHTML)
     if (output.length > MAX_OUTPUT_LENGTH) throw new Error('TikZ SVG output is too large.')
     reply(origin, { type: 'result', requestId: message.requestId, ok: true, svg: output, version: VERSION, build: BUILD, pipeline: [ENGINE] })
   } finally {

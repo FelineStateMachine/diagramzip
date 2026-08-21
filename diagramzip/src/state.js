@@ -62,6 +62,10 @@ export function normalizeMetadata(meta = {}) {
   return { title, description }
 }
 
+export function documentTitle(title) {
+  return `${title.trim() || 'untitled'}.zip`
+}
+
 export function normalizePresentation(presentation = {}) {
   if (typeof presentation !== 'object' || presentation === null || Array.isArray(presentation)) {
     throw new Error('Invalid diagram presentation.')
