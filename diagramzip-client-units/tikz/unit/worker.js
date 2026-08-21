@@ -4,7 +4,7 @@ const CAPABILITIES = Object.freeze({
   format: 'svg',
   runtime: 'client',
   version: '@planktimerr/tikzjax@1.0.63',
-  build: 'tikzjax-1.0.63-client-unit-2',
+  build: 'tikzjax-1.0.63-client-unit-3',
   pipeline: ['tikz'],
   frame: '/index.html?v=1',
   knownLosses: [

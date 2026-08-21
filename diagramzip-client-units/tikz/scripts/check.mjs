@@ -29,4 +29,7 @@ for (const marker of ['diagram.zip:renderer:v1', 'MAX_SOURCE_LENGTH', 'MAX_OUTPU
   if (!frame.includes(marker)) throw new Error(`TikZ client protocol is missing ${marker}.`)
 }
 
+const headers = await readFile(new URL('../unit/_headers', import.meta.url), 'utf8')
+if (!headers.includes('Access-Control-Allow-Origin: *')) throw new Error('TikZ assets must allow the unique-origin worker to fetch the bundled files.')
+
 console.log('TikZJax asset and protocol checks passed')
