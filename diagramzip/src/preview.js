@@ -96,10 +96,11 @@ export class PreviewController {
       if (clientAdapter) {
         const clientRender = await clientAdapter.render({ type, source, options }, abortController.signal)
         rendered = {
-          body: canonicalizeSvg(clientRender.body, meta, type, clientRender.version || clientRender.build || ''),
+          body: clientRender.body,
           identity: {
             unit: type,
             build: clientRender.build || clientRender.version,
+            version: clientRender.version || clientRender.build || '',
             pipeline: Array.isArray(clientRender.pipeline) ? clientRender.pipeline : [type],
           },
         }
@@ -109,14 +110,15 @@ export class PreviewController {
         rendered = await this.renderThroughUnit({ type, source, options, meta, presentation }, abortController.signal)
       }
       if (requestNumber !== this.requestNumber) return
-      const canonical = this.normalizedSvgBlob(rendered.body)
-      const appearances = supportedAppearances(rendered.body)
+      const canonicalSvg = canonicalizeSvg(rendered.body, meta, type, rendered.identity.version)
+      const canonical = this.normalizedSvgBlob(canonicalSvg)
+      const appearances = supportedAppearances(canonicalSvg)
       const requestedAppearance = presentation.appearance ?? 'raw'
       const appearance = appearances.includes(requestedAppearance) ? requestedAppearance : 'raw'
       this.onAppearances(appearances, appearance)
       const displayedSvg = appearance === 'raw'
-        ? materializePresentation(rendered.body, presentation)
-        : materializeSvg(rendered.body, appearance)
+        ? materializePresentation(canonicalSvg, presentation)
+        : materializeSvg(canonicalSvg, appearance)
       const displayed = this.normalizedSvgBlob(displayedSvg)
       this.latestRenderKey = renderKey
       this.latestSvgBlob = canonical.blob
@@ -178,11 +180,12 @@ export class PreviewController {
     const build = response.headers.get('X-Renderer-Build')
       ?? response.headers.get('X-Diagram-Engine-Version')
       ?? `${unit}-unknown`
+    const version = [response.headers.get('X-Diagram-Engine-Version'), build].filter(Boolean).join(' ')
     const pipeline = (response.headers.get('X-Diagram-Pipeline') ?? unit)
       .split(',')
       .map(value => value.trim().toLowerCase())
       .filter(Boolean)
-    return { body: await response.text(), identity: { unit, build, pipeline } }
+    return { body: await response.text(), identity: { unit, build, version, pipeline } }
   }
 
   retryBlockedImage() {

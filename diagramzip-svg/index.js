@@ -489,8 +489,13 @@ function element(name, attributes = [], children = []) {
 
 function addMetadata(root, metadata) {
   const additions = []
-  if (metadata.title) additions.push(element('title', [], [{ type: 'text', value: metadata.title }]))
-  if (metadata.description) additions.push(element('desc', [], [{ type: 'text', value: metadata.description }]))
+  const directText = name => root.children.some(child => child.type !== 'text'
+    && localName(child) === name
+    && child.children.length === 1
+    && child.children[0].type === 'text'
+    && child.children[0].value === (name === 'title' ? metadata.title : metadata.description))
+  if (metadata.title && !directText('title')) additions.push(element('title', [], [{ type: 'text', value: metadata.title }]))
+  if (metadata.description && !directText('desc')) additions.push(element('desc', [], [{ type: 'text', value: metadata.description }]))
   root.children.unshift(...additions)
 }
 

@@ -48,6 +48,13 @@ test('produces deterministic, idempotent raw canonical SVG', () => {
   assert.doesNotMatch(first, /data-theme=/)
 })
 
+test('does not duplicate root metadata when canonical output crosses another consumer', () => {
+  const once = canonicalizeSvg(source, { title: 'A', description: 'B' }, 'pikchr')
+  const twice = canonicalizeSvg(once, { title: 'A', description: 'B' }, 'pikchr')
+  assert.equal((twice.match(/<title>/g) ?? []).length, 1)
+  assert.equal((twice.match(/<desc>/g) ?? []).length, 1)
+})
+
 test('keeps legacy editor presentation outside the canonical render', () => {
   const canonical = canonicalizeSvg(source, metadata, 'pikchr')
   const displayed = materializePresentation(canonical, { background: '#ffffff', padding: 8, frame: true })
