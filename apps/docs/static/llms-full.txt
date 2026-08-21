@@ -47,6 +47,8 @@ Saved read and edit links remain alias-based and do not depend on this query.
 
 The left pane has **Source** and **Details** tabs. Source contains the selected diagram language. Details contains validated JSON for metadata and presentation.
 
+Edit the title directly in the top bar for a faster naming workflow. The value stays synchronized with `title` in Details.
+
 The diagnostics dock below the editors reports Details validation. Invalid Details JSON keeps the last valid preview and blocks actions that require valid state.
 
 The preview updates as you edit. A source syntax error can stop rendering and appears in a short-lived toast at the lower right.

@@ -67,6 +67,16 @@ export function serializeDetailsDocument(state) {
   return `${JSON.stringify(detailsDocumentFor(state), null, 2)}\n`
 }
 
+export function detailsStateWithTitle(state, title) {
+  if (typeof title !== 'string' || title.length > 200) {
+    throw new Error('title must be a string with at most 200 characters.')
+  }
+  return {
+    meta: normalizeMetadata({ ...state.meta, title }),
+    presentation: normalizePresentation(state.presentation),
+  }
+}
+
 export function parseDetailsDocument(source) {
   let value
   try {

@@ -155,7 +155,10 @@ button { cursor: pointer; }
   display: block;
   width: min(38vw, 420px);
   min-width: 90px;
-  padding: 4px 7px;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
   color: var(--ink);
   font-size: 22px;
   font-weight: 440;
@@ -164,6 +167,16 @@ button { cursor: pointer; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.document-title:hover { border-color: var(--line); }
+
+.document-title:focus {
+  border-color: var(--muted);
+  background: var(--page);
+  outline: 0;
+}
+
+.document-title::placeholder { color: var(--muted); opacity: 1; }
 
 .header-meta {
   display: flex;
@@ -268,10 +281,15 @@ button { cursor: pointer; }
 .save-split {
   display: flex;
   align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
 }
 
 .save-split #save {
-  border-radius: 10px 0 0 10px;
+  border: 0;
+  border-radius: 0;
 }
 
 .save-menu-toggle {
@@ -280,8 +298,9 @@ button { cursor: pointer; }
   height: 40px;
   min-height: 40px;
   padding: 0;
-  border-left: 0;
-  border-radius: 0 10px 10px 0;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
   font-size: 14px;
   line-height: 1;
 }
@@ -332,12 +351,19 @@ button { cursor: pointer; }
 .header-icon-action:hover { background: var(--soft); }
 .header-icon-action:disabled { cursor: default; opacity: .58; }
 
-#save[data-dirty="true"] {
+.save-split:has(#save[data-dirty="true"]) {
   border-color: var(--unsaved);
   box-shadow: inset 0 0 0 1px var(--unsaved);
 }
 
 #save[data-dirty="true"]:disabled { opacity: .72; }
+
+.save-split:has(:focus-visible) {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 2px;
+}
+
+.save-split :focus-visible { outline: 0; }
 
 .header-action-icon {
   width: 20px;

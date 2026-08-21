@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   detailsDocumentFor,
+  detailsStateWithTitle,
   parseDetailsDocument,
   serializeDetailsDocument,
 } from '../src/details-document.js'
@@ -41,4 +42,12 @@ test('communicates metadata and presentation restrictions', () => {
     ...detailsDocumentFor(state),
     presentation: { ...state.presentation, padding: 257 },
   })), /invalid appearance/)
+})
+
+test('updates the title without changing other details', () => {
+  assert.deepEqual(detailsStateWithTitle(state, 'Renamed'), {
+    meta: { title: 'Renamed', description: state.meta.description },
+    presentation: state.presentation,
+  })
+  assert.throws(() => detailsStateWithTitle(state, 'x'.repeat(201)), /at most 200/)
 })

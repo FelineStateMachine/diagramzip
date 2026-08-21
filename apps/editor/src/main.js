@@ -3,6 +3,7 @@ import { exampleStateFor } from './examples.js'
 import { refreshMatchingExampleMetadata } from './example-variants.js'
 import {
   DETAILS_MODEL_URI,
+  detailsStateWithTitle,
   parseDetailsDocument,
   serializeDetailsDocument,
 } from './details-document.js'
@@ -60,7 +61,7 @@ document.querySelector('#app').innerHTML = `
     <header class="app-header">
       <div class="document-identity">
         <a class="brand" href="/" aria-label="New diagram" title="New diagram"><img class="brand-mark" src="/icon.svg?v=4" alt=""></a>
-        <span class="document-title" id="diagram-title">Untitled</span>
+        <input class="document-title" id="diagram-title" type="text" maxlength="200" placeholder="Untitled" aria-label="Diagram title" autocomplete="off" spellcheck="false">
       </div>
       <div class="header-meta">
         <span class="render-status" data-state="idle" role="status">Ready</span>
@@ -289,7 +290,7 @@ document.querySelector('#app').innerHTML = `
 `
 
 const typePicker = document.querySelector('#diagram-type')
-const titleLabel = document.querySelector('#diagram-title')
+const titleInput = document.querySelector('#diagram-title')
 const previewRawButton = document.querySelector('#preview-raw')
 const previewTransparentButton = document.querySelector('#preview-transparent')
 const previewThemeButton = document.querySelector('#preview-theme-toggle')
@@ -374,6 +375,10 @@ document.querySelector('#save').addEventListener('click', performPrimarySaveActi
 document.querySelector('#restore-saved').addEventListener('click', restoreSavedDiagram)
 document.querySelector('#make-copy').addEventListener('click', makeDraftCopy)
 document.querySelector('#share').addEventListener('click', openShareDialog)
+titleInput.addEventListener('focus', beginTitleEdit)
+titleInput.addEventListener('input', updateTitleFromHeader)
+titleInput.addEventListener('blur', finishTitleEdit)
+titleInput.addEventListener('keydown', handleTitleKeydown)
 document.querySelectorAll('[data-primary-save]').forEach(button => {
   button.addEventListener('click', () => {
     primarySaveAction = button.dataset.primarySave
@@ -630,6 +635,42 @@ function scheduleDetailsUpdate() {
     if (detailsValid) commitState()
     else commitState(false)
   }, 220)
+}
+
+let titleEditBaseline = ''
+
+function beginTitleEdit() {
+  if (!detailsValid) {
+    titleInput.blur()
+    ensureValidDetails()
+    return
+  }
+  titleEditBaseline = detailsState.meta.title
+}
+
+function updateTitleFromHeader() {
+  if (!detailsValid) return
+  clearTimeout(detailsCommitTimer)
+  setDetailsState(detailsStateWithTitle(detailsState, titleInput.value))
+  detailsCommitTimer = setTimeout(commitState, 220)
+}
+
+function finishTitleEdit() {
+  if (!detailsValid || titleInput.value === titleEditBaseline) return
+  clearTimeout(detailsCommitTimer)
+  commitState()
+}
+
+function handleTitleKeydown(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    titleInput.blur()
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    clearTimeout(detailsCommitTimer)
+    setDetailsState(detailsStateWithTitle(detailsState, titleEditBaseline))
+    titleInput.blur()
+  }
 }
 
 function validateDetailsDocument(showError = false) {
@@ -1567,7 +1608,7 @@ function emptyRemoteState(overrides = {}) {
 function updateDocumentMetadata() {
   const title = detailsState.meta.title.trim()
   const description = detailsState.meta.description.trim()
-  titleLabel.textContent = title || 'Untitled'
+  if (titleInput.value !== detailsState.meta.title) titleInput.value = detailsState.meta.title
   document.title = documentTitle(title)
   document.querySelector('meta[name="description"]').content = description || 'Create diagrams from text and share them as a link.'
 }
