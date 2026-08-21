@@ -25,7 +25,7 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
   bytefield: 'edge-js',
   dbml: 'edge-wasm',
   diagramsnet: 'client',
-  ditaa: 'origin',
+  ditaa: 'edge-wasm',
   erd: 'edge-wasm',
   excalidraw: 'client',
   goat: 'edge-wasm',
@@ -33,7 +33,7 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
   pikchr: 'edge-wasm',
   structurizr: 'edge-js',
   svgbob: 'edge-wasm',
-  symbolator: 'origin',
+  symbolator: 'edge-python',
   tikz: 'origin',
   umlet: 'client',
   vega: 'edge-js',
@@ -67,6 +67,10 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
   goat: 'edge-wasm',
   erd: 'edge-wasm',
   wireviz: 'edge-python',
+  structurizr: 'edge-js',
+  d2: 'edge-wasm',
+  ditaa: 'edge-wasm',
+  symbolator: 'edge-python',
 }
 
 const versions: Partial<Record<EngineId, string>> = {
@@ -94,6 +98,10 @@ const versions: Partial<Record<EngineId, string>> = {
   goat: 'goat@0.5.1/edge-wasm-1',
   erd: 'erd@0.2.1.0+graphviz@15.1.1/edge-wasm-1',
   wireviz: 'wireviz@0.3.2/python-translator-1',
+  structurizr: 'structurizr@6.2.2+plantuml@1.2026.6/translation-1',
+  d2: 'd2@0.7.1/custom-grid-1',
+  ditaa: 'ditaa-ascii+svgbob@0.7.6/edge-wasm-1',
+  symbolator: 'symbolator@1.2.2/python-translation-1',
 }
 
 const losses: Partial<Record<EngineId, readonly string[]>> = {
@@ -146,7 +154,11 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'Font subsetting is disabled by the sandbox policy, so exports embed the complete self-hosted font.',
   ],
   nomnoml: ['Only SVG is in the v2 rendering contract.'],
-  symbolator: ['External links are removed during SVG sanitization.'],
+  symbolator: [
+    'Only SVG is supported.',
+    'Native Cairo/Pango font shaping is replaced by deterministic browser-font estimates, so layout and typography differ from Symbolator 1.2.2.',
+    'Filesystem library scanning and persisted array-type caches are unavailable; each request contains one bounded HDL source.',
+  ],
   vega: ['URL-backed data and images are rejected; data must be embedded as values.', 'Only SVG is in the v2 rendering contract.'],
   vegalite: ['URL-backed data and images are rejected; data must be embedded as values.', 'Only SVG is in the v2 rendering contract.'],
   wavedrom: ['Only the six bundled Kroki skins are accepted.', 'Only SVG is in the v2 rendering contract.'],
@@ -166,6 +178,23 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'tweak.append and tweak.override are rejected.',
     'The upstream source reports WireViz 0.3.2; the Dockerfile release label is 0.3.3.',
     'The translated graph uses GraphViz 15.1.1 versus the compatibility image GraphViz 14.1.3; output differences are possible.',
+  ],
+  structurizr: [
+    'Only SVG is supported.',
+    'Structurizr scripts, docs, plugins, filesystem access, and arbitrary remote themes are rejected.',
+    'The bounded lowering preserves supported views, relationships, structural styles, and legends, but layout and typography may differ from native Structurizr export.',
+  ],
+  d2: [
+    'Only SVG is supported.',
+    'The edge build uses official D2 v0.7.1 parser/compiler/SVG renderer with a deterministic grid layout and straight-line routing; Dagre and ELK layouts are unavailable.',
+    'D2 syntax, labels, shapes, containers, steps/scenarios, and CSS edge animation are retained, but layout quality differs substantially from Dagre/ELK.',
+    'The supported animation-interval option is bounded to 1–60000 milliseconds; animated edges and multi-board SVG output remain supported.',
+  ],
+  ditaa: [
+    'Only SVG is supported.',
+    'Ditaa ASCII geometry, labels, and connectors are translated through the shared Svgbob 0.7.6 Worker dependency.',
+    'Ditaa shape and color directives are removed; specialized shapes and per-shape colors are not retained.',
+    'Shadows, rounded corners, anti-aliasing, and edge separation flags are accepted for compatibility but have no effect in the Svgbob pipeline.',
   ],
 }
 

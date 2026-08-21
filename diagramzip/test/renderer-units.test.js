@@ -25,7 +25,8 @@ test('requires every migrated engine to stay on its dedicated runtime', () => {
     'plantuml', 'c4plantuml',
     'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
     'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
-    'graphviz', 'erd', 'dbml', 'pikchr', 'svgbob', 'wireviz',
+    'graphviz', 'erd', 'dbml', 'pikchr', 'svgbob', 'ditaa', 'wireviz',
+    'structurizr', 'symbolator',
   ]) {
     assert.equal(requiresDedicatedRenderer(engine), true)
   }

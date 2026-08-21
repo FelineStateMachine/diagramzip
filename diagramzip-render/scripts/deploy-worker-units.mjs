@@ -10,11 +10,9 @@ const configs = [
   'wrangler.units/pikchr.jsonc',
   'wrangler.units/svgbob.jsonc',
   'wrangler.units/goat.jsonc',
+  'wrangler.units/structurizr.jsonc',
   'wrangler.plantuml-family.jsonc',
-  'wrangler.compatibility/d2.jsonc',
-  'wrangler.compatibility/ditaa.jsonc',
-  'wrangler.compatibility/structurizr.jsonc',
-  'wrangler.compatibility/symbolator.jsonc',
+  'wrangler.units/d2.jsonc',
   'wrangler.compatibility/tikz.jsonc',
   'wrangler.compatibility/umlet.jsonc',
 ]

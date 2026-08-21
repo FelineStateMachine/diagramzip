@@ -2,8 +2,7 @@ import { spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 
 const units = [
-  'd2', 'ditaa',
-  'structurizr', 'symbolator', 'tikz', 'umlet',
+  'tikz', 'umlet',
 ]
 const wrangler = resolve(import.meta.dirname, '../node_modules/.bin/wrangler')
 const pending = [...units]

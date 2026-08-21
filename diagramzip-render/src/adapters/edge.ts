@@ -1,6 +1,7 @@
 import type { EngineId, RendererAdapter } from '../types'
 import { bytefieldAdapter } from './edge/bytefield'
 import { dbmlAdapter } from './edge/dbml'
+import { ditaaAdapter } from './edge/ditaa'
 import { erdAdapter } from './edge/erd'
 import { graphvizAdapter } from './edge/graphviz'
 import { goatAdapter } from './edge/goat'
@@ -14,6 +15,7 @@ import type { EdgeEngineId } from './edge/types'
 const adapters: Record<EdgeEngineId, RendererAdapter> = {
   bytefield: bytefieldAdapter,
   dbml: dbmlAdapter,
+  ditaa: ditaaAdapter,
   erd: erdAdapter,
   graphviz: graphvizAdapter,
   goat: goatAdapter,

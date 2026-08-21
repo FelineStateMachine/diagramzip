@@ -47,10 +47,31 @@ describe('engine catalog', () => {
     expect(svgbob.version).toContain('svgbob@0.7.6')
   })
 
+  it('groups the Ditaa translation with the shared Svgbob edge-Wasm dependency', () => {
+    const ditaa = ENGINE_CATALOG.find(engine => engine.id === 'ditaa')!
+    expect(ditaa.activeRuntime).toBe('edge-wasm')
+    expect(ditaa.version).toContain('svgbob@0.7.6')
+    expect(ditaa.fallback).toBeNull()
+  })
+
   it('marks GoAT as a dedicated edge-Wasm unit', () => {
     const goat = ENGINE_CATALOG.find(engine => engine.id === 'goat')!
     expect(goat.activeRuntime).toBe('edge-wasm')
     expect(goat.version).toContain('goat@0.5.1')
+  })
+
+  it('marks D2 as a dedicated edge-Wasm unit', () => {
+    const d2 = ENGINE_CATALOG.find(engine => engine.id === 'd2')!
+    expect(d2.activeRuntime).toBe('edge-wasm')
+    expect(d2.version).toContain('d2@0.7.1/custom-grid')
+    expect(d2.fallback).toBeNull()
+  })
+
+  it('marks Symbolator as a dedicated Python translation unit', () => {
+    const symbolator = ENGINE_CATALOG.find(engine => engine.id === 'symbolator')!
+    expect(symbolator.activeRuntime).toBe('edge-python')
+    expect(symbolator.version).toContain('symbolator@1.2.2/python-translation')
+    expect(symbolator.fallback).toBeNull()
   })
 
   it('marks PlantUML and lowered C4 as one edge-Wasm family', () => {

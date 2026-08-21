@@ -47,15 +47,21 @@ const sharedUnits = {
   vega: 'vega-family',
   vegalite: 'vega-family',
   wireviz: 'wireviz',
+  structurizr: 'structurizr',
+  svgbob: 'svgbob-family',
+  ditaa: 'svgbob-family',
 }
 
 const pythonEngines = new Set(['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag'])
 const graphvizEngines = new Set(['graphviz', 'erd', 'dbml'])
 const pikchrEngines = new Set(['pikchr'])
-const svgbobEngines = new Set(['svgbob'])
+const svgbobEngines = new Set(['svgbob', 'ditaa'])
 const goatEngines = new Set(['goat'])
 const wirevizEngines = new Set(['wireviz'])
 const plantumlEngines = new Set(['plantuml', 'c4plantuml'])
+const structurizrEngines = new Set(['structurizr'])
+const d2Engines = new Set(['d2'])
+const symbolatorEngines = new Set(['symbolator'])
 
 async function smokeClientUnit(engine) {
   const base = `https://${engine}.render.diagram.zip`
@@ -105,6 +111,10 @@ async function smoke([engine, filename]) {
           ? `${expectedUnit},dbml,graphviz`
         : engine === 'wireviz'
           ? `${expectedUnit},graphviz-family,graphviz`
+        : engine === 'structurizr'
+          ? `${expectedUnit},plantuml-family,plantuml`
+        : engine === 'ditaa'
+          ? `${expectedUnit},svgbob`
         : expectedUnit
   if (pipeline !== expectedPipeline) {
     throw new Error(`${engine}: unexpected pipeline ${pipeline}`)
@@ -137,7 +147,7 @@ async function smoke([engine, filename]) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-wasm') {
       throw new Error(`${engine}: expected edge-wasm renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
     }
-    if (!response.headers.get('X-Renderer-Build')?.startsWith('svgbob-0.7.6-edge-wasm-')) {
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('svgbob-0.7.6-ditaa-translation-')) {
       throw new Error(`${engine}: unexpected Svgbob Worker build ${response.headers.get('X-Renderer-Build')}`)
     }
   }
@@ -160,6 +170,18 @@ async function smoke([engine, filename]) {
     if (!response.headers.get('X-Renderer-Build')?.startsWith('plantuml-family-edge-wasm-')) {
       throw new Error(`${engine}: unexpected PlantUML-family Worker build ${response.headers.get('X-Renderer-Build')}`)
     }
+  }
+  if (structurizrEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-js') throw new Error(`${engine}: expected edge-js renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('structurizr-6.2.2-plantuml-translation-')) throw new Error(`${engine}: unexpected Structurizr Worker build ${response.headers.get('X-Renderer-Build')}`)
+  }
+  if (d2Engines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-wasm') throw new Error(`${engine}: expected edge-wasm renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('d2-0.7.1-custom-grid-')) throw new Error(`${engine}: unexpected D2 Worker build ${response.headers.get('X-Renderer-Build')}`)
+  }
+  if (symbolatorEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-python') throw new Error(`${engine}: expected edge-python renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('symbolator-python-')) throw new Error(`${engine}: unexpected Symbolator Worker build ${response.headers.get('X-Renderer-Build')}`)
   }
   return `${engine.padEnd(10)} ${response.headers.get('X-Diagram-Cache')?.padEnd(4)} ${body.length} bytes`
 }

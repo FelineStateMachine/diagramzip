@@ -32,7 +32,7 @@ export const NO_GATEWAY_FALLBACK_ENGINES = Object.freeze([
   'plantuml', 'c4plantuml',
   'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
   'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
-  'graphviz', 'erd', 'dbml', 'goat', 'pikchr', 'svgbob', 'wireviz',
+  'graphviz', 'erd', 'dbml', 'goat', 'pikchr', 'svgbob', 'ditaa', 'wireviz', 'structurizr', 'symbolator',
 ])
 
 export function requiresDedicatedRenderer(engine) {

@@ -1,9 +1,9 @@
 import { RenderError } from '../../errors'
-import type { RenderResult } from '../../types'
+import type { EngineId, RenderResult } from '../../types'
 
-export type EdgeEngineId = 'bytefield' | 'dbml' | 'erd' | 'goat' | 'graphviz' | 'nomnoml' | 'svgbob' | 'vega' | 'vegalite' | 'wavedrom'
+export type EdgeEngineId = 'bytefield' | 'dbml' | 'ditaa' | 'erd' | 'goat' | 'graphviz' | 'nomnoml' | 'svgbob' | 'vega' | 'vegalite' | 'wavedrom'
 
-export function edgeResult(id: EdgeEngineId, version: string, body: string, runtime: 'edge-js' | 'edge-wasm' = 'edge-js'): RenderResult {
+export function edgeResult(id: EngineId, version: string, body: string, runtime: 'edge-js' | 'edge-wasm' = 'edge-js'): RenderResult {
   if (typeof body !== 'string' || body.trim() === '') {
     throw new RenderError(422, 'empty_render', `The ${id} renderer returned no SVG.`)
   }

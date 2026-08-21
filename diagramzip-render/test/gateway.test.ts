@@ -6,7 +6,7 @@ const migrated = [
   'plantuml', 'c4plantuml',
   'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
   'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
-  'graphviz', 'erd', 'dbml', 'pikchr', 'svgbob', 'wireviz',
+  'graphviz', 'erd', 'dbml', 'pikchr', 'svgbob', 'ditaa', 'wireviz', 'structurizr', 'symbolator',
 ] as const
 const env = {
   ORIGIN_URL: 'https://diagram-zip.fly.dev',

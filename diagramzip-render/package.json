@@ -9,6 +9,7 @@
   "scripts": {
     "cf-typegen": "wrangler types",
     "build:dbml": "node scripts/build-dbml.mjs",
+    "build:d2-wasm": "node scripts/build-d2-wasm.mjs",
     "check": "tsc --noEmit",
     "deploy:dry": "wrangler deploy --dry-run",
     "deploy:compatibility-units": "node scripts/deploy-compatibility-units.mjs",

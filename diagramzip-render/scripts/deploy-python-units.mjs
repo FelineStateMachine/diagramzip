@@ -3,6 +3,7 @@ import { basename, resolve } from 'node:path'
 
 const units = [
   resolve(import.meta.dirname, '../../diagramzip-python-units/blockdiag-family'),
+  resolve(import.meta.dirname, '../../diagramzip-python-units/symbolator'),
   resolve(import.meta.dirname, '../../diagramzip-python-units/wireviz-translator'),
 ]
 
