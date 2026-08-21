@@ -1,10 +1,6 @@
-import { basicSetup } from 'codemirror'
-import { Compartment, EditorState } from '@codemirror/state'
-import { EditorView } from '@codemirror/view'
-import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
-import { tags } from '@lezer/highlight'
-import { diagramTypeFromQuery, diagramTypes, isKnownDiagramType, languageFor, urlWithDiagramType } from './diagram-types.js'
+import { diagramTypeFromQuery, diagramTypes, isKnownDiagramType, urlWithDiagramType } from './diagram-types.js'
 import { exampleStateFor } from './examples.js'
+import { createSourceEditor } from './source-editor.js'
 import { stateForTypeChange } from './type-drafts.js'
 import {
   DEFAULT_DIAGRAM_TYPE,
@@ -35,10 +31,8 @@ const LOCAL_DRAFT_KEY = 'diagram.zip:draft:local:v2'
 const ALIAS_DRAFT_PREFIX = 'diagram.zip:draft:alias:v1:'
 const WRITE_CAPABILITY_PREFIX = 'diagram.zip:write:v1:'
 // TODO: Reintroduce dark mode once every renderer has a native or renderer-specific dark theme.
-const language = new Compartment()
 const persistence = new PersistenceClient()
 let renderTimer
-let applyingExternalState = false
 let activeType
 let saving = false
 let initialLoadError = ''
@@ -246,37 +240,12 @@ updateDocumentMetadata()
 activeType = initialState.type
 typeDrafts.set(initialState.type, initialState)
 
-const syntaxColors = HighlightStyle.define([
-  { tag: tags.keyword, color: 'var(--syntax-keyword)', fontWeight: '650' },
-  { tag: tags.string, color: 'var(--syntax-string)' },
-  { tag: [tags.comment, tags.lineComment, tags.blockComment], color: 'var(--syntax-comment)', fontStyle: 'italic' },
-  { tag: [tags.number, tags.bool], color: 'var(--syntax-number)' },
-  { tag: [tags.operator, tags.punctuation], color: 'var(--syntax-operator)' },
-  { tag: [tags.variableName, tags.typeName], color: 'var(--syntax-variable)' },
-])
-
-const editor = new EditorView({
-  state: EditorState.create({
-    doc: initialState.source,
-    extensions: [
-      basicSetup,
-      language.of(languageFor(initialState.type)),
-      syntaxHighlighting(syntaxColors),
-      EditorView.theme({
-        '&': { height: '100%', backgroundColor: 'transparent' },
-        '.cm-scroller': { fontFamily: 'var(--font-mono)', lineHeight: '1.65' },
-        '.cm-content': { padding: '28px 10px 80px' },
-        '.cm-gutters': { backgroundColor: 'transparent', border: '0', paddingLeft: '12px' },
-        '.cm-activeLine, .cm-activeLineGutter': { backgroundColor: 'var(--editor-active-line)' },
-        '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--ink)' },
-        '&.cm-focused': { outline: 'none' },
-      }),
-      EditorView.updateListener.of(update => {
-        if (update.docChanged && !applyingExternalState) scheduleUpdate()
-      }),
-    ],
-  }),
-  parent: document.querySelector('#editor'),
+const sourceEditor = await createSourceEditor({
+  element: document.querySelector('#editor'),
+  source: initialState.source,
+  diagramType: initialState.type,
+  onChange: scheduleUpdate,
+  onSave: saveDiagram,
 })
 
 const preview = new PreviewController({
@@ -340,6 +309,7 @@ document.querySelectorAll('.mobile-tabs button').forEach(button => {
       tab.setAttribute('aria-selected', String(tab === button))
     })
     if (button.dataset.panel === 'preview') preview.fit()
+    if (button.dataset.panel === 'editor') sourceEditor.layout()
   })
 })
 
@@ -355,6 +325,7 @@ document.querySelectorAll('[data-copy]').forEach(button => {
 window.addEventListener('popstate', () => location.reload())
 
 window.addEventListener('keydown', event => {
+  if (event.defaultPrevented) return
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
     event.preventDefault()
     saveDiagram()
@@ -365,7 +336,7 @@ function currentState() {
   const padding = Math.min(256, Math.max(0, Number.parseInt(paddingInput.value, 10) || 0))
   return {
     type: typePicker.value,
-    source: editor.state.doc.toString(),
+    source: sourceEditor.getValue(),
     options: {},
     meta: normalizeMetadata({ title: titleInput.value, description: descriptionInput.value }),
     presentation: normalizePresentation({
@@ -440,7 +411,6 @@ function applyState(state, commit = true) {
   if (!isKnownDiagramType(state.type)) throw new Error('Unsupported diagram type.')
   const meta = normalizeMetadata(state.meta)
   const presentation = normalizePresentation(state.presentation)
-  applyingExternalState = true
   activeType = state.type
   typeDrafts.set(state.type, { ...state, meta, presentation })
   typePicker.value = state.type
@@ -450,11 +420,7 @@ function applyState(state, commit = true) {
   paddingInput.value = String(presentation.padding)
   frameInput.checked = presentation.frame
   updateDocumentMetadata()
-  editor.dispatch({
-    changes: { from: 0, to: editor.state.doc.length, insert: state.source },
-    effects: language.reconfigure(languageFor(state.type)),
-  })
-  applyingExternalState = false
+  sourceEditor.setDocument({ source: state.source, diagramType: state.type })
   if (commit) commitState()
   else preview.render(currentState())
 }

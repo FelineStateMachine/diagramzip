@@ -10,7 +10,8 @@
   --action-bg: #000000;
   --action-ink: #ffffff;
   --danger: #333333;
-  --editor-active-line: rgba(0, 0, 0, .045);
+  --editor-active-line: #0000000b;
+  --editor-selection: #00000038;
   --syntax-keyword: #111111;
   --syntax-string: #333333;
   --syntax-comment: #858585;
@@ -45,7 +46,9 @@ dialog,
   -webkit-user-select: none;
 }
 
-.cm-content,
+.monaco-editor,
+.monaco-editor .view-lines,
+.source-editor-textarea,
 .share-options input,
 .details-fields input,
 .details-fields textarea,
@@ -215,11 +218,30 @@ button { cursor: pointer; }
   background: var(--surface);
 }
 
-#editor { height: 100%; }
+#editor { position: relative; height: 100%; }
 
-.cm-editor { color: var(--ink); font-size: 14px; }
-.cm-gutter { color: var(--muted); }
-.cm-selectionBackground { background: color-mix(in srgb, var(--ink), transparent 78%) !important; }
+.monaco-editor { font-size: 14px; }
+
+.source-editor-textarea {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 28px 20px 80px;
+  overflow: auto;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font: 14px/1.65 var(--font-mono);
+  tab-size: 4;
+  white-space: pre;
+}
+
+.source-editor-textarea:focus-visible {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink), transparent 72%);
+}
 
 .preview-panel { background: var(--preview-bg); }
 
