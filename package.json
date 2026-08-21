@@ -1,12 +1,16 @@
 {
-  "name": "kroki-ci",
-  "version": "1.0.0",
-  "description": "Utility scripts for continuous integration",
+  "name": "diagramzip",
+  "version": "0.1.0",
+  "description": "Browser-first diagram editing, persistence, documentation, and rendering workspace",
   "type": "module",
   "engines": {
     "node": ">=24"
   },
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FelineStateMachine/diagramzip.git"
+  },
   "scripts": {
     "build:diagramzip": "vite build --config diagramzip/vite.config.js",
     "generate:diagramzip-docs": "npm --prefix diagramzip-docs run generate",

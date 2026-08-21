@@ -1,7 +1,7 @@
 {
-  "name": "@kroki/browser-instance",
+  "name": "@diagramzip/browser-instance",
   "version": "1.0.0",
-  "description": "Shared Chrome instance manager for the Kroki companion services.",
+  "description": "Shared Chrome instance manager for the retained DiagramZip companion services.",
   "main": "index.js",
   "type": "module",
   "keywords": [],
@@ -9,6 +9,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yuzutech/kroki.git"
+    "url": "https://github.com/FelineStateMachine/diagramzip.git"
   }
 }

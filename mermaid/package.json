@@ -1,5 +1,5 @@
 {
-  "name": "@kroki/mermaid-server",
+  "name": "@diagramzip/mermaid-server",
   "version": "1.0.0",
   "description": "A micro server built on top of the Mermaid diagram library.",
   "main": "src/index.js",
@@ -16,10 +16,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yuzutech/kroki.git"
+    "url": "https://github.com/FelineStateMachine/diagramzip.git"
   },
   "dependencies": {
-    "@kroki/browser-instance": "file:../lib/browser-instance",
+    "@diagramzip/browser-instance": "file:../lib/browser-instance",
     "micro": "10.0.1",
     "pino": "9.14.0",
     "pino-debug": "2.0.0",

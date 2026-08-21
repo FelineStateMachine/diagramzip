@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer'
-import { createBrowserInstance } from '@kroki/browser-instance'
+import { createBrowserInstance } from '@diagramzip/browser-instance'
 
 import { logger } from './logger.js'
 

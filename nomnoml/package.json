@@ -1,5 +1,5 @@
 {
-  "name": "@kroki/nomnoml",
+  "name": "@diagramzip/nomnoml",
   "version": "1.0.0",
   "description": "A CLI built on top of the Nomnoml diagram library.",
   "bin": "index.js",
@@ -14,7 +14,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yuzutech/kroki.git"
+    "url": "https://github.com/FelineStateMachine/diagramzip.git"
   },
   "keywords": [],
   "author": "Guillaume Grossetie",
