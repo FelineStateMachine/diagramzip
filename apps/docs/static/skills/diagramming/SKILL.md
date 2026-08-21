@@ -34,6 +34,16 @@ Do not infer standards support from a similarly named renderer mode. Confirm the
 
 Keep renderer notation in Source. Use Details only for the title, description, and presentation settings. Follow the [presentation guide](https://docs.diagram.zip/style/presentation/) for the current JSON shape.
 
+When a user provides an enriched SVG, treat it as a candidate source artifact.
+Validate and reopen it before choosing a renderer or rewriting its source.
+Preserve the embedded type, source, options, presentation, title, and
+description when the contract supports them. Reject ordinary, ambiguous,
+unsupported, or lossy SVG rather than reconstructing source from visible shapes.
+
+Anonymous drafts default to local work. Recommend **Save as File** for a
+portable editable SVG. Recommend **Publish** or **Encrypt & Publish** only when
+the user wants server persistence or a share alias.
+
 ## Prior art and standards
 
 Use the [OMG UML specification](https://www.omg.org/spec/UML), [OMG BPMN specification](https://www.omg.org/spec/BPMN/2.0.2/), [C4 notation](https://c4model.com/diagrams/notation), and other authoritative references linked by the selected semantic skill when formal conformance matters. Treat these as guidance for meaning and notation, not as permission to invent unsupported renderer features.

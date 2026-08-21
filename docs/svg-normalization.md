@@ -176,6 +176,27 @@ an element, while `data-dz-stroke` controls its boundary or connector. This
 keeps arrowheads, unfilled nodes, and line geometry from inheriting the wrong
 property during materialization.
 
+## Editable SVG document contract
+
+An editable file materializes the requested appearance, then adds a separate
+versioned Diagram.zip document without changing the visible SVG geometry. The
+root carries `data-dz-document="1"`, and exactly one direct `<metadata>` child
+with `data-dz-kind="document"` and `data-dz-schema="1"` contains canonical
+JSON. That JSON preserves the diagram type, source, options, presentation,
+title, and description.
+
+This contract deliberately uses SVG 2 `data-*` attributes for element and root
+bindings. Application data that does not belong to one element lives in
+`<metadata>`. It does not depend on a foreign XML namespace whose behavior
+would differ when the same SVG is parsed as inline HTML.
+
+Serialization is deterministic. Keys are sorted, and no timestamp or random
+value is added. The same canonical render and normalized state produce the same
+bytes. Import requires the supported marker, exactly one supported document, a
+known diagram type, complete state, and a bounded 5 MiB input.
+Ordinary, ambiguous, unsupported, or lossy SVG is rejected rather than reverse
+engineered from its visible shapes.
+
 ## Current profile coverage
 
 The shared sanitizer, canonical serializer, and appearance materializer apply

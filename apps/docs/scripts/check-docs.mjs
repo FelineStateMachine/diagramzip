@@ -122,7 +122,7 @@ const llmsFull = await source(join(site, 'static', 'llms-full.txt'))
 assert(llms.includes('https://docs.diagram.zip/create/'), 'llms.txt does not link the editor workspace guide.')
 assert(llms.includes('https://docs.diagram.zip/style/presentation/'), 'llms.txt does not link the Details presentation guide.')
 assert(llmsFull.includes('# General presentation settings'), 'llms-full.txt does not include the presentation guide.')
-assert(llmsFull.includes('# Working state and saved state'), 'llms-full.txt does not include the working-state guide.')
+assert(llmsFull.includes('# Working state and published state'), 'llms-full.txt does not include the working-state guide.')
 
 const expectedSkillIds = [...diagramSkillIds].sort()
 const skillEntries = await readdir(skills, { withFileTypes: true })

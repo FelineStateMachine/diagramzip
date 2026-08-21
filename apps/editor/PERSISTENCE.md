@@ -6,7 +6,9 @@ coverage. Production deployment uses the repository release workflow.
 
 ## Product contract
 
-diagram.zip does not require accounts. Possession is the access model:
+diagram.zip does not require accounts. Drafts remain local until the user
+chooses Publish or Encrypt & Publish. Save as File exports an editable enriched
+SVG without creating an alias. Possession is the access model for aliases:
 
 | Diagram | Read | Write |
 | --- | --- | --- |
@@ -16,6 +18,12 @@ diagram.zip does not require accounts. Possession is the access model:
 There are no owners, users, sessions, ACLs, or recovery flows. Losing a write
 capability means losing the ability to update that alias. Losing a password
 means losing the ability to decrypt a locked diagram.
+
+Editable SVG files remain visible images and carry a versioned Diagram.zip
+document in metadata and `data-*` attributes. The importer accepts local files,
+drag and drop, pasted SVG, and HTTP(S) or data URLs. It rejects ordinary,
+ambiguous, unsupported, or lossy SVG instead of guessing, and limits input to
+5 MiB. File exports are plaintext and are not encrypted backups.
 
 Read links are short and stable:
 
@@ -79,8 +87,8 @@ render-heads/locked/{render_id}.{svg|png}.json
 Each small render-head manifest records the owning unit, exact build, explicit
 translation pipeline, and immutable object key. R2 object existence is the
 render-cache source of truth; there is no D1 row per render. Draft previews
-remain transient and use the current renderer. Only an
-explicit alias create or save writes immutable content.
+remain transient and use the current renderer. Only an explicit Publish or
+Encrypt & Publish action writes immutable content and advances an alias.
 
 The schema is executable in
 `services/api/migrations/0001_aliases.sql`. Open content contains `type`,
@@ -148,7 +156,7 @@ Orphans can be collected later with a grace period.
 
 ### Durable renders
 
-After a successful save, the browser stores one canonical safe SVG and, where
+After a successful publish, the browser stores one canonical safe SVG and, where
 the browser can rasterize it, a PNG:
 
 ```http
@@ -180,26 +188,29 @@ The API materializes the requested appearance from the canonical R2 object. It
 does not store a second SVG. The appearance has its own ETag. Locked renders
 cannot use this server-side path because the API cannot decrypt their SVG.
 
-The saved presentation records the selected appearance. The editor places the
-same appearance on stable SVG and Markdown links. `raw` uses the renderer canvas
-controls. A shared appearance ignores those legacy controls and materializes its
-own palette and, for framed appearances, its own canvas.
+The published presentation records the selected appearance. The editor places
+the same appearance on stable SVG and Markdown links. `raw` uses the renderer
+canvas controls. A shared appearance ignores those legacy controls and
+materializes its own palette and, for framed appearances, its own canvas.
 
 ## Editor and share UX
 
 Open drafts continue to autosave locally and render after the existing debounce.
 They do not write to D1 or R2. Locked drafts are deliberately not written to
-local storage as plaintext; they persist only when the user explicitly saves.
+local storage as plaintext; they persist only when the user explicitly
+publishes.
 
 The left pane separates diagram Source from schema-validated Details JSON.
 Details owns title, description, and presentation values. Invalid Details text
-remains recoverable while save, share, privacy, and type changes stay blocked.
+remains recoverable while file export, publishing, sharing, privacy, and type
+changes stay blocked.
 
-- New draft: **Save** creates an alias and changes the browser to its read URL.
-- Writable alias: **Save** updates with the last revision.
+- New draft: **Save as File** downloads an editable SVG and creates no alias.
+- New draft: **Publish** creates an alias and changes the browser to its read URL.
+- Writable alias: **Publish** updates with the last revision.
 - Anonymous example: the reset icon discards its local draft after confirmation.
-- Read-only alias: edits form a local fork; **Save a copy** creates a new alias.
-- Conflict: offer **Reload saved** or **Save as new**. Never overwrite silently.
+- Read-only alias: edits form a local fork; **Publish a Copy** creates a new alias.
+- Conflict: offer **Reload published** or **Publish as new**. Never overwrite silently.
 - Share, open: copy read link, copy edit link, SVG link, or Markdown.
 - Share, locked: copy password-required read link or password-and-capability edit
   link. SVG and Markdown embeds are visibly disabled with the explanation that

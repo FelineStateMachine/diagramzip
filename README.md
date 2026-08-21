@@ -1,6 +1,6 @@
 # diagram.zip
 
-[diagram.zip](https://diagram.zip) is a browser-first diagram editor with live SVG previews, local drafts, and encrypted, accountless sharing. The repository contains the editor, documentation, persistence API, renderer catalog, and the isolated renderer units behind the service.
+[diagram.zip](https://diagram.zip) is a browser-first diagram editor with live SVG previews, local drafts, editable SVG files, and encrypted, accountless sharing. The repository contains the editor, documentation, persistence API, renderer catalog, and the isolated renderer units behind the service.
 
 ## What is here
 
@@ -64,7 +64,11 @@ are not the production release procedure.
 
 The editor runs at `diagram.zip`. Rendering is split into isolated units selected by hostname at `{engine}.render.diagram.zip`; the renderer catalog documents the contract and capabilities for all supported engines. Five renderers run in sandboxed browser frames, while the remaining renderers run in JavaScript, Python, or WebAssembly Workers.
 
-Saved diagrams use encrypted client-side content, mutable aliases in D1, and immutable content-addressed objects in R2. See [`apps/editor/PERSISTENCE.md`](apps/editor/PERSISTENCE.md) for the persistence and security contract.
+Server persistence is opt-in. **Publish** creates an open alias, while
+**Encrypt & Publish** creates an encrypted alias. Anonymous drafts can use
+**Save as File** to download an editable enriched SVG without server state.
+See [`apps/editor/PERSISTENCE.md`](apps/editor/PERSISTENCE.md) for the
+persistence and security contract.
 
 ## Project history and licensing
 

@@ -16,7 +16,22 @@ Start with a diagram type. Each type page shows the source format, a small examp
 4. Replace the example labels and connections.
 5. Edit metadata or presentation in the **Details** tab when needed.
 6. Check the preview.
-7. Save the diagram when you want a stable link.
+7. Choose **Save as File** for a portable editable SVG, or **Publish** for a stable server alias.
+
+## Open an existing diagram
+
+You can reopen an editable SVG from a local file, including a file selected on
+mobile, or by dragging it into the editor. You can also paste SVG text into the
+open flow. The editor accepts an HTTP(S) or data URL when the response is an
+SVG document.
+
+An editable SVG remains a useful visible image. It also contains a versioned
+Diagram.zip document in SVG metadata and `data-*` attributes. The document
+restores the source, type, options, presentation, title, and description.
+
+The editor validates the embedded document before creating a draft. Ordinary
+SVG, ambiguous SVG, unsupported SVG, and lossy SVG are rejected instead of
+being guessed or silently converted. Imported input is limited to 5 MiB.
 
 ## Choose a type
 
@@ -46,10 +61,20 @@ Read [General presentation settings](/style/presentation/) for the Details docum
 
 Open diagrams keep unsaved changes in local browser storage. An edited example shows a reset icon that restores its bundled source and details.
 
-Saved links use a separate device-only overlay for local changes. Read [Working state and saved state](/collaboration/working-and-saved-state/) before restoring or copying that overlay.
+Anonymous drafts default to local work. **Save as File** downloads an editable
+SVG without creating a server alias. The downloaded file can be reopened on
+another device through the same import flow.
 
-## Save or share
+Published links use a separate device-only overlay for local changes. Read
+[Working state and published state](/collaboration/working-and-saved-state/)
+before restoring or copying that overlay.
 
-Use **Save** to create a saved revision. Use a read link when people only need to view the diagram.
+## Save, publish, or share
 
-Use an edit link when people must save changes. Read [Share a diagram](/collaboration/sharing/) before you send an edit link.
+Use **Publish** to create or update a server alias. Use **Encrypt & Publish**
+when the server copy requires password protection. Both actions opt into server
+persistence.
+
+Use an edit link when people must save changes. The Share menu also provides
+**Copy SVG URL** and **Copy as Markdown** for image embeds. Read [Share a
+diagram](/collaboration/sharing/) before you send an edit link.

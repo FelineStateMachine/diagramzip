@@ -18,7 +18,22 @@ Start with a diagram type. Each type page shows the source format, a small examp
 4. Replace the example labels and connections.
 5. Edit metadata or presentation in the **Details** tab when needed.
 6. Check the preview.
-7. Save the diagram when you want a stable link.
+7. Choose **Save as File** for a portable editable SVG, or **Publish** for a stable server alias.
+
+## Open an existing diagram
+
+You can reopen an editable SVG from a local file, including a file selected on
+mobile, or by dragging it into the editor. You can also paste SVG text into the
+open flow. The editor accepts an HTTP(S) or data URL when the response is an
+SVG document.
+
+An editable SVG remains a useful visible image. It also contains a versioned
+Diagram.zip document in SVG metadata and `data-*` attributes. The document
+restores the source, type, options, presentation, title, and description.
+
+The editor validates the embedded document before creating a draft. Ordinary
+SVG, ambiguous SVG, unsupported SVG, and lossy SVG are rejected instead of
+being guessed or silently converted. Imported input is limited to 5 MiB.
 
 ## Choose a type
 
@@ -48,13 +63,23 @@ Read [General presentation settings](/style/presentation/) for the Details docum
 
 Open diagrams keep unsaved changes in local browser storage. An edited example shows a reset icon that restores its bundled source and details.
 
-Saved links use a separate device-only overlay for local changes. Read [Working state and saved state](/collaboration/working-and-saved-state/) before restoring or copying that overlay.
+Anonymous drafts default to local work. **Save as File** downloads an editable
+SVG without creating a server alias. The downloaded file can be reopened on
+another device through the same import flow.
 
-## Save or share
+Published links use a separate device-only overlay for local changes. Read
+[Working state and published state](/collaboration/working-and-saved-state/)
+before restoring or copying that overlay.
 
-Use **Save** to create a saved revision. Use a read link when people only need to view the diagram.
+## Save, publish, or share
 
-Use an edit link when people must save changes. Read [Share a diagram](/collaboration/sharing/) before you send an edit link.
+Use **Publish** to create or update a server alias. Use **Encrypt & Publish**
+when the server copy requires password protection. Both actions opt into server
+persistence.
+
+Use an edit link when people must save changes. The Share menu also provides
+**Copy SVG URL** and **Copy as Markdown** for image embeds. Read [Share a
+diagram](/collaboration/sharing/) before you send an edit link.
 
 ---
 
@@ -165,6 +190,26 @@ renderer SVG
 ```
 
 The renderer owns source interpretation and layout. Later stages preserve diagram geometry while adding safety, semantic paint roles, and optional presentation bounds.
+
+## Editable SVG contract
+
+An editable export is still a normal visible SVG. It embeds a versioned
+Diagram.zip document in `<metadata>` and uses `data-*` attributes for compact
+per-element and root bindings. The document records the source type, source,
+renderer options, presentation, title, and description.
+
+The metadata contract is versioned independently from rendering contracts. An
+importer must validate the schema, required fields, size limit, and deterministic
+reconstruction before it creates a draft. The current input limit is 5 MiB.
+
+The importer accepts a validated enriched SVG from a local file, drag and drop,
+pasted SVG text, or an HTTP(S) or data URL. It rejects ordinary SVG, ambiguous
+metadata, unsupported schema versions, and any input that would lose source or
+presentation information. It does not infer a source language from visible
+shapes.
+
+**Save as File** exports the enriched SVG without server persistence. **Publish**
+and **Encrypt & Publish** persist aliases separately from the file export.
 
 ## Artifact stages
 
@@ -320,14 +365,24 @@ sidebar_position: 1
 
 # Share a diagram
 
-Save a diagram before you share it. A saved diagram has a stable read link.
+Publishing is optional. Anonymous drafts remain local until you choose
+**Publish** or **Encrypt & Publish**. A published diagram has a stable alias.
 
-The Share dialog contains link controls and privacy controls. Lock, password
-change, and password removal actions stay beside the content they affect.
+The Share menu contains these actions:
+
+- **Publish** creates or updates an open server alias.
+- **Encrypt & Publish** creates or updates a password-protected server alias.
+- **Save as File** downloads an editable enriched SVG without server persistence.
+- **Copy SVG URL** copies an image URL for an open published alias.
+- **Copy as Markdown** copies a Markdown image using that SVG URL.
+
+Lock, password change, and password removal actions stay beside the content
+they affect. Save as File is available for a local draft and does not require
+an account or network persistence.
 
 ## Read links
 
-A read link lets a person open the saved diagram. The link has this form:
+A read link lets a person open the published diagram. The link has this form:
 
 ```text
 https://diagram.zip/d/{alias}
@@ -336,14 +391,17 @@ https://diagram.zip/d/{alias}
 Anyone who has an open read link can view the diagram. Anyone who has an open
 read link can also use the SVG or Markdown embed link.
 
-A read link does not let a person save changes to the saved diagram.
+A read link does not let a person update the published diagram.
+
+An editable SVG file is separate from a read link. It remains useful as an SVG
+image, while its versioned Diagram.zip document supports a later import.
 
 For a locked diagram, the person must also enter the password. The password is
 not part of the read link.
 
 ## Edit links
 
-An edit link gives permission to save changes to the alias. It has this form:
+An edit link gives permission to publish changes to the alias. It has this form:
 
 ```text
 https://diagram.zip/d/{alias}#w={write-capability}
@@ -353,7 +411,7 @@ The edit capability is a bearer credential. Anyone who has the complete edit
 link can update the diagram. Share it only with people who should have write
 access.
 
-The browser reads the capability from the URL fragment. The browser then saves
+The browser reads the capability from the URL fragment. The browser then stores
 it for that alias and removes it from the address bar. A copied page URL is
 therefore normally a read link. Copy the edit link from the Share dialog when
 you need to share write access.
@@ -371,39 +429,50 @@ locked diagram, you cannot decrypt it.
 ## Read-only edits and forks
 
 You can edit a diagram after opening a read link. These edits stay local until
-you save them.
+you publish them.
 
 If this browser already has unsaved changes for the link, a local-changes bar
-offers **Restore saved** and **Make a copy**. Restore returns to the shared
+offers **Restore published** and **Make a copy**. Restore returns to the shared
 revision. Make a copy forks the local state to a new alias, even when this
 browser also holds write access to the original.
 
-The Save button becomes **Save copy** because you do not have write access to
-the original alias. Save the copy to create a new alias and a new edit link.
-The original diagram does not change.
+The Publish button becomes **Publish a Copy** because you do not have write
+access to the original alias. Publish the copy to create a new alias and a new
+edit link. The original diagram does not change.
 
-## Save conflicts
+## Publish conflicts
 
-Each saved alias has a revision. The editor checks the revision when it saves.
+Each published alias has a revision. The editor checks the revision when it
+publishes.
 
-If another person saved a newer revision first, diagram.zip reports a save
-conflict. Choose one of these actions:
+If another person published a newer revision first, diagram.zip reports a
+publish conflict. Choose one of these actions:
 
-- **Reload saved** discards your local edits and opens the newer saved version.
-- **Save as new** keeps your edits and creates a separate alias.
+- **Reload published** discards local edits and opens the newer published version.
+- **Publish as new** keeps your edits and creates a separate alias.
 
-The editor does not overwrite a newer saved revision without your choice.
+The editor does not overwrite a newer published revision without your choice.
 
 ## Embeds
 
 The Share dialog provides an SVG image link and a Markdown image link for an
-open saved diagram. These links point to the saved render.
+open published diagram. These links point to the published render.
 
 Locked diagrams cannot be embedded. An embed request cannot ask for a password,
 so the server does not return encrypted diagram renders as public images.
 
-Save the diagram again before you share if the Share dialog says that the links
-show an older saved version.
+Publish the diagram again before you share if the Share dialog says that the
+links show an older published version.
+
+## Importing an editable SVG
+
+Open an editable SVG from a file picker, drag and drop it, paste SVG text, or
+provide an HTTP(S) or data URL. This flow creates a local draft first. It does
+not publish the draft automatically.
+
+The importer accepts only a valid, versioned Diagram.zip document. It rejects
+ordinary SVG, ambiguous metadata, unsupported schema versions, and inputs that
+would lose source or presentation information. Input is limited to 5 MiB.
 
 ---
 
@@ -419,6 +488,11 @@ sidebar_position: 2
 Use a password when a diagram must not be readable by people who only have its
 read link.
 
+Choose **Encrypt & Publish** to opt into encrypted server persistence. Choose
+**Save as File** when the draft should remain local. An editable SVG export is
+plain text so it can remain a useful image, and it must not be treated as an
+encrypted backup.
+
 ## What is encrypted
 
 When you lock a diagram, the browser encrypts these items before it sends them
@@ -428,7 +502,7 @@ to diagram.zip:
 - diagram type and renderer options;
 - presentation settings;
 - title and description;
-- saved SVG and PNG renders.
+- published SVG and PNG renders.
 
 The browser decrypts the diagram after you enter the password. The renderer
 can receive the source while it creates a preview. Persistent storage receives
@@ -444,7 +518,7 @@ does not receive either value.
 
 The password also protects read access. A person with only the read link sees a
 password prompt. A person with an edit link still needs the password before
-they can read or save the diagram.
+they can read or publish the diagram.
 
 ## Password changes
 
@@ -456,7 +530,7 @@ Enter the current password before you change or remove password protection.
 ## Password loss
 
 There is no password reset or account recovery. If you lose the password, you
-cannot decrypt the source, metadata, or saved renders. Keep a secure copy of
+cannot decrypt the source, metadata, or published renders. Keep a secure copy of
 the password when the diagram is important.
 
 ## Locked drafts
@@ -464,9 +538,9 @@ the password when the diagram is important.
 The editor keeps an open draft in the browser so you can recover recent work.
 It does not write a locked draft to browser storage as plaintext.
 
-For a locked diagram, keep the page open and save the diagram explicitly. A
-locked draft is persisted only after a successful save. If the page closes
-before that save, the browser may not be able to restore the draft.
+For a locked diagram, keep the page open and publish the diagram explicitly. A
+locked draft is persisted only after a successful publish. If the page closes
+before that publish, the browser may not be able to restore the draft.
 
 ## Embeds
 
@@ -474,19 +548,23 @@ Locked diagrams cannot use public SVG or Markdown embeds. An embed has no safe
 way to ask for the password. Open the diagram in diagram.zip to enter the
 password and view it.
 
+An editable SVG imported from a file, pasted text, or a URL creates a local
+draft after validation. The importer rejects ordinary, ambiguous, unsupported,
+or lossy SVG and limits input to 5 MiB.
+
 ---
 
 ---
 id: working-and-saved-state
-title: Working state and saved state
-description: Understand editor drafts, saved revisions, and persistent diagram data.
+title: Working state and published state
+description: Understand editor drafts, published revisions, and persistent diagram data.
 sidebar_position: 3
 ---
 
-# Working state and saved state
+# Working state and published state
 
-The editor has a working state and a saved state. They can be different until
-you save.
+The editor has a working state and a published state. They can be different
+until you publish.
 
 ## Working state
 
@@ -497,42 +575,53 @@ Source and Details use separate editor tabs. Details is a JSON document that
 contains the title, description, and presentation settings.
 
 Invalid Details JSON remains in the local draft. The editor keeps the last
-valid preview and blocks save, share, privacy, and type changes until it is valid.
+valid preview and blocks file export, publishing, sharing, privacy, and type
+changes until it is valid.
 
-When you edit a saved diagram, the working state changes first. The saved
-diagram does not change until you choose **Save**.
+When you edit a published diagram, the working state changes first. The
+published diagram does not change until you choose **Publish**.
 
 For an open diagram, diagram.zip stores the working state as a local browser
-draft. This draft supports recovery on the same browser. It is not a saved
+draft. This draft supports recovery on the same browser. It is not a published
 diagram and other people cannot read it.
+
+Anonymous drafts default to local work. **Save as File** exports the working
+state as an editable enriched SVG. The file remains useful as a visible SVG
+image and contains a versioned Diagram.zip document for later import.
+
+Importing an editable SVG creates a local draft. The input can come from a
+file, drag and drop, pasted SVG text, or an HTTP(S) or data URL. The importer
+rejects ordinary, ambiguous, unsupported, or lossy SVG instead of guessing.
+Imported input has a 5 MiB limit.
 
 An edited anonymous example shows a reset icon. Reset removes its local draft
 and restores the bundled example after confirmation.
 
-When a saved link opens with a different local draft, the editor marks that
-draft as a device-only overlay. Choose **Restore saved** to discard the overlay
-and return to the alias revision, or **Make a copy** to preserve it under a new
-alias. Neither action silently changes the original share link.
+When a published link opens with a different local draft, the editor marks
+that draft as a device-only overlay. Choose **Restore published** to discard
+the overlay and return to the alias revision, or **Make a copy** to preserve it
+under a new alias. Neither action silently changes the original share link.
 
 For a locked diagram, the editor does not store the working state as plaintext
-in browser storage. Save a locked diagram explicitly to persist it.
+in browser storage. Publish a locked diagram explicitly to persist it.
 
-Zoom and pan are preview session state, not saved diagram state. Appearance
+Zoom and pan are preview session state, not published diagram state. Appearance
 changes and Edit or Preview tab switches preserve the current view position.
 
-## Saved state
+## Published state
 
-The saved state is the last version that you saved successfully. It has an
-alias, a revision, and a stable read link.
+The published state is the last version that you published successfully. It
+has an alias, a revision, and a stable read link.
 
-The Share dialog uses the saved state. If the working state has changes, the
-dialog tells you to save before you share. This prevents you from sharing an
-older version by mistake.
+The Share dialog uses the published state. If the working state has changes,
+the dialog tells you to publish before you share. This prevents you from
+sharing an older version by mistake.
 
 ## Persistent data
 
-After a successful save, diagram.zip persists the diagram content and its
-metadata. It can also persist SVG and PNG renders for that saved revision.
+After a successful Publish or Encrypt & Publish, diagram.zip persists the
+diagram content and its metadata. It can also persist SVG and PNG renders for
+that published revision.
 
 Open content is stored as readable diagram data. Locked content and locked
 renders are stored as encrypted data. See [Password encryption](/collaboration/encryption/)
@@ -541,28 +630,28 @@ for the locked diagram rules.
 The persisted data belongs to the alias and its current revision. A local draft
 does not replace the persisted data.
 
-## Save flow
+## Publish flow
 
 The normal flow is:
 
 1. Edit the working state.
-2. Choose **Save**.
+2. Choose **Publish** or **Encrypt & Publish**.
 3. diagram.zip stores a new revision.
-4. The saved state becomes the working state.
+4. The published state becomes the working state.
 
-Saving a new diagram creates an alias and an edit capability. Saving an open
-diagram with an edit capability updates its alias. Saving a read-only diagram
-creates a new alias instead.
+Publishing a new diagram creates an alias and an edit capability. Publishing
+an open diagram with an edit capability updates its alias. Publishing a
+read-only diagram creates a new alias instead.
 
 ## Conflicts
 
-The editor saves against the revision that it last loaded. If that revision is
-no longer current, another person saved the alias first.
+The editor publishes against the revision that it last loaded. If that revision
+is no longer current, another person published the alias first.
 
-The editor then offers **Reload saved** or **Save as new**. Reload replaces the
-working state with the current saved state. Save as new preserves the working
-state in a new alias. diagram.zip does not silently overwrite the other
-person's saved version.
+The editor then offers **Reload published** or **Publish as new**. Reload
+replaces the working state with the current published state. Publish as new
+preserves the working state in a new alias. diagram.zip does not silently
+overwrite the other person's published version.
 
 ---
 

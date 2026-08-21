@@ -19,6 +19,26 @@ renderer SVG
 
 The renderer owns source interpretation and layout. Later stages preserve diagram geometry while adding safety, semantic paint roles, and optional presentation bounds.
 
+## Editable SVG contract
+
+An editable export is still a normal visible SVG. It embeds a versioned
+Diagram.zip document in `<metadata>` and uses `data-*` attributes for compact
+per-element and root bindings. The document records the source type, source,
+renderer options, presentation, title, and description.
+
+The metadata contract is versioned independently from rendering contracts. An
+importer must validate the schema, required fields, size limit, and deterministic
+reconstruction before it creates a draft. The current input limit is 5 MiB.
+
+The importer accepts a validated enriched SVG from a local file, drag and drop,
+pasted SVG text, or an HTTP(S) or data URL. It rejects ordinary SVG, ambiguous
+metadata, unsupported schema versions, and any input that would lose source or
+presentation information. It does not infer a source language from visible
+shapes.
+
+**Save as File** exports the enriched SVG without server persistence. **Publish**
+and **Encrypt & Publish** persist aliases separately from the file export.
+
 ## Artifact stages
 
 | Stage | Contract |

@@ -19,6 +19,13 @@ Use this model-invokable skill after a diagram is drafted, when a user asks whet
 6. Check renderer fidelity and export. Name unsupported standard constructs, layout controls, or interchange data rather than silently approximating them.
 7. Return prioritized fixes: blocking semantic errors, reader-confusing issues, then polish. Include a concise corrected story or source fragment when useful.
 
+For an enriched SVG, also check source provenance, metadata schema, and
+deterministic round-trip behavior. Confirm that the visible SVG remains useful
+as an image and that the embedded document restores the same type, source,
+options, presentation, title, and description. Reject ordinary, ambiguous,
+unsupported, or lossy SVG instead of treating its shapes as authoritative
+source. Check the 5 MiB import limit and warn that file exports are plaintext.
+
 ## Styling and customization
 
 Prefer styles that reinforce meaning: consistent shape roles, restrained color, explicit boundaries, and labels that survive grayscale or color-vision differences. Keep bespoke styling local and documented. Do not let a theme override a formal symbol's meaning or make decorative elements look like data.

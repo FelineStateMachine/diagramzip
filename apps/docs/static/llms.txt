@@ -98,11 +98,12 @@
 ## General pages
 
 - [Editor workspace](https://docs.diagram.zip/create/)
+- [Editable SVG files and local drafts](https://docs.diagram.zip/create/): Reopen validated enriched SVG files without publishing.
 - [Details JSON and presentation](https://docs.diagram.zip/style/presentation/)
 - [SVG normalization and version contracts](https://docs.diagram.zip/style/svg-normalization/)
 - [Share a diagram](https://docs.diagram.zip/collaboration/sharing/)
 - [Password encryption](https://docs.diagram.zip/collaboration/encryption/)
-- [Working state and saved state](https://docs.diagram.zip/collaboration/working-and-saved-state/)
+- [Working state and published state](https://docs.diagram.zip/collaboration/working-and-saved-state/)
 
 ## Structured catalogs
 
