@@ -7,7 +7,7 @@ describe('diagram.zip shell', () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toContain('text/html')
-    expect(response.headers.get('cache-control')).toBe('no-cache')
+    expect(response.headers.get('cache-control')).toBe('no-cache, no-transform')
     expect(await response.text()).toContain('<title>untitled.zip</title>')
   })
 

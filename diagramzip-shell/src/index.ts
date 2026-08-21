@@ -19,7 +19,7 @@ async function applicationShell(request: Request, assets: Fetcher): Promise<Resp
   })
   const response = await assets.fetch(assetRequest)
   const headers = new Headers(response.headers)
-  headers.set('cache-control', 'no-cache')
+  headers.set('cache-control', 'no-cache, no-transform')
   return new Response(request.method === 'HEAD' ? null : response.body, {
     status: response.status,
     statusText: response.statusText,
