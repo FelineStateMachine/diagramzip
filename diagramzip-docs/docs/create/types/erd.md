@@ -38,7 +38,7 @@ name
 *id
 +user_id
 
-User 1--* Diagram
+[User] 1--* [Diagram]
 ```
 
 The rendered view uses a complete project example for this diagram type.
