@@ -10,7 +10,7 @@ sidebar_label: C4 PlantUML
 
 C4 PlantUML supports layout macros, tags, legends, and PlantUML style controls.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 

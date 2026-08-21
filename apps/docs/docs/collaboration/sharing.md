@@ -9,6 +9,9 @@ sidebar_position: 1
 
 Save a diagram before you share it. A saved diagram has a stable read link.
 
+The Share dialog contains link controls and privacy controls. Lock, password
+change, and password removal actions stay beside the content they affect.
+
 ## Read links
 
 A read link lets a person open the saved diagram. The link has this form:
@@ -41,6 +44,9 @@ The browser reads the capability from the URL fragment. The browser then saves
 it for that alias and removes it from the address bar. A copied page URL is
 therefore normally a read link. Copy the edit link from the Share dialog when
 you need to share write access.
+
+Copy actions report success or failure in a short-lived toast above the dialog
+backdrop.
 
 For a locked diagram, an edit link does not replace the password. The person
 needs both the edit capability and the password.

@@ -24,7 +24,15 @@ The same system can be shown as a flow, interaction, boundary, dependency, data 
 
 ## Renderer routing
 
-Common choices include Mermaid for compact general diagrams, PlantUML for UML-oriented notation, C4 PlantUML for C4 views, Graphviz or D2 for graph structure, BPMN for formal process exchange, DBML for relational schemas, and PacketDiag/Bytefield for protocol fields. The complete supported set and syntax links are in the generated `llms.txt` and `apps/docs/data/diagram-types.mjs`. Do not claim a standard is supported merely because a renderer has a similarly named mode: confirm the renderer's actual output and interchange fidelity.
+Common choices include Mermaid for compact general diagrams, PlantUML for UML-oriented notation, C4 PlantUML for C4 views, and Graphviz or D2 for graph structure. BPMN supports formal process exchange, DBML supports relational schemas, and PacketDiag or Bytefield supports protocol fields.
+
+The complete renderer set and syntax links are in [llms.txt](https://docs.diagram.zip/llms.txt) and [diagram-types.json](https://docs.diagram.zip/diagram-types.json). Semantic routing metadata is in [diagram-skills.json](https://docs.diagram.zip/diagram-skills.json).
+
+Do not infer standards support from a similarly named renderer mode. Confirm the renderer's output and interchange fidelity.
+
+## diagram.zip delivery
+
+Keep renderer notation in Source. Use Details only for the title, description, and presentation settings. Follow the [presentation guide](https://docs.diagram.zip/style/presentation/) for the current JSON shape.
 
 ## Prior art and standards
 

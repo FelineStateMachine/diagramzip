@@ -10,7 +10,7 @@ sidebar_label: WaveDrom
 
 WaveDrom supports source configuration, signal attributes, and a limited set of bundled skins.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 

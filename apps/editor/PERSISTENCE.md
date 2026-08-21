@@ -1,9 +1,8 @@
 # diagram.zip persistence
 
-Status: implemented locally end to end. The editor, Worker API, D1/R2 model,
-browser encryption, stable render URLs, and conflict/fork/share flows are covered
-by automated tests. Remote Cloudflare resources have not been provisioned or
-deployed.
+Status: implemented end to end. The editor, Worker API, D1/R2 model, browser
+encryption, stable render URLs, and conflict/fork/share flows have automated
+coverage. Production deployment uses the repository release workflow.
 
 ## Product contract
 
@@ -192,10 +191,15 @@ Open drafts continue to autosave locally and render after the existing debounce.
 They do not write to D1 or R2. Locked drafts are deliberately not written to
 local storage as plaintext; they persist only when the user explicitly saves.
 
+The left pane separates diagram Source from schema-validated Details JSON.
+Details owns title, description, and presentation values. Invalid Details text
+remains recoverable while save, share, privacy, and type changes stay blocked.
+
 - New draft: **Save** creates an alias and changes the browser to its read URL.
 - Writable alias: **Save** updates with the last revision.
-- Read-only alias: edits form a local fork; **Save as new** creates a new alias.
-- Conflict: offer **Reload remote** or **Save as new**. Never overwrite silently.
+- Anonymous example: the reset icon discards its local draft after confirmation.
+- Read-only alias: edits form a local fork; **Save a copy** creates a new alias.
+- Conflict: offer **Reload saved** or **Save as new**. Never overwrite silently.
 - Share, open: copy read link, copy edit link, SVG link, or Markdown.
 - Share, locked: copy password-required read link or password-and-capability edit
   link. SVG and Markdown embeds are visibly disabled with the explanation that

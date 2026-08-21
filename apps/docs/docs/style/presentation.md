@@ -1,25 +1,42 @@
 ---
 id: presentation
 title: General presentation settings
-description: Choose a shared appearance or keep the renderer canvas, padding, and frame.
+description: Edit diagram metadata and choose a shared or renderer-defined presentation.
 sidebar_position: 1
 ---
 
 # General presentation settings
 
-Open **Details**, then use **Appearance** to choose how diagram.zip presents the SVG.
+Open the **Details** tab in the left pane. It contains a validated JSON document for metadata and presentation.
+
+```json
+{
+  "title": "Service flow",
+  "description": "A request moving through the public API.",
+  "presentation": {
+    "appearance": "auto-transparent",
+    "background": "",
+    "padding": 0,
+    "frame": false
+  }
+}
+```
+
+`title` accepts at most 200 characters. `description` accepts at most 2,000 characters. Unknown properties are rejected.
+
+The diagnostics dock reports invalid JSON or schema values. Diagram.zip keeps the last valid preview until the document becomes valid again.
 
 ## Appearance
 
-**Renderer default** keeps the safe renderer output. It also enables the canvas, padding, and frame controls.
+`raw` keeps the safe renderer output. It enables the custom background, padding, and frame values in the presentation document.
 
 The shared appearances apply one Diagram.zip palette to supported renderer output:
 
-- **Match device** includes light and dark palettes in one SVG. The SVG selects a palette with `prefers-color-scheme`.
-- **Light** always uses the light palette.
-- **Dark** always uses the dark palette.
-- **Transparent** does not add an outer canvas.
-- **Framed** adds a matching canvas, standard padding, and a border.
+- `auto-transparent` and `auto-framed` include both palettes. The SVG selects one with `prefers-color-scheme`.
+- `light-transparent` and `light-framed` always use the light palette.
+- `dark-transparent` and `dark-framed` always use the dark palette.
+- Transparent appearances omit the outer canvas.
+- Framed appearances add a matching canvas, standard padding, and a border.
 
 The editor disables appearances that the current renderer profile cannot support. Diagrams.net supports raw and framed appearances while its authored paint remains unchanged.
 
@@ -27,19 +44,29 @@ Excalidraw and TikZ support every appearance. Their neutral canvas, ink, and lin
 
 Read [SVG normalization and version contracts](/style/svg-normalization) for capability levels, renderer version selection, and artifact metadata.
 
+## Preview controls
+
+The preview toolbar offers **Raw**, a theme icon, and a transparency icon. These controls rewrite the appearance value in Details.
+
+The theme icon switches only the preview between explicit light and dark output. It does not change the application or system preference.
+
+The transparency icon switches between transparent and framed output. Raw, theme, and transparency changes preserve the current preview zoom and pan position.
+
 ## Background
 
-Choose **Renderer default** before you set the background. Use a light background for most documents. Check the contrast of labels and lines after you change it.
+Set `appearance` to `raw` before you set `background`. Use an empty string for the renderer default or a six-digit hexadecimal color.
+
+Check label and line contrast after changing the background.
 
 ## Padding
 
 Padding adds space around the rendered diagram. Use a small value for an inline image. Use a larger value when a frame or a presentation layout needs more space.
 
-The supported range is **0 to 256 pixels**.
+`padding` must be an integer from **0 to 256 pixels**.
 
 ## Frame
 
-Turn the frame on when the diagram needs a clear boundary. Turn it off when another page or card already provides the boundary.
+Set `frame` to `true` when raw output needs a clear boundary. Set it to `false` when another surface provides the boundary.
 
 ## Type-specific styling
 
@@ -50,8 +77,8 @@ For example, [Mermaid styling](/style/types/mermaid/) uses Mermaid configuration
 ## A safe order
 
 1. Choose a shared appearance when the renderer supports it.
-2. Use **Renderer default** when you need custom canvas controls.
+2. Use `raw` when you need custom canvas values.
 3. Apply type-specific styles.
-4. Check the preview at its target size.
+4. Check light, dark, and transparent output at the target size.
 
 A **Renderer options** section appears only when the renderer adds options for that type.

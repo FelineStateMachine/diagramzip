@@ -1,6 +1,6 @@
 # diagram.zip documentation
 
-> Choose the semantic story first, then choose a renderer and source format.
+> Choose the semantic story first. Use Source for notation and Details for metadata and presentation.
 
 - [Diagram routing skill](https://docs.diagram.zip/skills/diagramming/SKILL.md): Select a diagram family from the reader's question.
 - [Machine-readable semantic catalog](https://docs.diagram.zip/diagram-skills.json): Inspect every skill, use case, exclusion, role, and invocation constraint.
@@ -97,7 +97,8 @@
 
 ## General pages
 
-- [General presentation](https://docs.diagram.zip/style/presentation/)
+- [Editor workspace](https://docs.diagram.zip/create/)
+- [Details JSON and presentation](https://docs.diagram.zip/style/presentation/)
 - [SVG normalization and version contracts](https://docs.diagram.zip/style/svg-normalization/)
 - [Share a diagram](https://docs.diagram.zip/collaboration/sharing/)
 - [Password encryption](https://docs.diagram.zip/collaboration/encryption/)
@@ -107,5 +108,5 @@
 
 - [diagram-skills.json](https://docs.diagram.zip/diagram-skills.json)
 - [diagram-types.json](https://docs.diagram.zip/diagram-types.json)
-- [Full renderer text reference](https://docs.diagram.zip/llms-full.txt)
+- [Full documentation text](https://docs.diagram.zip/llms-full.txt)
 - [Source repository](https://github.com/FelineStateMachine/diagramzip)

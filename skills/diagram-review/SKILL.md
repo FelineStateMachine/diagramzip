@@ -23,6 +23,8 @@ Use this model-invokable skill after a diagram is drafted, when a user asks whet
 
 Prefer styles that reinforce meaning: consistent shape roles, restrained color, explicit boundaries, and labels that survive grayscale or color-vision differences. Keep bespoke styling local and documented. Do not let a theme override a formal symbol's meaning or make decorative elements look like data.
 
+Inspect shared appearances in light and dark output. Test transparent output against light and dark host surfaces.
+
 ## Prior art
 
 For formal diagrams, compare against the relevant [OMG UML](https://www.omg.org/spec/UML), [OMG BPMN](https://www.omg.org/spec/BPMN/2.0.2/), or [C4 notation](https://c4model.com/diagrams/notation) guidance. For flowcharts, consult [ISO 5807](https://www.iso.org/standard/11955.html) where exact symbol conventions matter. Standards are review references; the local renderer catalog determines what diagram.zip can execute.

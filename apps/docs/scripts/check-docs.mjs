@@ -117,6 +117,13 @@ try { catalog = JSON.parse(catalogRaw) } catch { errors.push('static/diagram-typ
 assert(catalog?.diagramTypes?.length === expected.length, 'Machine catalog does not contain all diagram types.')
 assert(JSON.stringify((catalog?.diagramTypes ?? []).map(({ id }) => id).sort()) === JSON.stringify(expected), 'Machine catalog IDs do not match the diagram type catalog.')
 
+const llms = await source(join(site, 'static', 'llms.txt'))
+const llmsFull = await source(join(site, 'static', 'llms-full.txt'))
+assert(llms.includes('https://docs.diagram.zip/create/'), 'llms.txt does not link the editor workspace guide.')
+assert(llms.includes('https://docs.diagram.zip/style/presentation/'), 'llms.txt does not link the Details presentation guide.')
+assert(llmsFull.includes('# General presentation settings'), 'llms-full.txt does not include the presentation guide.')
+assert(llmsFull.includes('# Working state and saved state'), 'llms-full.txt does not include the working-state guide.')
+
 const expectedSkillIds = [...diagramSkillIds].sort()
 const skillEntries = await readdir(skills, { withFileTypes: true })
 const actualSkillIds = skillEntries.filter((entry) => entry.isDirectory()).map(({ name }) => name).sort()

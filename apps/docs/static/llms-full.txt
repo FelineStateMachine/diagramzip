@@ -1,6 +1,572 @@
 # diagram.zip documentation
 
 ---
+title: Create a diagram
+description: Choose a diagram type and create a diagram in diagram.zip.
+sidebar_position: 1
+---
+
+# Create a diagram
+
+Start with a diagram type. Each type page shows the source format, a small example, and the syntax that you need first.
+
+## A simple workflow
+
+1. Choose a type from the [diagram type list](/).
+2. Open its **Syntax** page.
+3. Copy the example into the **Source** tab.
+4. Replace the example labels and connections.
+5. Edit metadata or presentation in the **Details** tab when needed.
+6. Check the preview.
+7. Save the diagram when you want a stable link.
+
+## Choose a type
+
+Use the filter on the [diagram type list](/) to search by name, format, or purpose. The list has one syntax page and one style page for every supported type.
+
+When you choose a type in the editor, diagram.zip records it in the page URL as
+`?type={type}`. Reloading or copying that working URL keeps the same active type.
+Saved read and edit links remain alias-based and do not depend on this query.
+
+## Source, Details, and preview
+
+The left pane has **Source** and **Details** tabs. Source contains the selected diagram language. Details contains validated JSON for metadata and presentation.
+
+The diagnostics dock below the editors reports Details validation. Invalid Details JSON keeps the last valid preview and blocks actions that require valid state.
+
+The preview updates as you edit. A source syntax error can stop rendering and appears in a short-lived toast at the lower right.
+
+The preview toolbar controls zoom, fit, raw output, theme, and transparency. Appearance changes preserve the current zoom and pan position.
+
+The preview theme affects only the output pane. The application continues to follow the browser or operating-system color preference.
+
+Structured types, such as BPMN, Diagrams.net, Excalidraw, UMLet, Vega, and WaveDrom, use XML or JSON. Keep valid document structure when you edit these types.
+
+Read [General presentation settings](/style/presentation/) for the Details document schema and appearance values.
+
+## Local drafts
+
+Open diagrams keep unsaved changes in local browser storage. An edited example shows a reset icon that restores its bundled source and details.
+
+Saved links use a separate device-only overlay for local changes. Read [Working state and saved state](/collaboration/working-and-saved-state/) before restoring or copying that overlay.
+
+## Save or share
+
+Use **Save** to create a saved revision. Use a read link when people only need to view the diagram.
+
+Use an edit link when people must save changes. Read [Share a diagram](/collaboration/sharing/) before you send an edit link.
+
+---
+
+---
+id: presentation
+title: General presentation settings
+description: Edit diagram metadata and choose a shared or renderer-defined presentation.
+sidebar_position: 1
+---
+
+# General presentation settings
+
+Open the **Details** tab in the left pane. It contains a validated JSON document for metadata and presentation.
+
+```json
+{
+  "title": "Service flow",
+  "description": "A request moving through the public API.",
+  "presentation": {
+    "appearance": "auto-transparent",
+    "background": "",
+    "padding": 0,
+    "frame": false
+  }
+}
+```
+
+`title` accepts at most 200 characters. `description` accepts at most 2,000 characters. Unknown properties are rejected.
+
+The diagnostics dock reports invalid JSON or schema values. Diagram.zip keeps the last valid preview until the document becomes valid again.
+
+## Appearance
+
+`raw` keeps the safe renderer output. It enables the custom background, padding, and frame values in the presentation document.
+
+The shared appearances apply one Diagram.zip palette to supported renderer output:
+
+- `auto-transparent` and `auto-framed` include both palettes. The SVG selects one with `prefers-color-scheme`.
+- `light-transparent` and `light-framed` always use the light palette.
+- `dark-transparent` and `dark-framed` always use the dark palette.
+- Transparent appearances omit the outer canvas.
+- Framed appearances add a matching canvas, standard padding, and a border.
+
+The editor disables appearances that the current renderer profile cannot support. Diagrams.net supports raw and framed appearances while its authored paint remains unchanged.
+
+Excalidraw and TikZ support every appearance. Their neutral canvas, ink, and line paint adapt while authored non-neutral paint remains renderer-defined.
+
+Read [SVG normalization and version contracts](/style/svg-normalization) for capability levels, renderer version selection, and artifact metadata.
+
+## Preview controls
+
+The preview toolbar offers **Raw**, a theme icon, and a transparency icon. These controls rewrite the appearance value in Details.
+
+The theme icon switches only the preview between explicit light and dark output. It does not change the application or system preference.
+
+The transparency icon switches between transparent and framed output. Raw, theme, and transparency changes preserve the current preview zoom and pan position.
+
+## Background
+
+Set `appearance` to `raw` before you set `background`. Use an empty string for the renderer default or a six-digit hexadecimal color.
+
+Check label and line contrast after changing the background.
+
+## Padding
+
+Padding adds space around the rendered diagram. Use a small value for an inline image. Use a larger value when a frame or a presentation layout needs more space.
+
+`padding` must be an integer from **0 to 256 pixels**.
+
+## Frame
+
+Set `frame` to `true` when raw output needs a clear boundary. Set it to `false` when another surface provides the boundary.
+
+## Type-specific styling
+
+General presentation settings do not replace the style rules in the source language. Open the **Style** page for a type to learn its source controls.
+
+For example, [Mermaid styling](/style/types/mermaid/) uses Mermaid configuration. [Graphviz styling](/style/types/graphviz/) uses DOT attributes.
+
+## A safe order
+
+1. Choose a shared appearance when the renderer supports it.
+2. Use `raw` when you need custom canvas values.
+3. Apply type-specific styles.
+4. Check light, dark, and transparent output at the target size.
+
+A **Renderer options** section appears only when the renderer adds options for that type.
+
+---
+
+---
+id: svg-normalization
+title: SVG normalization and version contracts
+description: Understand normalized SVG, renderer version selection, capability metadata, and consumer guarantees.
+sidebar_position: 2
+---
+
+# SVG normalization and version contracts
+
+Diagram.zip accepts SVG from renderers with different structures, palettes, and release cycles. A shared pipeline turns that output into safe, predictable artifacts.
+
+```text
+renderer SVG
+  -> sanitization
+  -> canonical normalization
+  -> appearance materialization
+  -> final SVG
+```
+
+The renderer owns source interpretation and layout. Later stages preserve diagram geometry while adding safety, semantic paint roles, and optional presentation bounds.
+
+## Artifact stages
+
+| Stage | Contract |
+| --- | --- |
+| Renderer SVG | Output from one identified renderer build. |
+| Canonical SVG | Sanitized SVG with normalized metadata, bounds, and supported semantic roles. |
+| Materialized SVG | Canonical geometry combined with one explicit appearance, palette, and optional frame. |
+
+Materialization does not run the renderer again. Light, dark, transparent, and framed artifacts reuse the same canonical geometry.
+
+Framed appearances may expand the outer view box for standard padding and the frame. They do not reroute connectors or reflow labels.
+
+## Appearance contract
+
+The appearance name is a closed enum:
+
+```text
+raw
+auto-transparent
+light-transparent
+dark-transparent
+auto-framed
+light-framed
+dark-framed
+```
+
+`raw` preserves the safe renderer appearance. It does not promise byte-for-byte preservation because sanitization and deterministic serialization still apply.
+
+Automatic appearances embed both palettes and select one with `prefers-color-scheme`. They do not depend on styles from the embedding page.
+
+Transparent appearances omit the outer canvas. Diagram objects may retain opaque surfaces when those surfaces are required for readable labels.
+
+Framed appearances add a matching canvas, standard padding, and a border. They remain readable independently of the embedding page.
+
+The editor offers only appearances advertised by the active profile. `raw` is always available.
+
+## Capability levels
+
+| Conformance | Meaning | Expected appearance support |
+| --- | --- | --- |
+| `semantic` | Stable renderer meaning maps directly to shared visual roles. | All audited appearances. |
+| `adaptive` | Known structure and neutral paint adapt while authored color remains intact. | All audited appearances. |
+| `presentation-only` | The authored drawing stays unchanged while Diagram.zip owns the outer presentation. | Raw and audited framed appearances. |
+| `raw` | The SVG is safe, but no themed adaptation is claimed. | Raw only. |
+
+An authored non-neutral color may remain unchanged in a semantic or adaptive profile. Normalization does not erase meaningful source styling.
+
+## How renderer versions select a profile
+
+Each engine catalog entry pins a renderer version and an audited normalization profile. Compatibility belongs to that tested pair, not only to the engine name.
+
+HTTP renderers identify their output with these response headers:
+
+| Header | Purpose |
+| --- | --- |
+| `X-Diagram-Engine-Version` | Identifies the underlying engine release. |
+| `X-Renderer-Build` | Identifies the Diagram.zip renderer build. |
+
+Browser renderers provide the same version identity from their catalog entry. Diagram.zip uses this identity before it assigns semantic roles.
+
+An unknown or upgraded renderer build does not inherit an older profile automatically. It falls back to `safe-raw-1`, which supports only `raw`.
+
+This fail-closed behavior prevents rules for one renderer structure from changing unrelated elements in another structure.
+
+Version identifiers are opaque contract values. Consumers should compare complete values and must not infer compatibility from embedded numbers.
+
+The [renderer catalog](https://diagram.zip/render/v1/catalog) reports every engine version, known loss, and active normalization capability.
+
+## Independently versioned contracts
+
+| Contract | Example identifier | Changes when |
+| --- | --- | --- |
+| Canonical schema | `1` | The canonical SVG structure changes incompatibly. |
+| Normalizer | `svg-normalizer-2` | Sanitization, annotation, or serialization behavior changes. |
+| Profile | `neutral-svg-semantic-2` | Renderer recognition or role assignment changes. |
+| Palette | `diagramzip-palette-1` | Materialized role colors change. |
+| Materializer | `svg-materializer-2` | Appearance rules, padding, frame, or output assembly changes. |
+| Renderer | Catalog version and build | Engine output or its integration changes. |
+
+These versions advance independently. A renderer upgrade does not require a schema change, and a palette update does not require new geometry.
+
+Any component that changes pixels or bounds must change the relevant build identifier. Cache identity must include every component that affected the artifact.
+
+## Root SVG metadata
+
+Canonical and materialized SVG expose their active contract through `data-dz-*` attributes on the root element.
+
+| Attribute | Meaning |
+| --- | --- |
+| `data-dz-schema` | Canonical SVG schema. |
+| `data-dz-normalizer` | Normalizer build. |
+| `data-dz-engine` | Renderer engine identifier. |
+| `data-dz-profile` | Selected normalization profile. |
+| `data-dz-palette` | `renderer` for raw SVG, or the selected Diagram.zip palette build. |
+| `data-dz-appearance` | Materialized appearance. |
+| `data-dz-conformance` | Active capability level. |
+| `data-dz-appearances` | Supported non-raw appearances, separated by spaces. |
+| `data-dz-bounds` | Canonical diagram bounds as `x y width height`. |
+| `data-dz-materializer` | Materializer build, present after non-raw materialization. |
+
+Normalized elements may also use `data-dz-fill`, `data-dz-stroke`, and `data-dz-role`. These attributes separate semantic intent from concrete palette values.
+
+```xml
+<svg
+  data-dz-schema="1"
+  data-dz-normalizer="svg-normalizer-2"
+  data-dz-engine="mermaid"
+  data-dz-profile="neutral-svg-semantic-2"
+  data-dz-palette="renderer"
+  data-dz-appearance="raw"
+  data-dz-conformance="adaptive"
+  data-dz-appearances="auto-transparent light-transparent dark-transparent auto-framed light-framed dark-framed"
+  data-dz-bounds="0 0 320 180">
+</svg>
+```
+
+The identifiers above are examples. Inspect the artifact or catalog instead of hard-coding them.
+
+Consumers should treat `data-dz-appearances` as an allowlist. Adding an unsupported value by hand does not create a supported artifact.
+
+## Consumer guarantees
+
+A normalized SVG has these guarantees:
+
+- It is valid, sanitized, deterministic SVG with no unapproved network dependency.
+- It is self-contained after materialization and does not require embedding-page CSS.
+- It preserves renderer geometry, except for presentation bounds added by a frame.
+- It applies palette rules only to elements assigned a supported semantic role.
+- It preserves authored paint when the profile cannot adapt that paint honestly.
+- It rejects unsupported appearance materialization instead of applying heuristic theming.
+
+Cache keys must include source identity, renderer options, renderer builds, schema, normalizer, profile, palette, materializer, and appearance.
+
+Do not key a cache only by source and engine name. That can return artifacts created under an incompatible renderer or presentation contract.
+
+## Upgrade expectations
+
+A renderer upgrade is a new output contract until the representative test corpus passes. The existing profile may then add compatibility, or a new profile may replace it.
+
+Tests cover safety, determinism, raw fidelity, geometry stability, contrast, transparent canvases, frames, authored colors, and hostile resource attempts.
+
+See the [full engineering contract](https://github.com/FelineStateMachine/diagramzip/blob/main/docs/svg-normalization.md) for profile design, semantic roles, validation rules, and caching details.
+
+---
+
+---
+id: sharing
+title: Share a diagram
+description: Share read-only or editable diagram.zip links.
+sidebar_position: 1
+---
+
+# Share a diagram
+
+Save a diagram before you share it. A saved diagram has a stable read link.
+
+The Share dialog contains link controls and privacy controls. Lock, password
+change, and password removal actions stay beside the content they affect.
+
+## Read links
+
+A read link lets a person open the saved diagram. The link has this form:
+
+```text
+https://diagram.zip/d/{alias}
+```
+
+Anyone who has an open read link can view the diagram. Anyone who has an open
+read link can also use the SVG or Markdown embed link.
+
+A read link does not let a person save changes to the saved diagram.
+
+For a locked diagram, the person must also enter the password. The password is
+not part of the read link.
+
+## Edit links
+
+An edit link gives permission to save changes to the alias. It has this form:
+
+```text
+https://diagram.zip/d/{alias}#w={write-capability}
+```
+
+The edit capability is a bearer credential. Anyone who has the complete edit
+link can update the diagram. Share it only with people who should have write
+access.
+
+The browser reads the capability from the URL fragment. The browser then saves
+it for that alias and removes it from the address bar. A copied page URL is
+therefore normally a read link. Copy the edit link from the Share dialog when
+you need to share write access.
+
+Copy actions report success or failure in a short-lived toast above the dialog
+backdrop.
+
+For a locked diagram, an edit link does not replace the password. The person
+needs both the edit capability and the password.
+
+There are no accounts or recovery controls. If you lose the edit capability,
+you cannot update that alias from a new device. If you lose the password for a
+locked diagram, you cannot decrypt it.
+
+## Read-only edits and forks
+
+You can edit a diagram after opening a read link. These edits stay local until
+you save them.
+
+If this browser already has unsaved changes for the link, a local-changes bar
+offers **Restore saved** and **Make a copy**. Restore returns to the shared
+revision. Make a copy forks the local state to a new alias, even when this
+browser also holds write access to the original.
+
+The Save button becomes **Save copy** because you do not have write access to
+the original alias. Save the copy to create a new alias and a new edit link.
+The original diagram does not change.
+
+## Save conflicts
+
+Each saved alias has a revision. The editor checks the revision when it saves.
+
+If another person saved a newer revision first, diagram.zip reports a save
+conflict. Choose one of these actions:
+
+- **Reload saved** discards your local edits and opens the newer saved version.
+- **Save as new** keeps your edits and creates a separate alias.
+
+The editor does not overwrite a newer saved revision without your choice.
+
+## Embeds
+
+The Share dialog provides an SVG image link and a Markdown image link for an
+open saved diagram. These links point to the saved render.
+
+Locked diagrams cannot be embedded. An embed request cannot ask for a password,
+so the server does not return encrypted diagram renders as public images.
+
+Save the diagram again before you share if the Share dialog says that the links
+show an older saved version.
+
+---
+
+---
+id: encryption
+title: Password encryption
+description: Understand password protection for diagram.zip diagrams.
+sidebar_position: 2
+---
+
+# Password encryption
+
+Use a password when a diagram must not be readable by people who only have its
+read link.
+
+## What is encrypted
+
+When you lock a diagram, the browser encrypts these items before it sends them
+to diagram.zip:
+
+- diagram source;
+- diagram type and renderer options;
+- presentation settings;
+- title and description;
+- saved SVG and PNG renders.
+
+The browser decrypts the diagram after you enter the password. The renderer
+can receive the source while it creates a preview. Persistent storage receives
+encrypted data for a locked diagram.
+
+## What the password does
+
+The browser creates a private encryption key for the diagram. The password
+protects that key. The browser uses a new random value for each encrypted item.
+
+The password and the unwrapped encryption key stay in the browser. diagram.zip
+does not receive either value.
+
+The password also protects read access. A person with only the read link sees a
+password prompt. A person with an edit link still needs the password before
+they can read or save the diagram.
+
+## Password changes
+
+Changing the password changes the protection for the private encryption key.
+It does not require the browser to encrypt every stored item again.
+
+Enter the current password before you change or remove password protection.
+
+## Password loss
+
+There is no password reset or account recovery. If you lose the password, you
+cannot decrypt the source, metadata, or saved renders. Keep a secure copy of
+the password when the diagram is important.
+
+## Locked drafts
+
+The editor keeps an open draft in the browser so you can recover recent work.
+It does not write a locked draft to browser storage as plaintext.
+
+For a locked diagram, keep the page open and save the diagram explicitly. A
+locked draft is persisted only after a successful save. If the page closes
+before that save, the browser may not be able to restore the draft.
+
+## Embeds
+
+Locked diagrams cannot use public SVG or Markdown embeds. An embed has no safe
+way to ask for the password. Open the diagram in diagram.zip to enter the
+password and view it.
+
+---
+
+---
+id: working-and-saved-state
+title: Working state and saved state
+description: Understand editor drafts, saved revisions, and persistent diagram data.
+sidebar_position: 3
+---
+
+# Working state and saved state
+
+The editor has a working state and a saved state. They can be different until
+you save.
+
+## Working state
+
+The working state is what you currently see and edit. It includes the diagram
+source, type, renderer options, presentation settings, title, and description.
+
+Source and Details use separate editor tabs. Details is a JSON document that
+contains the title, description, and presentation settings.
+
+Invalid Details JSON remains in the local draft. The editor keeps the last
+valid preview and blocks save, share, privacy, and type changes until it is valid.
+
+When you edit a saved diagram, the working state changes first. The saved
+diagram does not change until you choose **Save**.
+
+For an open diagram, diagram.zip stores the working state as a local browser
+draft. This draft supports recovery on the same browser. It is not a saved
+diagram and other people cannot read it.
+
+An edited anonymous example shows a reset icon. Reset removes its local draft
+and restores the bundled example after confirmation.
+
+When a saved link opens with a different local draft, the editor marks that
+draft as a device-only overlay. Choose **Restore saved** to discard the overlay
+and return to the alias revision, or **Make a copy** to preserve it under a new
+alias. Neither action silently changes the original share link.
+
+For a locked diagram, the editor does not store the working state as plaintext
+in browser storage. Save a locked diagram explicitly to persist it.
+
+Zoom and pan are preview session state, not saved diagram state. Appearance
+changes and Edit or Preview tab switches preserve the current view position.
+
+## Saved state
+
+The saved state is the last version that you saved successfully. It has an
+alias, a revision, and a stable read link.
+
+The Share dialog uses the saved state. If the working state has changes, the
+dialog tells you to save before you share. This prevents you from sharing an
+older version by mistake.
+
+## Persistent data
+
+After a successful save, diagram.zip persists the diagram content and its
+metadata. It can also persist SVG and PNG renders for that saved revision.
+
+Open content is stored as readable diagram data. Locked content and locked
+renders are stored as encrypted data. See [Password encryption](/collaboration/encryption/)
+for the locked diagram rules.
+
+The persisted data belongs to the alias and its current revision. A local draft
+does not replace the persisted data.
+
+## Save flow
+
+The normal flow is:
+
+1. Edit the working state.
+2. Choose **Save**.
+3. diagram.zip stores a new revision.
+4. The saved state becomes the working state.
+
+Saving a new diagram creates an alias and an edit capability. Saving an open
+diagram with an edit capability updates its alias. Saving a read-only diagram
+creates a new alias instead.
+
+## Conflicts
+
+The editor saves against the revision that it last loaded. If that revision is
+no longer current, another person saved the alias first.
+
+The editor then offers **Reload saved** or **Save as new**. Reload replaces the
+working state with the current saved state. Save as new preserves the working
+state in a new alias. diagram.zip does not silently overwrite the other
+person's saved version.
+
+---
+
+---
 id: create-plantuml
 slug: /create/types/plantuml
 title: PlantUML
@@ -60,7 +626,7 @@ sidebar_label: PlantUML
 
 PlantUML supports themes, skin parameters, colors, sprites, and element-specific style rules.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -146,7 +712,7 @@ sidebar_label: Mermaid
 
 Mermaid supports themes, frontmatter configuration, class definitions, and diagram-specific configuration.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -234,7 +800,7 @@ sidebar_label: Graphviz
 
 DOT supports graph, node, and edge attributes.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -321,7 +887,7 @@ sidebar_label: D2
 
 D2 supports themes, shape properties, style blocks, classes, and sketch mode.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -406,7 +972,7 @@ sidebar_label: C4 PlantUML
 
 C4 PlantUML supports layout macros, tags, legends, and PlantUML style controls.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -488,7 +1054,7 @@ sidebar_label: BlockDiag
 
 BlockDiag supports diagram attributes and per-node or per-edge attributes.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -571,7 +1137,7 @@ sidebar_label: SeqDiag
 
 SeqDiag supports participant, message, and diagram attributes.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -659,7 +1225,7 @@ sidebar_label: ActDiag
 
 ActDiag supports lane, action, edge, and diagram attributes.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -744,7 +1310,7 @@ sidebar_label: NwDiag
 
 NwDiag supports network and host attributes.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -829,7 +1395,7 @@ sidebar_label: PacketDiag
 
 PacketDiag supports global layout values and field attributes.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -913,7 +1479,7 @@ sidebar_label: RackDiag
 
 RackDiag supports rack and device attributes.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1000,7 +1566,7 @@ sidebar_label: BPMN
 
 BPMN appearance usually comes from BPMN diagram interchange data and renderer defaults.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1079,7 +1645,7 @@ sidebar_label: Bytefield
 
 Bytefield uses drawing-form properties for spans, labels, and layout.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1164,7 +1730,7 @@ sidebar_label: DBML
 
 DBML describes schema structure. It does not define visual presentation.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1246,7 +1812,7 @@ sidebar_label: Diagrams.net
 
 Diagrams.net stores geometry and style values on cells in the XML source.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1319,7 +1885,7 @@ sidebar_label: Ditaa
 
 Ditaa supports shape tags, color tags, dashed lines, and renderer options.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1412,7 +1978,7 @@ sidebar_label: ERD
 
 ERD focuses on the data model. The renderer controls most visual values.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1492,7 +2058,7 @@ sidebar_label: Excalidraw
 
 Excalidraw stores the style of each element in the JSON source.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1586,7 +2152,7 @@ sidebar_label: GoAT
 
 GoAT takes most geometry from the text. Renderer options control SVG colors and character handling.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1672,7 +2238,7 @@ sidebar_label: Nomnoml
 
 Nomnoml uses hash directives and custom classifier styles.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1749,7 +2315,7 @@ sidebar_label: Pikchr
 
 Pikchr supports dimensions, colors, fills, line widths, and placement controls in the source.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1829,7 +2395,7 @@ sidebar_label: Structurizr
 
 Structurizr supports workspace styles, themes, tags, and automatic layout.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1911,7 +2477,7 @@ sidebar_label: Svgbob
 
 Svgbob takes geometry from the text and supports renderer-level SVG settings.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -1999,7 +2565,7 @@ sidebar_label: Symbolator
 
 Symbolator gets structure from hardware source. Renderer options control the title, scale, and output details.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -2086,7 +2652,7 @@ sidebar_label: TikZ
 
 TikZ supports colors, line forms, fills, node styles, scopes, and reusable style definitions.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -2166,7 +2732,7 @@ sidebar_label: UMLet
 
 UMLet stores position and style commands in the UXF XML source.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -2274,7 +2840,7 @@ sidebar_label: Vega
 
 Vega controls presentation through scales, mark encodings, axes, legends, and configuration.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -2364,7 +2930,7 @@ sidebar_label: Vega-Lite
 
 Vega-Lite controls presentation through marks, encodings, scales, axes, legends, and configuration.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -2449,7 +3015,7 @@ sidebar_label: WaveDrom
 
 WaveDrom supports source configuration, signal attributes, and a limited set of bundled skins.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
@@ -2535,7 +3101,7 @@ sidebar_label: WireViz
 
 WireViz uses YAML properties for connector, cable, wire, and output styles.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 

@@ -15,12 +15,21 @@ you save.
 The working state is what you currently see and edit. It includes the diagram
 source, type, renderer options, presentation settings, title, and description.
 
+Source and Details use separate editor tabs. Details is a JSON document that
+contains the title, description, and presentation settings.
+
+Invalid Details JSON remains in the local draft. The editor keeps the last
+valid preview and blocks save, share, privacy, and type changes until it is valid.
+
 When you edit a saved diagram, the working state changes first. The saved
 diagram does not change until you choose **Save**.
 
 For an open diagram, diagram.zip stores the working state as a local browser
 draft. This draft supports recovery on the same browser. It is not a saved
 diagram and other people cannot read it.
+
+An edited anonymous example shows a reset icon. Reset removes its local draft
+and restores the bundled example after confirmation.
 
 When a saved link opens with a different local draft, the editor marks that
 draft as a device-only overlay. Choose **Restore saved** to discard the overlay
@@ -29,6 +38,9 @@ alias. Neither action silently changes the original share link.
 
 For a locked diagram, the editor does not store the working state as plaintext
 in browser storage. Save a locked diagram explicitly to persist it.
+
+Zoom and pan are preview session state, not saved diagram state. Appearance
+changes and Edit or Preview tab switches preserve the current view position.
 
 ## Saved state
 

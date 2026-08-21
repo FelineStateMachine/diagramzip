@@ -10,7 +10,7 @@ sidebar_label: Vega
 
 Vega controls presentation through scales, mark encodings, axes, legends, and configuration.
 
-Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 
 ## Source controls
 
