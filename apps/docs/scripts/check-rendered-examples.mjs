@@ -47,7 +47,9 @@ async function check(name) {
         throw new Error(`${example.engine}: frame CSP font-src blocks ${fallbackOrigin}`)
       }
       const fallbackFont = await fetch(`${fallbackOrigin}/@excalidraw/excalidraw@0.18.1/dist/prod/fonts/Cascadia/CascadiaCode-Regular.woff2`)
-      if (!fallbackFont.ok || fallbackFont.headers.get('Access-Control-Allow-Origin') !== '*') {
+      const fallbackAvailable = fallbackFont.ok && fallbackFont.headers.get('Access-Control-Allow-Origin') === '*'
+      await fallbackFont.body?.cancel()
+      if (!fallbackAvailable) {
         throw new Error(`${example.engine}: packaged font fallback is unavailable (HTTP ${fallbackFont.status})`)
       }
     }
