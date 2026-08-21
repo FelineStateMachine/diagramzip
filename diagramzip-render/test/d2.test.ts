@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { DOMParser } from 'linkedom'
 import { d2Adapter } from '../src/adapters/edge/d2'
 import type { RenderRequest } from '../src/types'
 
@@ -10,7 +11,20 @@ const request = (source: string, options: Record<string, string> = {}): RenderRe
 })
 
 describe('D2 dedicated Worker adapter', () => {
-  it('rejects Dagre/ELK and out-of-range animation options explicitly', async () => {
+  it('uses the Dagre top-to-bottom default layout', async () => {
+    const result = await d2Adapter.render(request('a -> b -> c'), new AbortController().signal)
+    const document = new DOMParser().parseFromString(result.body, 'image/svg+xml')
+    const nodes = [...document.querySelectorAll('g.shape > rect')].slice(0, 3)
+    const x = nodes.map(node => Number(node.getAttribute('x')))
+    const y = nodes.map(node => Number(node.getAttribute('y')))
+    const span = (values: number[]) => Math.max(...values) - Math.min(...values)
+
+    expect(nodes).toHaveLength(3)
+    expect(span(y)).toBeGreaterThan(span(x))
+  })
+
+  it('accepts Dagre and rejects ELK and out-of-range animation options explicitly', async () => {
+    await expect(d2Adapter.render(request('a -> b', { layout: 'dagre' }), new AbortController().signal)).resolves.toMatchObject({ contentType: 'image/svg+xml' })
     await expect(d2Adapter.render(request('a -> b', { layout: 'elk' }), new AbortController().signal)).rejects.toMatchObject({ code: 'unsupported_options', status: 400 })
     await expect(d2Adapter.render(request('a -> b', { 'animate-interval': '0' }), new AbortController().signal)).rejects.toMatchObject({ code: 'invalid_options', status: 400 })
     await expect(d2Adapter.render(request('a -> b', { 'animate-interval': '60001' }), new AbortController().signal)).rejects.toMatchObject({ code: 'invalid_options', status: 400 })

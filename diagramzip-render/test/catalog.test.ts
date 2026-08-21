@@ -62,7 +62,7 @@ describe('engine catalog', () => {
   it('marks D2 as a dedicated edge-Wasm unit', () => {
     const d2 = ENGINE_CATALOG.find(engine => engine.id === 'd2')!
     expect(d2.activeRuntime).toBe('edge-wasm')
-    expect(d2.version).toContain('d2@0.7.1/custom-grid')
+    expect(d2.version).toContain('d2@0.7.1/dagre-wasm')
   })
 
   it('marks Symbolator as a dedicated Python translation unit', () => {

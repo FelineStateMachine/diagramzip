@@ -4,7 +4,7 @@ import { RenderError } from '../../errors'
 import type { RendererAdapter } from '../../types'
 import { edgeResult } from './types'
 
-const VERSION = 'd2@0.7.1/custom-grid-1'
+const VERSION = 'd2@0.7.1/dagre-wasm-1'
 const MAX_SOURCE_BYTES = 512 * 1024
 const SUPPORTED_OPTIONS = new Set(['layout', 'animate-interval'])
 
@@ -81,8 +81,8 @@ export const d2Adapter: RendererAdapter = {
         throw new RenderError(400, 'unsupported_options', `Unsupported D2 option: ${name}.`)
       }
     }
-    if (request.options.layout !== undefined && request.options.layout.toLowerCase() !== 'grid') {
-      throw new RenderError(400, 'unsupported_options', 'D2 only supports the deterministic grid layout in the edge unit; dagre and elk are unavailable.')
+    if (request.options.layout !== undefined && request.options.layout.toLowerCase() !== 'dagre') {
+      throw new RenderError(400, 'unsupported_options', 'D2 supports Dagre layout in the edge unit; ELK is unavailable.')
     }
     const animateInterval = request.options['animate-interval']
     if (animateInterval !== undefined && (!/^\d+$/.test(animateInterval) || Number(animateInterval) < 1 || Number(animateInterval) > 60_000)) {

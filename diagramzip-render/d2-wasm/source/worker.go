@@ -10,67 +10,30 @@ import (
 	"runtime/debug"
 	"syscall/js"
 
-	"oss.terrastruct.com/util-go/go2"
-
 	"oss.terrastruct.com/d2/d2graph"
+	"oss.terrastruct.com/d2/d2layouts/d2dagrelayout"
 	"oss.terrastruct.com/d2/d2lib"
 	"oss.terrastruct.com/d2/d2renderers/d2animate"
 	"oss.terrastruct.com/d2/d2renderers/d2svg"
-	"oss.terrastruct.com/d2/lib/geo"
-	"oss.terrastruct.com/d2/lib/label"
 	d2log "oss.terrastruct.com/d2/lib/log"
 	"oss.terrastruct.com/d2/lib/textmeasure"
 )
 
-func gridLayout(ctx context.Context, g *d2graph.Graph) error {
-	if err := ctx.Err(); err != nil {
-		return err
+func dagreLayoutResolver(engine string) (d2graph.LayoutGraph, error) {
+	if engine != "dagre" {
+		return nil, fmt.Errorf("unexpected layout %q", engine)
 	}
-	for i, o := range g.Objects {
-		if o == g.Root || o.Box == nil {
-			continue
-		}
-		if o.HasLabel() && o.LabelPosition == nil {
-			o.LabelPosition = go2.Pointer(label.InsideMiddleCenter.String())
-		}
-		if o.HasIcon() && o.IconPosition == nil {
-			o.IconPosition = go2.Pointer(label.InsideMiddleCenter.String())
-		}
-		o.Box.TopLeft = geo.NewPoint(float64(i%4)*220, float64(i/4)*160)
-	}
-	for _, e := range g.Edges {
-		if e.Src != nil && e.Dst != nil && e.Src.Box != nil && e.Dst.Box != nil {
-			e.Route = []*geo.Point{e.Src.Box.Center(), e.Dst.Box.Center()}
-			e.TraceToShape(e.Route, 0, len(e.Route)-1)
-			if e.Label.Value != "" {
-				e.LabelPosition = go2.Pointer(label.InsideMiddleCenter.String())
-			}
-		}
-	}
-	return nil
+	return func(ctx context.Context, graph *d2graph.Graph) error {
+		return d2dagrelayout.Layout(ctx, graph, nil)
+	}, nil
 }
 
 type response struct {
 	SVG    string   `json:"svg"`
 	Boards []string `json:"boards"`
 }
-type renderOptions struct { AnimateInterval int64 `json:"animateInterval"` }
-
-func straightRouter(ctx context.Context, g *d2graph.Graph, edges []*d2graph.Edge) error {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	for _, e := range edges {
-		if e.Src == nil || e.Dst == nil || e.Src.Box == nil || e.Dst.Box == nil {
-			continue
-		}
-		e.Route = []*geo.Point{e.Src.Box.Center(), e.Dst.Box.Center()}
-		e.TraceToShape(e.Route, 0, len(e.Route)-1)
-		if e.Label.Value != "" {
-			e.LabelPosition = go2.Pointer(label.InsideMiddleCenter.String())
-		}
-	}
-	return nil
+type renderOptions struct {
+	AnimateInterval int64 `json:"animateInterval"`
 }
 
 func render(this js.Value, args []js.Value) (result any) {
@@ -85,19 +48,21 @@ func render(this js.Value, args []js.Value) (result any) {
 	}
 	var inputOptions renderOptions
 	if len(args) == 2 && args[1].String() != "" {
-		if err := json.Unmarshal([]byte(args[1].String()), &inputOptions); err != nil { return js.ValueOf(fmt.Sprintf(`{"error":%q}`, err.Error())) }
+		if err := json.Unmarshal([]byte(args[1].String()), &inputOptions); err != nil {
+			return js.ValueOf(fmt.Sprintf(`{"error":%q}`, err.Error()))
+		}
 	}
 	ruler, err := textmeasure.NewRuler()
 	if err != nil {
 		return js.ValueOf(fmt.Sprintf(`{"error":%q}`, err.Error()))
 	}
-	layout := "grid"
+	layout := "dagre"
 	pad := int64(100)
 	ctx := d2log.WithDefault(context.Background())
 	d, _, err := d2lib.Compile(ctx, args[0].String(), &d2lib.CompileOptions{
-		Layout: &layout, Ruler: ruler,
-		LayoutResolver: func(string) (d2graph.LayoutGraph, error) { return gridLayout, nil },
-		RouterResolver: func(string) (d2graph.RouteEdges, error) { return straightRouter, nil },
+		Layout:         &layout,
+		Ruler:          ruler,
+		LayoutResolver: dagreLayoutResolver,
 	}, &d2svg.RenderOpts{Pad: &pad})
 	if err != nil {
 		return js.ValueOf(fmt.Sprintf(`{"error":%q}`, err.Error()))
@@ -110,7 +75,9 @@ func render(this js.Value, args []js.Value) (result any) {
 	base := boards[0]
 	if inputOptions.AnimateInterval > 0 {
 		base, err = d2animate.Wrap(d, boards, *opts, int(inputOptions.AnimateInterval))
-		if err != nil { return js.ValueOf(fmt.Sprintf(`{"error":%q}`, err.Error())) }
+		if err != nil {
+			return js.ValueOf(fmt.Sprintf(`{"error":%q}`, err.Error()))
+		}
 		// The wrapper is itself the XML document; nested board declarations would
 		// otherwise be rejected by the shared SVG sanitizer as extra roots.
 		base = bytes.ReplaceAll(base, []byte(`<?xml version="1.0" encoding="UTF-8" standalone="no"?>`), nil)

@@ -182,7 +182,7 @@ async function smoke([engine, filename]) {
   }
   if (d2Engines.has(engine)) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-wasm') throw new Error(`${engine}: expected edge-wasm renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
-    if (!response.headers.get('X-Renderer-Build')?.startsWith('d2-0.7.1-custom-grid-')) throw new Error(`${engine}: unexpected D2 Worker build ${response.headers.get('X-Renderer-Build')}`)
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('d2-0.7.1-dagre-wasm-')) throw new Error(`${engine}: unexpected D2 Worker build ${response.headers.get('X-Renderer-Build')}`)
   }
   if (symbolatorEngines.has(engine)) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-python') throw new Error(`${engine}: expected edge-python renderer, received ${response.headers.get('X-Diagram-Renderer')}`)

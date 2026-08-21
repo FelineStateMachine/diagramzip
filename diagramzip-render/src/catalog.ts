@@ -100,7 +100,7 @@ const versions: Record<EngineId, string> = {
   erd: 'erd@0.2.1.0+graphviz@15.1.1/edge-wasm-1',
   wireviz: 'wireviz@0.3.2/python-translator-1',
   structurizr: 'structurizr@6.2.2+plantuml@1.2026.6/translation-1',
-  d2: 'd2@0.7.1/custom-grid-1',
+  d2: 'd2@0.7.1/dagre-wasm-1',
   ditaa: 'ditaa-ascii+svgbob@0.7.6/edge-wasm-1',
   symbolator: 'symbolator@1.2.2/python-translation-1',
   tikz: '@planktimerr/tikzjax@1.0.63/client-unit-1',
@@ -189,8 +189,7 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
   ],
   d2: [
     'Only SVG is supported.',
-    'The edge build uses official D2 v0.7.1 parser/compiler/SVG renderer with a deterministic grid layout and straight-line routing; Dagre and ELK layouts are unavailable.',
-    'D2 syntax, labels, shapes, containers, steps/scenarios, and animated edges are retained, but layout quality differs substantially from Dagre/ELK.',
+    'The edge build uses D2 v0.7.1 with its official bundled Dagre layout. ELK is unavailable.',
     'The supported animation-interval option is bounded to 1–60000 milliseconds; animated edges and multi-board SVG output remain supported.',
   ],
   ditaa: [
