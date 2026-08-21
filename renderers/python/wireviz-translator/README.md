@@ -6,6 +6,20 @@ uses commit `837d5425e72aa002bbe9cc60604dfeffab86d29c`. Its runtime version rema
 It sends the DOT through the `GRAPHVIZ` service binding to the shared
 GraphViz-Wasm Worker.
 
+## License scope
+
+The vendored WireViz implementation is GPL-3.0-only. This Worker imports and
+executes that implementation in the same Python program, so the deployable
+WireViz unit is distributed as a GPL-3.0-only combined work. DiagramZip code
+outside this unit remains under its own applicable license. The HTTP service
+binding to the separately deployed GraphViz Worker does not place that Worker
+inside this combined Python program.
+
+The complete unit source is this directory, including `src/`, `pyproject.toml`,
+`uv.lock`, `pylock.toml`, `wrangler.jsonc`, and the build/deployment commands
+below. The full GPL text and exact upstream revision are recorded in
+`vendor-licenses/WireViz-LICENSE` and `THIRD_PARTY_NOTICES.md`.
+
 The Python `graphviz` package and external `dot` executable are intentionally absent. `src/graphviz.py` is the small DOT-builder interface required by WireViz.
 
 The edge contract supports SVG only. Filesystem/remote images, `tweak.append`, and `tweak.override` are rejected. BOM and HTML sidecars are not part of the rendering contract.

@@ -9,6 +9,7 @@ returns the SVG to the parent frame. It has no server-side or Fly fallback.
 
 - Package: `@planktimerr/tikzjax@1.0.63`
 - Source: https://github.com/maker-jr/tikzjax
+- Source revision: `e4bb417fe574f58f6db611cefc6be4855ab9d345`
 - Original project: https://github.com/kisonecat/tikzjax
 - Package tarball: `@planktimerr/tikzjax@1.0.63`
 - npm integrity: `sha512-W46i6+CZKPJ4P/08bQ/iCp8Vy0tof8hCaXGWrMetZ5DJPpkERaiW0r0L3jmUpFB1SWhNvp/uKaXAAMmDET3BKw==`
@@ -21,6 +22,20 @@ returns the SVG to the parent frame. It has no server-side or Fly fallback.
 The source package declares GPL-3.0+. Its upstream TeX/TikZ components are
 distributed under LPPL-1.3c. The applicable notices are vendored in
 `vendor-licenses/`.
+
+## Distributed source and licenses
+
+The browser unit is a GPL-3.0-or-later distribution. Its build modifies the
+pinned `tikzjax.js` asset to disable persistent browser storage, then executes
+it with the DiagramZip frame adapter. `npm run build` therefore publishes:
+
+- `/SOURCE.md` with the pinned upstream revision, tarball, integrity, and build description;
+- `/source/tikzjax-1.0.63.js`, the exact unmodified input to the storage patch;
+- `/source/build.mjs` and `/source/frame.js`, the build and adapter sources; and
+- `/licenses/`, containing GPL-3.0, LPPL-1.3c, and the DiagramZip MIT terms.
+
+These files are served beside the browser scripts so recipients can retrieve
+the corresponding source and applicable terms from the same renderer origin.
 
 ## Security and limits
 

@@ -32,4 +32,18 @@ for (const marker of ['diagram.zip:renderer:v1', 'MAX_SOURCE_LENGTH', 'MAX_OUTPU
 const headers = await readFile(new URL('../unit/_headers', import.meta.url), 'utf8')
 if (!headers.includes('Access-Control-Allow-Origin: *')) throw new Error('TikZ assets must allow the unique-origin worker to fetch the bundled files.')
 
+for (const path of [
+  '../dist/SOURCE.md',
+  '../dist/licenses/GPL-3.0.txt',
+  '../dist/licenses/LPPL-1.3c.txt',
+  '../dist/licenses/DiagramZip-MIT.txt',
+  '../dist/source/build.mjs',
+  '../dist/source/frame.js',
+  '../dist/source/tikzjax-1.0.63.js',
+]) await readFile(new URL(path, import.meta.url))
+
+const originalTikzJax = await readFile(new URL('../assets/tikzjax.js', import.meta.url))
+const distributedSource = await readFile(new URL('../dist/source/tikzjax-1.0.63.js', import.meta.url))
+if (!originalTikzJax.equals(distributedSource)) throw new Error('The published TikZJax source input is not exact.')
+
 console.log('TikZJax asset and protocol checks passed')

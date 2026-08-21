@@ -91,6 +91,8 @@ class Default(WorkerEntrypoint):
                 'unit': UNIT_ID, 'id': UNIT_ID, 'kind': 'translate', 'format': 'svg',
                 'runtime': 'edge-python', 'version': WIREVIZ_VERSION,
                 'build': self.env.RENDERER_BUILD, 'pipeline': [UNIT_ID, 'graphviz-family', 'graphviz'],
+                'license': 'GPL-3.0-only',
+                'source': 'https://github.com/FelineStateMachine/diagramzip/tree/main/renderers/python/wireviz-translator',
                 'knownLosses': [
                     'Only SVG is supported; BOM and HTML sidecars are not exposed.',
                     'Filesystem and remote images are rejected.',
