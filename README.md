@@ -16,7 +16,7 @@
 | `diagramzip-svg/` | Shared SVG normalization and presentation logic |
 | `skills/` | Diagram-specific agent skills and reference material |
 
-The remaining top-level renderer and Java gateway directories are retained foundation sources while renderer extraction is completed. They are not the production application architecture.
+Some top-level renderer directories retain foundation sources used to build the isolated units. The production application and renderer plane run on Cloudflare; there is no JVM gateway or shared rendering server.
 
 ## Development
 

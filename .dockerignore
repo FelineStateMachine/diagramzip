@@ -1,9 +1,0 @@
-**
-!Dockerfile.fly
-!package.json
-!package-lock.json
-!pom.xml
-!diagramzip/**
-!ci/tests/diagrams/**
-!server/pom.xml
-!server/src/**

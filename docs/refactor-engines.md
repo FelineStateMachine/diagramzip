@@ -210,7 +210,7 @@ The unit does not add a TikZ editor or viewer. The diagram.zip viewer displays t
 
 ## Fly.io removal boundary
 
-The main Fly.io application can continue to serve the diagram.zip web application during a separate hosting migration. It is not a renderer dependency.
+DiagramZip runs on Cloudflare and the repository contains no Fly.io application or renderer configuration. Fly.io is not a runtime, deployment, or fallback dependency.
 
 The renderer extraction is complete only when all of these statements are true:
 
