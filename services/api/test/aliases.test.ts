@@ -358,7 +358,7 @@ describe('open aliases', () => {
     expect(raw.status).toBe(200)
     expect(framed.status).toBe(200)
     expect(framed.headers.get('X-Diagram-Appearance')).toBe('dark-framed')
-    expect(framed.headers.get('X-SVG-Materializer')).toBe('svg-materializer-1')
+    expect(framed.headers.get('X-SVG-Materializer')).toBe('svg-materializer-2')
     expect(framed.headers.get('X-SVG-Palette')).toBe('diagramzip-palette-1')
     expect(framed.headers.get('ETag')).not.toBe(raw.headers.get('ETag'))
     const framedSvg = await framed.text()

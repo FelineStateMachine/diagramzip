@@ -10,7 +10,7 @@ const SAFE_DATA_FONT = /^data:(?:font\/(?:woff2?|opentype|truetype)|application\
 
 export const SVG_SCHEMA = '1'
 export const NORMALIZER_BUILD = 'svg-normalizer-2'
-export const MATERIALIZER_BUILD = 'svg-materializer-1'
+export const MATERIALIZER_BUILD = 'svg-materializer-2'
 export const PALETTE_BUILD = 'diagramzip-palette-1'
 export const RAW_PROFILE = 'safe-raw-1'
 export const APPEARANCES = Object.freeze([
@@ -443,6 +443,7 @@ function lineEndpoints(node) {
 }
 
 function addSvgbobObjectSurfaces(root) {
+  const additions = []
   const visit = node => {
     if (node.type === 'text') return
     if (node.children.some(child => child.type !== 'text' && child.attributes.get('data-dz-owned') === 'normalizer')) return
@@ -451,7 +452,7 @@ function addSvgbobObjectSurfaces(root) {
     const horizontal = lines.filter(([x1, y1, x2, y2]) => y1 === y2 && x1 !== x2)
     const key = values => values.join(',')
     const horizontalKeys = new Set(horizontal.map(([x1, y1, x2]) => key([Math.min(x1, x2), y1, Math.max(x1, x2)])))
-    const additions = []
+    const nodeAdditions = []
     for (let first = 0; first < vertical.length; first++) {
       const [leftX, firstY1, , firstY2] = vertical[first]
       const top = Math.min(firstY1, firstY2)
@@ -462,16 +463,24 @@ function addSvgbobObjectSurfaces(root) {
         const minX = Math.min(leftX, rightX)
         const maxX = Math.max(leftX, rightX)
         if (!horizontalKeys.has(key([minX, top, maxX])) || !horizontalKeys.has(key([minX, bottom, maxX]))) continue
-        additions.push(element('rect', [
+        nodeAdditions.push(element('rect', [
           ['x', String(minX)], ['y', String(top)], ['width', String(maxX - minX)], ['height', String(bottom - top)],
           ['fill', 'none'], ['data-dz-owned', 'normalizer'], ['data-dz-role', 'object-surface'], ['data-dz-fill', 'surface-1'],
         ]))
       }
     }
-    if (additions.length > 0) node.children.unshift(...additions)
+    if (nodeAdditions.length > 0) {
+      const transform = node.attributes.get('transform')
+      additions.push(...nodeAdditions.map(surface => transform
+        ? element('g', [['transform', transform], ['data-dz-owned', 'normalizer']], [surface])
+        : surface))
+    }
     for (const child of node.children) visit(child)
   }
   visit(root)
+  // The renderer may emit labels before the line group that defines their box.
+  // Keep inferred surfaces in a root-level underlay so they cannot cover text.
+  root.children.unshift(...additions)
 }
 
 function applySvgbobProfile(root) {
@@ -495,6 +504,23 @@ function applySvgbobProfile(root) {
 
 function applyPlantumlProfile(root, engine) {
   applyNeutralSvgProfile(root, 'plantuml', ['#e2e2f0', '#f1f1f1'])
+  const markActorHeads = node => {
+    if (node.type === 'text') return
+    const children = node.children.filter(child => child.type !== 'text')
+    for (let index = 0; index < children.length - 1; index++) {
+      const head = children[index]
+      const body = children[index + 1]
+      if (localName(head) === 'circle'
+        && numericCoordinate(head.attributes.get('r')) === 8
+        && localName(body) === 'path'
+        && transparentPaint(ownPaint(body, 'fill'))
+        && ((body.attributes.get('d') ?? '').match(/\bL\b|L(?=[\d.-])/g) ?? []).length >= 4) {
+        head.attributes.set('data-dz-fill', 'none')
+      }
+    }
+    for (const child of node.children) markActorHeads(child)
+  }
+  markActorHeads(root)
   if (engine !== 'c4plantuml') return
   const c4Accent = new Set(['#08427b', '#1168bd'])
   const visit = node => {
@@ -526,7 +552,7 @@ function applyGoatProfile(root) {
       node.attributes.set('data-dz-stroke', 'line')
     }
     if (classes.has('hollow')) {
-      node.attributes.set('data-dz-fill', 'surface-1')
+      node.attributes.set('data-dz-fill', 'none')
       node.attributes.set('data-dz-stroke', 'line')
     }
     for (const child of node.children) visit(child)
@@ -555,10 +581,6 @@ function applyVegaProfile(root) {
 
 function applyWavedromProfile(root) {
   applyNeutralSvgProfile(root, 'wavedrom')
-  const accentClasses = new Map([
-    ['s8', 'accent-3'], ['s9', 'accent-3'], ['s10', 'accent-1'], ['s11', 'accent-1'],
-    ['s12', 'accent-2'], ['s13', 'accent-2'], ['s14', 'accent-3'], ['s15', 'accent-1'],
-  ])
   const visit = node => {
     if (node.type === 'text') return
     const classes = classNames(node)
@@ -570,7 +592,8 @@ function applyWavedromProfile(root) {
     if ([...classes].some(value => ['s1', 's2', 's3', 's4'].includes(value))) node.attributes.set('data-dz-stroke', 'line')
     if (classes.has('s5') || classes.has('s7')) node.attributes.set('data-dz-fill', 'surface-1')
     if (classes.has('s6')) node.attributes.set('data-dz-fill', 'line')
-    for (const [className, role] of accentClasses) if (classes.has(className)) node.attributes.set('data-dz-fill', role)
+    // s8-s15 are authored categorical values. Preserve their renderer colors
+    // instead of collapsing eight distinct values into three shared accents.
     if (classes.has('s16')) node.attributes.set('data-dz-stroke', 'accent-1')
     for (const child of node.children) visit(child)
   }
@@ -879,7 +902,7 @@ function materializerCss(appearance) {
   const variables = automatic
     ? `:root{${paletteVariables(LIGHT_PALETTE)}}@media(prefers-color-scheme:dark){:root{${paletteVariables(DARK_PALETTE)}}}`
     : `:root{${paletteVariables(scheme)}}`
-  return `${variables}[data-dz-role="canvas"]:not([data-dz-owned="materializer"]){display:none!important}[data-dz-fill="surface-1"]{fill:var(--dz-surface-1)!important}[data-dz-fill="surface-2"]{fill:var(--dz-surface-2)!important}[data-dz-fill="surface-3"]{fill:var(--dz-surface-3)!important}[data-dz-fill="ink"]{fill:var(--dz-ink)!important;color:var(--dz-ink)!important}[data-dz-fill="ink-muted"]{fill:var(--dz-ink-muted)!important;color:var(--dz-ink-muted)!important}[data-dz-fill="line"]{fill:var(--dz-line)!important}[data-dz-fill="accent-1"]{fill:var(--dz-accent-1)!important}[data-dz-fill="accent-2"]{fill:var(--dz-accent-2)!important}[data-dz-fill="accent-3"]{fill:var(--dz-accent-3)!important}[data-dz-fill="on-accent"]{fill:var(--dz-on-accent)!important;color:var(--dz-on-accent)!important}[data-dz-stroke="line"]{stroke:var(--dz-line)!important}[data-dz-stroke="line-muted"]{stroke:var(--dz-line-muted)!important}[data-dz-stroke="accent-1"]{stroke:var(--dz-accent-1)!important}[data-dz-stroke="accent-2"]{stroke:var(--dz-accent-2)!important}[data-dz-stroke="accent-3"]{stroke:var(--dz-accent-3)!important}`
+  return `${variables}[data-dz-role="canvas"]:not([data-dz-owned="materializer"]){display:none!important}[data-dz-fill="none"]{fill:none!important}[data-dz-fill="surface-1"]{fill:var(--dz-surface-1)!important}[data-dz-fill="surface-2"]{fill:var(--dz-surface-2)!important}[data-dz-fill="surface-3"]{fill:var(--dz-surface-3)!important}[data-dz-fill="ink"]{fill:var(--dz-ink)!important;color:var(--dz-ink)!important}[data-dz-fill="ink-muted"]{fill:var(--dz-ink-muted)!important;color:var(--dz-ink-muted)!important}[data-dz-fill="line"]{fill:var(--dz-line)!important}[data-dz-fill="accent-1"]{fill:var(--dz-accent-1)!important}[data-dz-fill="accent-2"]{fill:var(--dz-accent-2)!important}[data-dz-fill="accent-3"]{fill:var(--dz-accent-3)!important}[data-dz-fill="on-accent"]{fill:var(--dz-on-accent)!important;color:var(--dz-on-accent)!important}[data-dz-stroke="line"]{stroke:var(--dz-line)!important}[data-dz-stroke="line-muted"]{stroke:var(--dz-line-muted)!important}[data-dz-stroke="accent-1"]{stroke:var(--dz-accent-1)!important}[data-dz-stroke="accent-2"]{stroke:var(--dz-accent-2)!important}[data-dz-stroke="accent-3"]{stroke:var(--dz-accent-3)!important}`
 }
 
 function canonicalBounds(root) {

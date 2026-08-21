@@ -1,6 +1,6 @@
 export const SVG_SCHEMA: '1'
 export const NORMALIZER_BUILD: 'svg-normalizer-2'
-export const MATERIALIZER_BUILD: 'svg-materializer-1'
+export const MATERIALIZER_BUILD: 'svg-materializer-2'
 export const PALETTE_BUILD: 'diagramzip-palette-1'
 export const RAW_PROFILE: 'safe-raw-1'
 export const APPEARANCES: readonly [

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {fitView, zoomView} from '../src/components/DiagramExample/viewMath.mjs';
 import {clientFrameUrlFor, httpRendererUrlFor} from '../src/components/DiagramExample/rendererRouting.mjs';
+import {canonicalizeHttpRendererSvg, rendererVersionFromHeaders} from '../src/components/DiagramExample/httpSvg.mjs';
+import {materializeSvg} from '../../../shared/svg/index.js';
 
 test('routes client examples to their isolated renderer frame', () => {
   assert.equal(clientFrameUrlFor('tikz'), 'https://tikz.render.diagram.zip/index.html?v=1');
@@ -10,6 +12,20 @@ test('routes client examples to their isolated renderer frame', () => {
 
 test('routes HTTP examples to their dedicated renderer unit', () => {
   assert.equal(httpRendererUrlFor('graphviz'), 'https://graphviz.render.diagram.zip/v1/svg');
+});
+
+test('canonicalizes raw HTTP renderer SVG before docs appearance materialization', () => {
+  const headers = new Headers({
+    'X-Diagram-Engine-Version': '3.4.2',
+    'X-Renderer-Build': 'blockdiag-3.4.2-family-python-1',
+  });
+  const raw = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 20"><rect x="2" y="2" width="36" height="16" fill="white" stroke="black"></rect><text x="8" y="14" fill="black">block</text></svg>';
+  const canonical = canonicalizeHttpRendererSvg(raw, 'blockdiag', headers);
+
+  assert.equal(rendererVersionFromHeaders(headers), '3.4.2 blockdiag-3.4.2-family-python-1');
+  assert.match(canonical, /data-dz-schema="1"/);
+  assert.match(canonical, /data-dz-profile="neutral-svg-semantic-2"/);
+  assert.match(materializeSvg(canonical, 'auto-transparent'), /data-dz-appearance="auto-transparent"/);
 });
 
 test('fits a wide diagram without assuming a fixed aspect ratio', () => {

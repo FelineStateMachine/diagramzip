@@ -214,6 +214,7 @@ colors. The minimum role vocabulary is:
 | Role | Meaning |
 | --- | --- |
 | `canvas` | Framed diagram backdrop |
+| `none` | Deliberately hollow or unpainted interior |
 | `surface-1` | Ordinary node or object surface |
 | `surface-2` | Container, group, pool, cluster, or section surface |
 | `surface-3` | Nested, elevated, note, header, or callout surface |

@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {canonicalizeSvg, materializeSvg, supportedAppearances} from '../../../../../shared/svg/index.js';
+import {canonicalizeHttpRendererSvg} from './httpSvg.mjs';
 import {fitView, zoomView} from './viewMath.mjs';
 import {clientFrameUrlFor, httpRendererUrlFor} from './rendererRouting.mjs';
 import styles from './styles.module.css';
@@ -190,7 +191,7 @@ export default function DiagramExample({engine, label, sourceUrl}) {
             signal: abortController.signal,
           });
           if (!renderResponse.ok) throw new Error(await responseError(renderResponse));
-          source = await renderResponse.text();
+          source = canonicalizeHttpRendererSvg(await renderResponse.text(), engine, renderResponse.headers);
         }
         const appearances = supportedAppearances(source);
         const appearance = appearances.includes('auto-transparent')

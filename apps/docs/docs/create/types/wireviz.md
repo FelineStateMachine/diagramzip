@@ -37,6 +37,7 @@ connectors:
 cables:
   W1:
     wirecount: 2
+    colors: [BK, RD]
 connections:
   - - X1: [1, 2]
     - W1: [1, 2]

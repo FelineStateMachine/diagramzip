@@ -1,5 +1,5 @@
 {
   "engine": "wireviz",
-  "source": "connectors:\n  X1:\n    type: Molex\n    pinlabels: [GND, DATA]\ncables:\n  W1:\n    wirecount: 2\nconnections:\n  - - X1: [1, 2]\n    - W1: [1, 2]",
+  "source": "connectors:\n  X1:\n    type: Molex\n    pinlabels: [GND, DATA]\ncables:\n  W1:\n    wirecount: 2\n    colors: [BK, RD]\nconnections:\n  - - X1: [1, 2]\n    - W1: [1, 2]",
   "sourceKind": "page-example"
 }

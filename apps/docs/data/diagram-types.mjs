@@ -456,7 +456,7 @@ export const diagramTypes = [
     use: 'Use WireViz to document cable assemblies, pins, wire colors, gauges, and connector mappings.',
     syntax: ['Declare connectors in the `connectors` map.', 'Declare cables in the `cables` map.', 'Put wiring paths in the `connections` list.', 'Use matching pin and wire lists for grouped connections.'],
     language: 'yaml',
-    example: ['connectors:', '  X1:', '    type: Molex', '    pinlabels: [GND, DATA]', 'cables:', '  W1:', '    wirecount: 2', 'connections:', '  - - X1: [1, 2]', '    - W1: [1, 2]'],
+    example: ['connectors:', '  X1:', '    type: Molex', '    pinlabels: [GND, DATA]', 'cables:', '  W1:', '    wirecount: 2', '    colors: [BK, RD]', 'connections:', '  - - X1: [1, 2]', '    - W1: [1, 2]'],
     styleSummary: 'WireViz uses YAML properties for connector, cable, wire, and output styles.',
     sourceStyle: ['Set connector and cable colors in their YAML definitions.', 'Use pin labels and wire colors to improve identification.', 'Use WireViz metadata and output settings only when the renderer supports them.'],
     rendererOptions: [],

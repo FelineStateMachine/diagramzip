@@ -91,7 +91,7 @@ test('materializes explicit and automatic palettes without changing diagram geom
   const automatic = materializeSvg(semanticCanonical, 'auto-transparent')
 
   for (const output of [light, dark, automatic]) {
-    assert.match(output, /data-dz-materializer="svg-materializer-1"/)
+    assert.match(output, /data-dz-materializer="svg-materializer-2"/)
     assert.match(output, /data-dz-palette="diagramzip-palette-1"/)
     assert.match(output, /<rect x="1" y="1" width="8" height="8"/)
     assert.doesNotMatch(output, /<(?:rect|path|polygon)[^>]*data-dz-role="canvas"/)
@@ -276,6 +276,39 @@ test('creates addressable surfaces for closed Pikchr and line-built Svgbob boxes
   assert.match(svgbob, /data-dz-owned="normalizer" data-dz-role="object-surface" data-dz-fill="surface-1"/)
   assert.equal((svgbob.match(/data-dz-role="object-surface"/g) ?? []).length, 1)
   assert.equal(canonicalizeSvg(svgbob, metadata, 'svgbob', 'svgbob@0.7.6/edge-wasm-1'), svgbob)
+
+  const labeled = canonicalizeSvg(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30" class="svgbob"><text x="8" y="16">User</text><g><line x1="4" y1="4" x2="24" y2="4" class="solid"></line><line x1="4" y1="4" x2="4" y2="24" class="solid"></line><line x1="24" y1="4" x2="24" y2="24" class="solid"></line><line x1="4" y1="24" x2="24" y2="24" class="solid"></line></g></svg>',
+    metadata, 'svgbob', 'svgbob@0.7.6/edge-wasm-1',
+  )
+  assert.ok(labeled.indexOf('data-dz-role="object-surface"') < labeled.indexOf('>User</text>'))
+})
+
+test('keeps hollow semantic markers unpainted in themed appearances', () => {
+  const plantuml = canonicalizeSvg(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80"><g><circle fill="#E2E2F0" stroke="#181818" r="8" cx="50" cy="10"></circle><path fill="#00000000" stroke="#181818" d="M50,18 L50,45 M37,26 L63,26 M50,45 L37,60 M50,45 L63,60"></path></g></svg>',
+    metadata, 'plantuml', 'plantuml@1.2026.6/edge-wasm-1',
+  )
+  const goat = canonicalizeSvg(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><circle class="hollow" cx="10" cy="10" r="6"></circle></svg>',
+    metadata, 'goat', 'goat@0.5.1/edge-wasm-1',
+  )
+  for (const canonical of [plantuml, goat]) {
+    assert.match(canonical, /data-dz-fill="none"/)
+    assert.match(materializeSvg(canonical, 'dark-transparent'), /\[data-dz-fill="none"\]\{fill:none!important\}/)
+  }
+})
+
+test('preserves WaveDrom authored categorical colors', () => {
+  const canonical = canonicalizeSvg(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 20"><style>.s8{fill:#ffe0b9}.s9{fill:#ffc0a0}</style><path class="s8" d="M0 0H20V20H0Z"></path><path class="s9" d="M20 0H40V20H20Z"></path></svg>',
+    metadata, 'wavedrom', 'wavedrom@3.6.2',
+  )
+  assert.doesNotMatch(canonical.match(/<path class="s8"[^>]*>/)?.[0] ?? '', /data-dz-fill/)
+  assert.doesNotMatch(canonical.match(/<path class="s9"[^>]*>/)?.[0] ?? '', /data-dz-fill/)
+  const themed = materializeSvg(canonical, 'dark-transparent')
+  assert.match(themed, /\.s8\{fill:#ffe0b9\}/)
+  assert.match(themed, /\.s9\{fill:#ffc0a0\}/)
 })
 
 test('resolves text against normalized light surfaces and C4 accents', () => {
