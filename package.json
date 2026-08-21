@@ -17,9 +17,9 @@
     "check:diagramzip-docs": "npm --prefix diagramzip-docs run check",
     "build:diagramzip-docs": "npm --prefix diagramzip-docs run build",
     "dev:diagramzip": "vite --config diagramzip/vite.config.js",
-    "test": "node --test-force-exit ci/tests/smoke.js",
+    "test": "npm run test:diagramzip && npm test --prefix diagramzip-api && npm test --prefix diagramzip-render && npm test --prefix diagramzip-shell",
     "test:diagramzip": "node --test diagramzip/test/*.test.js",
-    "update-versions": "node ci/tasks/update-versions.js"
+    "test:workers": "npm test --prefix diagramzip-api && npm test --prefix diagramzip-render && npm test --prefix diagramzip-shell"
   },
   "volta": {
     "node": "24.19.0"

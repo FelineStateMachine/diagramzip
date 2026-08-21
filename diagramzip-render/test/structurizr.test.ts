@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { lowerStructurizr, parseStructurizr } from '../src/structurizr'
-import awsSource from '../../server/src/test/resources/aws.structurizr?raw'
-import bigbankSource from '../../server/src/test/resources/bigbank.structurizr?raw'
-import docsSource from '../../server/src/test/resources/docs.structurizr?raw'
-import gettingStartedSource from '../../server/src/test/resources/gettingstarted.structurizr?raw'
-import scriptSource from '../../server/src/test/resources/script.structurizr?raw'
+import awsSource from './fixtures/structurizr/aws.structurizr?raw'
+import bigbankSource from './fixtures/structurizr/bigbank.structurizr?raw'
+import docsSource from './fixtures/structurizr/docs.structurizr?raw'
+import gettingStartedSource from './fixtures/structurizr/gettingstarted.structurizr?raw'
+import scriptSource from './fixtures/structurizr/script.structurizr?raw'
 
 const fixtures = {
   'aws.structurizr': awsSource,

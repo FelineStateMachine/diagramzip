@@ -51,23 +51,18 @@ route, so use the CPython six-engine fixture suite locally and smoke all six
 real hostnames after deployment. Do not treat a local `Host` header as proof
 of per-host dispatch.
 
-## Parity and Java reference procedure
+## Upstream parity reference
 
-The legacy Kroki image is a reference only. Run it through Docker. Do not
-install Java or run Maven on the host:
+When an upstream comparison is needed, run the tagged Kroki image directly.
+It is an external reference and is not part of DiagramZip's build or runtime:
 
 ```sh
 docker run --rm -p 8000:8000 yuzutech/kroki:0.32.1
 ```
 
-Send the same fixtures to the Docker reference and to the Worker development
+Send the same fixtures to the reference image and to the Worker development
 port, then compare structural SVG coverage and record engine-specific losses.
-Pixel equality is not a gate for this extraction. The repository's broader
-Docker smoke stack is available with:
-
-```sh
-docker compose -f ../../ci/tests/docker-compose.yaml up --abort-on-container-exit
-```
+Pixel equality is not a gate for this extraction.
 
 Pinned upstream revisions and their licenses are recorded in
 `THIRD_PARTY_NOTICES.md` and `uv.lock`.

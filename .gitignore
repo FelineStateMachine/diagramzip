@@ -1,10 +1,6 @@
 .DS_store
-target/
 /.registry/oci/*
-*.iml
-.vertx/
 **/node_modules/
-dependency-reduced-pom.xml
 .idea
 **/.vscode
 .nzip-*/

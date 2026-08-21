@@ -7,6 +7,7 @@ All notable DiagramZip changes are documented in this file. The project follows 
 ### Changed
 
 - Establish DiagramZip as an independent repository, package, and hosted project.
+- Remove the inherited Maven/Vert.x gateway and its Docker, Fly.io, Antora, and smoke-test infrastructure now that the Cloudflare architecture is complete.
 
 ## [0.1.0] - 2026-08-20
 
