@@ -21,7 +21,7 @@
   --syntax-variable: #222222;
   --preview-bg: #ffffff;
   --preview-light-bg: #f8fafc;
-  --preview-dark-bg: #0f172a;
+  --preview-dark-bg: #000000;
   --preview-auto-bg: var(--preview-light-bg);
   --preview-dot-light: rgba(15, 23, 42, .16);
   --preview-dot-dark: rgba(203, 213, 225, .32);
