@@ -51,6 +51,7 @@ const sharedUnits = {
 const pythonEngines = new Set(['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag'])
 const graphvizEngines = new Set(['graphviz', 'erd'])
 const pikchrEngines = new Set(['pikchr'])
+const svgbobEngines = new Set(['svgbob'])
 const wirevizEngines = new Set(['wireviz'])
 
 async function smoke([engine, filename]) {
@@ -109,6 +110,14 @@ async function smoke([engine, filename]) {
     }
     if (!response.headers.get('X-Renderer-Build')?.startsWith('pikchr-85e65b9686-edge-wasm-')) {
       throw new Error(`${engine}: unexpected Pikchr Worker build ${response.headers.get('X-Renderer-Build')}`)
+    }
+  }
+  if (svgbobEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-wasm') {
+      throw new Error(`${engine}: expected edge-wasm renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    }
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('svgbob-0.7.6-edge-wasm-')) {
+      throw new Error(`${engine}: unexpected Svgbob Worker build ${response.headers.get('X-Renderer-Build')}`)
     }
   }
   if (wirevizEngines.has(engine)) {

@@ -23,7 +23,7 @@ test('requires every migrated engine to stay on its dedicated runtime', () => {
     'mermaid', 'bpmn', 'excalidraw',
     'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
     'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
-    'graphviz', 'erd', 'pikchr', 'wireviz',
+    'graphviz', 'erd', 'pikchr', 'svgbob', 'wireviz',
   ]) {
     assert.equal(requiresDedicatedRenderer(engine), true)
   }

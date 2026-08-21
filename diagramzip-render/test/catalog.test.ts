@@ -41,6 +41,12 @@ describe('engine catalog', () => {
     expect(pikchr.version).toContain('pikchr@85e65b9686')
   })
 
+  it('marks Svgbob as a dedicated edge-Wasm unit', () => {
+    const svgbob = ENGINE_CATALOG.find(engine => engine.id === 'svgbob')!
+    expect(svgbob.activeRuntime).toBe('edge-wasm')
+    expect(svgbob.version).toContain('svgbob@0.7.6')
+  })
+
   it('does not retain a silent origin fallback for any engine', () => {
     for (const engine of ENGINE_CATALOG) {
       if (engine.activeRuntime === 'origin') expect(engine.version).toBe('compatibility-origin')

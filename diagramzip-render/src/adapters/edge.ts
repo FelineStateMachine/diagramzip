@@ -3,6 +3,7 @@ import { bytefieldAdapter } from './edge/bytefield'
 import { erdAdapter } from './edge/erd'
 import { graphvizAdapter } from './edge/graphviz'
 import { nomnomlAdapter } from './edge/nomnoml'
+import { svgbobAdapter } from './edge/svgbob'
 import { vegaAdapter } from './edge/vega'
 import { vegaliteAdapter } from './edge/vegalite'
 import { wavedromAdapter } from './edge/wavedrom'
@@ -13,6 +14,7 @@ const adapters: Record<EdgeEngineId, RendererAdapter> = {
   erd: erdAdapter,
   graphviz: graphvizAdapter,
   nomnoml: nomnomlAdapter,
+  svgbob: svgbobAdapter,
   vega: vegaAdapter,
   vegalite: vegaliteAdapter,
   wavedrom: wavedromAdapter,
