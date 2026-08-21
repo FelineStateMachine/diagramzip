@@ -84,26 +84,11 @@ export function normalizePresentation(presentation = {}) {
   return { background, padding, frame, appearance }
 }
 
-function hasMetadata(meta) {
-  return Boolean(meta.title || meta.description)
-}
-
-function hasPresentation(presentation) {
-  return Boolean(presentation.background || presentation.padding || presentation.frame || presentation.appearance !== 'raw')
-}
-
-export function imageUrl(origin, { type, source, options = {}, meta = {}, presentation = {} }) {
-  const url = new URL(`/${encodeURIComponent(type)}/svg/${encodeText(source)}`, origin)
-  for (const [name, value] of Object.entries(options)) {
-    url.searchParams.set(name, String(value))
+export function packedSvgUrl(origin, source) {
+  if (typeof source !== 'string' || !source.startsWith('<svg')) throw new Error('Packed SVG must be a complete SVG document.')
+  const url = new URL(`/svg/${encodeText(source)}`, origin).toString()
+  if (url.length > MAX_IMAGE_URL_LENGTH) {
+    throw new Error('This diagram is too large for a packed SVG URL. Save it as a file or publish it instead.')
   }
-  const normalizedMeta = normalizeMetadata(meta)
-  const normalizedPresentation = normalizePresentation(presentation)
-  if (hasMetadata(normalizedMeta) || hasPresentation(normalizedPresentation)) {
-    const payload = {}
-    if (hasMetadata(normalizedMeta)) payload.meta = normalizedMeta
-    if (hasPresentation(normalizedPresentation)) payload.presentation = normalizedPresentation
-    url.searchParams.set('dz', encodeText(JSON.stringify(payload)))
-  }
-  return url.toString()
+  return url
 }

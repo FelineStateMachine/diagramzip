@@ -76,5 +76,11 @@ when the server copy requires password protection. Both actions opt into server
 persistence.
 
 Use an edit link when people must save changes. The Share menu also provides
-**Copy SVG URL** and **Copy as Markdown** for image embeds. Read [Share a
-diagram](/collaboration/sharing/) before you send an edit link.
+**Copy SVG URL** and **Copy as Markdown** for image embeds. Anonymous drafts use
+a self-contained packed SVG URL; published diagrams use their stable alias
+render. Read [Share a diagram](/collaboration/sharing/) before you send an edit
+link.
+
+The save dropdown selects **Publish**, **Encrypt & Publish**, or **Save as File**
+as the main button action. Selecting an action does not run it. Copy actions in
+the dropdown run immediately.

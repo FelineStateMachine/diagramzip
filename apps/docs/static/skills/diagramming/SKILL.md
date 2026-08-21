@@ -44,6 +44,12 @@ Anonymous drafts default to local work. Recommend **Save as File** for a
 portable editable SVG. Recommend **Publish** or **Encrypt & Publish** only when
 the user wants server persistence or a share alias.
 
+For an image link without persistence, **Copy SVG URL** or **Copy as Markdown**
+packs the editable SVG into a self-contained URL. Published open aliases use
+their stable render URL instead. Packed links expose the embedded source and
+metadata to anyone who has the URL; use a file or alias when the packed URL is
+too large, and do not suggest public embeds for locked diagrams.
+
 ## Prior art and standards
 
 Use the [OMG UML specification](https://www.omg.org/spec/UML), [OMG BPMN specification](https://www.omg.org/spec/BPMN/2.0.2/), [C4 notation](https://c4model.com/diagrams/notation), and other authoritative references linked by the selected semantic skill when formal conformance matters. Treat these as guidance for meaning and notation, not as permission to invent unsupported renderer features.

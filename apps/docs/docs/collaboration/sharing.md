@@ -15,8 +15,11 @@ The Share menu contains these actions:
 - **Publish** creates or updates an open server alias.
 - **Encrypt & Publish** creates or updates a password-protected server alias.
 - **Save as File** downloads an editable enriched SVG without server persistence.
-- **Copy SVG URL** copies an image URL for an open published alias.
-- **Copy as Markdown** copies a Markdown image using that SVG URL.
+- **Copy SVG URL** copies the stable render URL for an open published alias. For
+  an anonymous draft, it copies a self-contained URL with the editable SVG data
+  packed into the URL itself.
+- **Copy as Markdown** copies a Markdown image using the same stable or packed
+  SVG URL.
 
 Lock, password change, and password removal actions stay beside the content
 they affect. Save as File is available for a local draft and does not require
@@ -97,14 +100,22 @@ The editor does not overwrite a newer published revision without your choice.
 
 ## Embeds
 
-The Share dialog provides an SVG image link and a Markdown image link for an
-open published diagram. These links point to the published render.
+The Share dialog provides an SVG image link and a Markdown image link without
+requiring publication. An open published alias uses its stable server render.
+An anonymous draft uses a compressed, self-contained editable SVG URL and does
+not create server state.
+
+Packed URLs contain the rendered SVG, diagram source, options, metadata, and
+presentation settings. Anyone with the URL can inspect that content and reopen
+it as an editable SVG. Do not use a packed URL for secrets. Diagram.zip rejects
+a copy when the complete URL would exceed the safe request limit. Save the
+editable SVG as a file or publish it instead.
 
 Locked diagrams cannot be embedded. An embed request cannot ask for a password,
 so the server does not return encrypted diagram renders as public images.
 
-Publish the diagram again before you share if the Share dialog says that the
-links show an older published version.
+Publish the diagram again before you share if the Share dialog says that an
+alias link shows an older published version.
 
 ## Importing an editable SVG
 

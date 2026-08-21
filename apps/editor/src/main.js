@@ -14,6 +14,7 @@ import {
   documentTitle,
   normalizeMetadata,
   normalizePresentation,
+  packedSvgUrl,
 } from './state.js'
 import {
   aliasIdFromPath,
@@ -103,7 +104,7 @@ document.querySelector('#app').innerHTML = `
             <button class="save-menu-toggle" id="save-menu-toggle" type="button" popovertarget="save-menu" aria-label="Choose save action" title="Choose save action">⌄</button>
             <div class="action-menu save-action-menu" id="save-menu" popover>
               <button type="button" data-primary-save="publish">Publish</button>
-              <button type="button" data-save-quick-action="encrypt-publish">Encrypt &amp; Publish</button>
+              <button type="button" data-primary-save="encrypt-publish">Encrypt &amp; Publish</button>
               <button type="button" data-primary-save="file">Save as File</button>
               <button type="button" data-save-quick-action="svg-url">Copy SVG URL</button>
               <button type="button" data-save-quick-action="markdown">Copy as Markdown</button>
@@ -766,7 +767,10 @@ function selectedSaveAction() {
 }
 
 async function performPrimarySaveAction() {
-  return selectedSaveAction() === 'publish' ? saveDiagram() : saveEditableFile()
+  const action = selectedSaveAction()
+  if (action === 'publish') return saveDiagram()
+  if (action === 'encrypt-publish') return encryptAndPublish()
+  return saveEditableFile()
 }
 
 async function saveEditableFile() {
@@ -896,8 +900,9 @@ function populateShareDialog() {
     : hasAlias
       ? 'This device has read-only access. Publish a copy to create a new edit link.'
       : 'The edit link is a bearer credential and appears after publishing.'
-  document.querySelector('[data-share-action="svg-url"]').disabled = !svgLink
-  document.querySelector('[data-share-action="markdown"]').disabled = !svgLink
+  const embedAvailable = hasAlias ? Boolean(svgLink) : remote.mode !== 'locked'
+  document.querySelector('[data-share-action="svg-url"]').disabled = !embedAvailable
+  document.querySelector('[data-share-action="markdown"]').disabled = !embedAvailable
 
   const shareStatus = document.querySelector('#share-status')
   if (!hasAlias) {
@@ -923,25 +928,39 @@ async function performShareAction(action) {
   if (action === 'encrypt-publish') completed = await encryptAndPublish()
   if (action === 'file') completed = await saveEditableFile()
   if (action === 'svg-url' || action === 'markdown') {
-    const value = publishedEmbedValue(action)
-    if (!value) return
     try {
+      const value = await embedValue(action)
+      if (!value) return
       await copy(value)
       showToast(action === 'svg-url' ? 'SVG URL copied' : 'Markdown copied')
       completed = true
-    } catch {
-      showToast('Could not copy to the clipboard.', 4000)
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Could not copy to the clipboard.', 4000)
     }
   }
   if (completed) populateShareDialog()
 }
 
-function publishedEmbedValue(action) {
-  if (!remote.aliasId || remote.savedMode === 'locked' || !remote.savedState) return ''
-  const appearance = normalizePresentation(remote.savedState.presentation).appearance
-  const svgLink = stableRenderUrl(location.origin, remote.aliasId, 'svg', appearance)
+async function embedValue(action) {
+  let state
+  let svgLink
+  if (remote.aliasId) {
+    if (remote.savedMode === 'locked' || !remote.savedState) return ''
+    state = remote.savedState
+    const appearance = normalizePresentation(state.presentation).appearance
+    svgLink = stableRenderUrl(location.origin, remote.aliasId, 'svg', appearance)
+  } else {
+    if (remote.mode === 'locked') throw new Error('Encrypted diagrams cannot use public SVG embeds.')
+    if (!ensureValidDetails()) return ''
+    commitState(false)
+    state = currentState()
+    await preview.render(state)
+    const canonical = preview.canonicalSvgFor(state)
+    if (!canonical) throw new Error('The current diagram has not finished rendering.')
+    svgLink = packedSvgUrl(location.origin, exportEditableSvg(canonical, state))
+  }
   if (action === 'svg-url') return svgLink
-  const title = remote.savedState.meta.title.trim().replace(/[\[\]\r\n]/g, ' ') || 'Diagram'
+  const title = state.meta.title.trim().replace(/[\[\]\r\n]/g, ' ') || 'Diagram'
   return `![${title}](${svgLink})`
 }
 
@@ -1383,11 +1402,11 @@ function updateSaveButton() {
   const fileDirty = action === 'file'
     && (lastFileSnapshot === null || lastFileSnapshot !== workingStateSnapshot(currentState()))
   let state = 'save'
-  let label = action === 'file' ? 'Save as File' : 'Publish'
+  let label = action === 'file' ? 'Save as File' : action === 'encrypt-publish' ? 'Encrypt & Publish' : 'Publish'
   let disabled = false
   if (saving) {
     state = 'saving'
-    label = action === 'file' ? 'Saving File' : 'Publishing'
+    label = action === 'file' ? 'Saving File' : action === 'encrypt-publish' ? 'Encrypting & Publishing' : 'Publishing'
     disabled = true
   } else if (action === 'file' && !fileDirty) {
     state = 'saved'
@@ -1400,6 +1419,10 @@ function updateSaveButton() {
   } else if (action === 'publish' && remote.aliasId && !remote.writeCapability) {
     state = 'copy'
     label = 'Publish a Copy'
+  } else if (action === 'encrypt-publish' && remote.aliasId && remote.mode === 'locked' && !remote.dirty) {
+    state = 'saved'
+    label = 'Published'
+    disabled = true
   }
   button.dataset.saveState = state
   button.dataset.saveAction = action
@@ -1413,7 +1436,9 @@ function updateSaveButton() {
     option.dataset.selected = String(selected)
     option.setAttribute('aria-pressed', String(selected))
   })
-  const publishedEmbedAvailable = Boolean(remote.aliasId && remote.savedMode !== 'locked' && remote.savedState)
+  const publishedEmbedAvailable = remote.aliasId
+    ? Boolean(remote.savedMode !== 'locked' && remote.savedState)
+    : remote.mode !== 'locked'
   document.querySelectorAll('[data-save-quick-action="svg-url"], [data-save-quick-action="markdown"]').forEach(option => {
     option.disabled = !publishedEmbedAvailable
   })

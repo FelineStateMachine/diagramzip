@@ -45,6 +45,18 @@ URL therefore copies a read link, not an edit link.
 The existing self-contained diagram hash format is not part of the new public
 contract and does not need a compatibility path.
 
+Anonymous SVG and Markdown embeds use a separate self-contained URL:
+
+```text
+https://diagram.zip/svg/{compressed_editable_svg}
+```
+
+The URL contains the rendered SVG and its editable Diagram.zip document. It is
+immutable, creates no alias, and writes nothing to D1 or R2. The shell inflates
+the bounded payload, revalidates and sanitizes the enriched SVG, and returns it
+with an SVG content type and restrictive CSP. Oversized URLs fail closed and
+the UI directs the user to Save as File or Publish.
+
 ## Identifiers and capabilities
 
 - `alias_id`: 12 cryptographically random bytes encoded as unpadded Base64URL,
@@ -193,6 +205,10 @@ the same appearance on stable SVG and Markdown links. `raw` uses the renderer
 canvas controls. A shared appearance ignores those legacy controls and
 materializes its own palette and, for framed appearances, its own canvas.
 
+An anonymous draft instead exports the current deterministic editable SVG and
+packs those bytes into `/svg/{compressed_editable_svg}`. This path does not
+proxy a render request and supports both HTTP and client renderer outputs.
+
 ## Editor and share UX
 
 Open drafts continue to autosave locally and render after the existing debounce.
@@ -206,6 +222,8 @@ remains recoverable while file export, publishing, sharing, privacy, and type
 changes stay blocked.
 
 - New draft: **Save as File** downloads an editable SVG and creates no alias.
+- New draft: **Copy SVG URL** and **Copy as Markdown** use a packed editable SVG
+  URL and create no alias.
 - New draft: **Publish** creates an alias and changes the browser to its read URL.
 - Writable alias: **Publish** updates with the last revision.
 - Anonymous example: the reset icon discards its local draft after confirmation.
@@ -215,6 +233,11 @@ changes stay blocked.
 - Share, locked: copy password-required read link or password-and-capability edit
   link. SVG and Markdown embeds are visibly disabled with the explanation that
   encrypted diagrams cannot be embedded.
+
+The header dropdown selects Publish, Encrypt & Publish, or Save as File as the
+main button action without executing it. Encrypt & Publish opens the password
+dialog only when the user clicks the selected main action. Copy actions remain
+immediate commands.
 
 The password and edit capability should be sent through separate channels when
 practical. The edit link itself is a bearer credential and the UI must label it
