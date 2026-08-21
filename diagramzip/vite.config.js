@@ -3,13 +3,13 @@ import { resolve } from 'node:path'
 
 export default defineConfig({
   root: resolve(import.meta.dirname),
-  base: '/diagram.zip/',
+  base: '/',
   plugins: [{
     name: 'diagramzip-history-fallback',
     configureServer(server) {
       server.middlewares.use((request, _response, next) => {
         if (request.url === '/' || /^\/d\/[A-Za-z0-9_-]{16}(?:[?#].*)?$/.test(request.url ?? '')) {
-          request.url = '/diagram.zip/'
+          request.url = '/'
         }
         next()
       })
@@ -21,7 +21,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: resolve(import.meta.dirname, '../server/src/main/resources/web/diagramzip'),
+    outDir: resolve(import.meta.dirname, 'dist'),
     emptyOutDir: true,
   },
 })

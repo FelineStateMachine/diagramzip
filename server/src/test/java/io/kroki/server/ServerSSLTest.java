@@ -41,11 +41,11 @@ class ServerSSLTest {
 
     WebClient client = WebClient.create(vertx);
     HttpResponse<String> response = client
-      .get(port, "localhost", "/")
+      .get(port, "localhost", "/health")
       .as(BodyCodec.string())
       .send()
       .await(5, TimeUnit.SECONDS);
-    assertThat(response.body()).contains("<title>diagram.zip</title>");
+    assertThat(response.statusCode()).isEqualTo(200);
   }
 
   @Test
@@ -57,11 +57,11 @@ class ServerSSLTest {
     options.setTrustAll(true);
     WebClient client = WebClient.create(vertx, options);
     HttpResponse<String> response = client
-      .get(port, "localhost", "/")
+      .get(port, "localhost", "/health")
       .as(BodyCodec.string())
       .send()
       .await(5, TimeUnit.SECONDS);
-    assertThat(response.body()).contains("<title>diagram.zip</title>");
+    assertThat(response.statusCode()).isEqualTo(200);
   }
 
   @Test
@@ -73,11 +73,11 @@ class ServerSSLTest {
     options.setTrustAll(true);
     WebClient client = WebClient.create(vertx, options);
     HttpResponse<String> response = client
-      .get(port, "localhost", "/")
+      .get(port, "localhost", "/health")
       .as(BodyCodec.string())
       .send()
       .await(5, TimeUnit.SECONDS);
-    assertThat(response.body()).contains("<title>diagram.zip</title>");
+    assertThat(response.statusCode()).isEqualTo(200);
   }
 
   @Test

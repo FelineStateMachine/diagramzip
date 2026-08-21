@@ -15,7 +15,6 @@ import io.vertx.ext.web.RoutingContext;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 
@@ -239,7 +238,6 @@ class DiagramHandlerTest {
     params.add("graph-attribute-label", "Hello World");
     params.add("edge-attribute-color", "NavajoWhite");
     params.add("edge-attribute-arrowhead", "diamond");
-    params.add("dz", new String(DiagramSource.encode("{\"meta\":{\"title\":\"A title\"}}"), StandardCharsets.UTF_8));
     mockDiagramRequest.setParams(params);
     mockDiagramRequest.setHeaders(MultiMap.caseInsensitiveMultiMap());
     mockDiagramRequest.setMethod(HttpMethod.GET);

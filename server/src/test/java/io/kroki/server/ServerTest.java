@@ -42,29 +42,28 @@ class ServerTest {
   }
 
   @Test
-  void http_server_check_response(Vertx vertx) {
+  void http_server_check_health_response(Vertx vertx) {
     WebClient client = WebClient.create(vertx);
-    client.get(port, "localhost", "/")
+    client.get(port, "localhost", "/health")
       .as(BodyCodec.string())
       .send()
       .onComplete(response -> {
         if (response.failed()) {
           throw new RuntimeException("Failed to get response", response.cause());
         } else {
-          assertThat(response.result().bodyAsString()).contains("<title>diagram.zip</title>");
+          assertThat(response.result().statusCode()).isEqualTo(200);
         }
       });
   }
 
   @Test
-  void http_server_serves_diagram_zip_shell_for_alias_routes(Vertx vertx) throws TimeoutException {
+  void http_server_does_not_serve_diagram_zip_alias_routes(Vertx vertx) throws TimeoutException {
     WebClient client = WebClient.create(vertx);
     HttpResponse<String> response = client.get(port, "localhost", "/d/AbCdEfGhIjKlMnOp")
       .as(BodyCodec.string())
       .send()
       .await(5, TimeUnit.SECONDS);
-    assertThat(response.statusCode()).isEqualTo(200);
-    assertThat(response.body()).contains("<title>diagram.zip</title>");
+    assertThat(response.statusCode()).isEqualTo(404);
   }
 
   @Test
@@ -91,7 +90,7 @@ class ServerTest {
   @Test
   void http_server_check_cors_handling_regular_origin(Vertx vertx) throws TimeoutException {
     WebClient client = WebClient.create(vertx);
-    HttpResponse<String> response = client.get(port, "localhost", "/")
+    HttpResponse<String> response = client.get(port, "localhost", "/health")
       .putHeader("Origin", "http://localhost")
       .as(BodyCodec.string())
       .send()
@@ -102,7 +101,7 @@ class ServerTest {
   @Test
   void http_server_check_cors_handling_null_origin(Vertx vertx) throws TimeoutException {
     WebClient client = WebClient.create(vertx);
-    HttpResponse<String> response = client.get(port, "localhost", "/")
+    HttpResponse<String> response = client.get(port, "localhost", "/health")
       .putHeader("Origin", "null")
       .as(BodyCodec.string())
       .send()

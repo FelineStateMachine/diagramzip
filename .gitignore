@@ -10,3 +10,4 @@ dependency-reduced-pom.xml
 .nzip-*/
 /.playwright-cli/
 **/.wrangler/
+diagramzip/dist/

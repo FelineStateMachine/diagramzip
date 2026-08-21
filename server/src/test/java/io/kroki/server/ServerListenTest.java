@@ -103,11 +103,11 @@ class ServerListenTest {
 
   private void checkServerListening(int port, Vertx vertx) throws TimeoutException {
     WebClient client = WebClient.create(vertx, new WebClientOptions().setKeepAlive(false));
-    HttpResponse<String> response = client.get(port, "localhost", "/")
+    HttpResponse<String> response = client.get(port, "localhost", "/health")
       .as(BodyCodec.string())
       .send()
       .await(2, TimeUnit.SECONDS);
-    assertThat(response.body()).contains("<title>diagram.zip</title>");
+    assertThat(response.statusCode()).isEqualTo(200);
   }
 
   private int getAvailablePort() throws IOException {

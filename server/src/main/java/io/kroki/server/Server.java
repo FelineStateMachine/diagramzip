@@ -19,7 +19,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.ext.web.handler.StaticHandler;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -139,18 +138,6 @@ public class Server extends AbstractVerticle {
       .handler(healthHandlerService);
     router.get("/healthz") // k8s liveness default URL (alias)
       .handler(healthHandlerService);
-
-    // diagram.zip
-    router.route("/diagram.zip/*")
-      .handler(StaticHandler.create("web/diagramzip")
-        .setFilesReadOnly(true)
-        .setCachingEnabled(true)
-        .setMaxAgeSeconds(31536000));
-    Handler<RoutingContext> diagramZipHandler = new DiagramZipHandler(vertx).create();
-    router.get("/")
-      .handler(diagramZipHandler);
-    router.get("/d/:aliasId")
-      .handler(diagramZipHandler);
 
     // Default route
     Route route = router.route("/*");

@@ -53,12 +53,11 @@ of per-host dispatch.
 
 ## Parity and Java reference procedure
 
-The legacy Java/Kroki implementation is a reference only. Run it through
-Docker; do not install Java or invoke Maven on the host:
+The legacy Kroki image is a reference only. Run it through Docker. Do not
+install Java or run Maven on the host:
 
 ```sh
-docker build -f ../../Dockerfile.fly -t diagramzip-kroki:local ../..
-docker run --rm -p 8000:8000 diagramzip-kroki:local
+docker run --rm -p 8000:8000 yuzutech/kroki:0.32.1
 ```
 
 Send the same fixtures to the Docker reference and to the Worker development
