@@ -10,6 +10,8 @@ const SAFE_DATA_FONT = /^data:(?:font\/(?:woff2?|opentype|truetype)|application\
 
 export const SVG_SCHEMA = '1'
 export const NORMALIZER_BUILD = 'svg-normalizer-1'
+export const MATERIALIZER_BUILD = 'svg-materializer-1'
+export const PALETTE_BUILD = 'diagramzip-palette-1'
 export const RAW_PROFILE = 'safe-raw-1'
 export const APPEARANCES = Object.freeze([
   'raw',
@@ -28,6 +30,21 @@ export const RAW_NORMALIZATION = Object.freeze({
   conformance: 'raw',
   appearances: Object.freeze(['raw']),
 })
+const THEMED_APPEARANCES = Object.freeze(APPEARANCES.filter(appearance => appearance !== 'raw'))
+const GRAPHVIZ_NORMALIZATION = Object.freeze({
+  schema: SVG_SCHEMA,
+  normalizer: NORMALIZER_BUILD,
+  profile: 'graphviz-15-semantic-1',
+  palette: PALETTE_BUILD,
+  conformance: 'semantic',
+  appearances: APPEARANCES,
+  limitations: Object.freeze(['Authored non-neutral colors are preserved and may not adapt between palettes.']),
+})
+
+export function normalizationFor(engine, rendererVersion = '') {
+  if (engine === 'graphviz' && rendererVersion.startsWith('graphviz@15.1.1')) return GRAPHVIZ_NORMALIZATION
+  return RAW_NORMALIZATION
+}
 
 export class SvgNormalizationError extends Error {
   constructor(status, code, message) {
@@ -156,6 +173,42 @@ function removeRendererBackdrops(element, inheritedBounds, engine) {
   })
 }
 
+function neutralPaint(element, property, accepted) {
+  const value = (element.attributes.get(property) ?? styleValue(element, property) ?? '').replaceAll(' ', '').toLowerCase()
+  return accepted.has(value)
+}
+
+function applyGraphvizProfile(root) {
+  const visit = (node, context = '') => {
+    if (node.type === 'text') return
+    const classes = new Set((node.attributes.get('class') ?? '').toLowerCase().split(/\s+/).filter(Boolean))
+    const nextContext = classes.has('node') ? 'node' : classes.has('edge') ? 'edge' : classes.has('cluster') ? 'cluster' : context
+    const name = localName(node)
+    if (rendererBackdrop(node, presentationBounds(root), 'graphviz')) node.attributes.set('data-dz-role', 'canvas')
+    if (name === 'text' && neutralPaint(node, 'fill', new Set(['', 'black', '#000', '#000000', 'rgb(0,0,0)']))) {
+      node.attributes.set('data-dz-fill', nextContext === 'edge' ? 'ink-muted' : 'ink')
+    }
+    if (nextContext === 'node' && ['ellipse', 'polygon', 'path', 'rect'].includes(name)) {
+      if (neutralPaint(node, 'fill', new Set(['', 'none', 'white', '#fff', '#ffffff']))) node.attributes.set('data-dz-fill', 'surface-1')
+      if (neutralPaint(node, 'stroke', new Set(['', 'black', '#000', '#000000']))) node.attributes.set('data-dz-stroke', 'line')
+    }
+    if (nextContext === 'cluster' && ['polygon', 'path', 'rect'].includes(name)) {
+      if (neutralPaint(node, 'fill', new Set(['', 'none', 'white', '#fff', '#ffffff']))) node.attributes.set('data-dz-fill', 'surface-2')
+      if (neutralPaint(node, 'stroke', new Set(['', 'black', '#000', '#000000']))) node.attributes.set('data-dz-stroke', 'line-muted')
+    }
+    if (nextContext === 'edge') {
+      if (['path', 'polyline', 'line'].includes(name) && neutralPaint(node, 'stroke', new Set(['', 'black', '#000', '#000000']))) node.attributes.set('data-dz-stroke', 'line')
+      if (['polygon', 'path'].includes(name) && neutralPaint(node, 'fill', new Set(['black', '#000', '#000000']))) node.attributes.set('data-dz-fill', 'line')
+    }
+    for (const child of node.children) visit(child, nextContext)
+  }
+  visit(root)
+}
+
+function applyProfile(root, capability) {
+  if (capability.profile === 'graphviz-15-semantic-1') applyGraphvizProfile(root)
+}
+
 function applyRootBackgroundStyle(root, background) {
   const declarations = (root.attributes.get('style') ?? '')
     .split(';')
@@ -207,7 +260,7 @@ function decorate(root, metadata, presentation, engine) {
   if (frame) root.children.push(frame)
 }
 
-export function sanitizeAndDecorateSvg(source, metadata, presentation, engine) {
+function parseSafeSvg(source) {
   if (source.length > MAX_SVG_LENGTH) throw new SvgNormalizationError(413, 'render_too_large', 'Rendered SVG is too large.')
   let root = null
   const stack = []
@@ -262,13 +315,106 @@ export function sanitizeAndDecorateSvg(source, metadata, presentation, engine) {
   if (parseError !== null || root === null || localName(root) !== 'svg') {
     throw new SvgNormalizationError(422, 'invalid_svg', 'Renderer returned invalid SVG.')
   }
+  return root
+}
+
+export function sanitizeAndDecorateSvg(source, metadata, presentation, engine, rendererVersion = '') {
+  const root = parseSafeSvg(source)
+  const capability = normalizationFor(engine, rendererVersion)
+  applyProfile(root, capability)
   root.attributes.set('data-dz-schema', SVG_SCHEMA)
   root.attributes.set('data-dz-normalizer', NORMALIZER_BUILD)
-  root.attributes.set('data-dz-profile', RAW_PROFILE)
-  root.attributes.set('data-dz-palette', 'renderer')
+  root.attributes.set('data-dz-profile', capability.profile)
+  root.attributes.set('data-dz-palette', capability.palette)
   root.attributes.set('data-dz-engine', engine)
   root.attributes.set('data-dz-appearance', 'raw')
-  root.attributes.set('data-dz-conformance', 'raw')
+  root.attributes.set('data-dz-conformance', capability.conformance)
+  if (capability !== RAW_NORMALIZATION) root.attributes.set('data-dz-appearances', THEMED_APPEARANCES.join(' '))
+  const bounds = presentationBounds(root)
+  if (bounds !== null) root.attributes.set('data-dz-bounds', bounds.join(' '))
   decorate(root, metadata, presentation, engine)
+  return serialize(root)
+}
+
+const LIGHT_PALETTE = Object.freeze({
+  canvas: '#f8fafc', surface1: '#ffffff', surface2: '#f1f5f9', surface3: '#e2e8f0',
+  ink: '#0f172a', inkMuted: '#475569', line: '#334155', lineMuted: '#94a3b8',
+  accent1: '#2563eb', accent2: '#7c3aed', accent3: '#c2410c', onAccent: '#ffffff', frame: '#cbd5e1',
+})
+const DARK_PALETTE = Object.freeze({
+  canvas: '#0f172a', surface1: '#1e293b', surface2: '#273449', surface3: '#334155',
+  ink: '#f8fafc', inkMuted: '#cbd5e1', line: '#e2e8f0', lineMuted: '#94a3b8',
+  accent1: '#60a5fa', accent2: '#c4b5fd', accent3: '#fb923c', onAccent: '#0f172a', frame: '#475569',
+})
+
+function paletteVariables(palette) {
+  return `--dz-canvas:${palette.canvas};--dz-surface-1:${palette.surface1};--dz-surface-2:${palette.surface2};--dz-surface-3:${palette.surface3};--dz-ink:${palette.ink};--dz-ink-muted:${palette.inkMuted};--dz-line:${palette.line};--dz-line-muted:${palette.lineMuted};--dz-accent-1:${palette.accent1};--dz-accent-2:${palette.accent2};--dz-accent-3:${palette.accent3};--dz-on-accent:${palette.onAccent};--dz-frame:${palette.frame};`
+}
+
+function materializerCss(appearance) {
+  const scheme = appearance.startsWith('dark-') ? DARK_PALETTE : LIGHT_PALETTE
+  const automatic = appearance.startsWith('auto-')
+  const variables = automatic
+    ? `:root{${paletteVariables(LIGHT_PALETTE)}}@media(prefers-color-scheme:dark){:root{${paletteVariables(DARK_PALETTE)}}}`
+    : `:root{${paletteVariables(scheme)}}`
+  return `${variables}[data-dz-role="canvas"]:not([data-dz-owned="materializer"]){display:none!important}[data-dz-fill="surface-1"]{fill:var(--dz-surface-1)!important}[data-dz-fill="surface-2"]{fill:var(--dz-surface-2)!important}[data-dz-fill="surface-3"]{fill:var(--dz-surface-3)!important}[data-dz-fill="ink"]{fill:var(--dz-ink)!important;color:var(--dz-ink)!important}[data-dz-fill="ink-muted"]{fill:var(--dz-ink-muted)!important;color:var(--dz-ink-muted)!important}[data-dz-fill="line"]{fill:var(--dz-line)!important}[data-dz-fill="accent-1"]{fill:var(--dz-accent-1)!important}[data-dz-fill="accent-2"]{fill:var(--dz-accent-2)!important}[data-dz-fill="accent-3"]{fill:var(--dz-accent-3)!important}[data-dz-fill="on-accent"]{fill:var(--dz-on-accent)!important;color:var(--dz-on-accent)!important}[data-dz-stroke="line"]{stroke:var(--dz-line)!important}[data-dz-stroke="line-muted"]{stroke:var(--dz-line-muted)!important}[data-dz-stroke="accent-1"]{stroke:var(--dz-accent-1)!important}[data-dz-stroke="accent-2"]{stroke:var(--dz-accent-2)!important}[data-dz-stroke="accent-3"]{stroke:var(--dz-accent-3)!important}`
+}
+
+function canonicalBounds(root) {
+  const value = root.attributes.get('data-dz-bounds')?.trim().split(/\s+/).map(Number)
+  if (value?.length === 4 && value.every(Number.isFinite) && value[2] > 0 && value[3] > 0) return value
+  return presentationBounds(root)
+}
+
+function removeMaterializerOutput(root) {
+  root.children = root.children.filter(child => child.type === 'text' || child.attributes.get('data-dz-owned') !== 'materializer')
+}
+
+export function materializeSvg(canonical, appearance) {
+  if (!APPEARANCES.includes(appearance)) {
+    throw new SvgNormalizationError(400, 'invalid_appearance', `Unknown SVG appearance: ${appearance}.`)
+  }
+  const root = parseSafeSvg(canonical)
+  if (root.attributes.get('data-dz-schema') !== SVG_SCHEMA) {
+    throw new SvgNormalizationError(422, 'not_canonical', 'SVG does not use the current Diagram.zip canonical schema.')
+  }
+  removeMaterializerOutput(root)
+  if (appearance === 'raw') {
+    root.attributes.set('data-dz-appearance', 'raw')
+    root.attributes.set('data-dz-palette', 'renderer')
+    root.attributes.delete('data-dz-materializer')
+    return serialize(root)
+  }
+  const supported = new Set((root.attributes.get('data-dz-appearances') ?? '').split(/\s+/).filter(Boolean))
+  if (!supported.has(appearance)) {
+    throw new SvgNormalizationError(422, 'unsupported_appearance', `The active SVG normalization profile does not support ${appearance}.`)
+  }
+  const bounds = canonicalBounds(root)
+  if (bounds === null) throw new SvgNormalizationError(422, 'missing_dimensions', 'Canonical SVG has no usable bounds for appearance materialization.')
+  root.attributes.set('data-dz-appearance', appearance)
+  root.attributes.set('data-dz-palette', PALETTE_BUILD)
+  root.attributes.set('data-dz-materializer', MATERIALIZER_BUILD)
+  root.children.unshift(element('style', [['data-dz-owned', 'materializer']], [{ type: 'text', value: materializerCss(appearance) }]))
+  if (appearance.endsWith('-framed')) {
+    const [x, y, width, height] = bounds
+    const padding = 24
+    const next = [x - padding, y - padding, width + padding * 2, height + padding * 2]
+    root.attributes.set('viewBox', next.join(' '))
+    if (root.attributes.has('width')) root.attributes.set('width', String(next[2]))
+    if (root.attributes.has('height')) root.attributes.set('height', String(next[3]))
+    root.children.splice(1, 0, element('rect', [
+      ['data-dz-owned', 'materializer'], ['data-dz-role', 'canvas'], ['x', String(next[0])], ['y', String(next[1])],
+      ['width', String(next[2])], ['height', String(next[3])], ['fill', 'var(--dz-canvas)'],
+    ]))
+    root.children.push(element('rect', [
+      ['data-dz-owned', 'materializer'], ['data-dz-role', 'frame'], ['x', String(next[0] + 0.5)], ['y', String(next[1] + 0.5)],
+      ['width', String(next[2] - 1)], ['height', String(next[3] - 1)], ['fill', 'none'], ['stroke', 'var(--dz-frame)'],
+      ['stroke-width', '1'], ['vector-effect', 'non-scaling-stroke'],
+    ]))
+  } else {
+    root.attributes.set('viewBox', bounds.join(' '))
+    if (root.attributes.has('width')) root.attributes.set('width', String(bounds[2]))
+    if (root.attributes.has('height')) root.attributes.set('height', String(bounds[3]))
+  }
   return serialize(root)
 }

@@ -1,5 +1,7 @@
 export const SVG_SCHEMA: '1'
 export const NORMALIZER_BUILD: 'svg-normalizer-1'
+export const MATERIALIZER_BUILD: 'svg-materializer-1'
+export const PALETTE_BUILD: 'diagramzip-palette-1'
 export const RAW_PROFILE: 'safe-raw-1'
 export const APPEARANCES: readonly [
   'raw',
@@ -17,8 +19,10 @@ export interface NormalizationCapability {
   readonly palette: string
   readonly conformance: 'raw' | 'semantic' | 'adaptive' | 'presentation-only' | 'unsupported'
   readonly appearances: readonly string[]
+  readonly limitations?: readonly string[]
 }
 export const RAW_NORMALIZATION: NormalizationCapability
+export function normalizationFor(engine: string, rendererVersion?: string): NormalizationCapability
 
 export class SvgNormalizationError extends Error {
   readonly status: number
@@ -42,4 +46,8 @@ export function sanitizeAndDecorateSvg(
   metadata: SvgMetadata,
   presentation: SvgPresentation,
   engine: string,
+  rendererVersion?: string,
 ): string
+
+export type SvgAppearance = typeof APPEARANCES[number]
+export function materializeSvg(canonical: string, appearance: SvgAppearance): string

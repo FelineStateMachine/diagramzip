@@ -95,7 +95,7 @@ export class PreviewController {
       if (clientAdapter) {
         const clientRender = await clientAdapter.render({ type, source, options }, abortController.signal)
         rendered = {
-          body: sanitizeAndDecorateSvg(clientRender.body, meta, presentation, type),
+          body: sanitizeAndDecorateSvg(clientRender.body, meta, presentation, type, clientRender.version || clientRender.build || ''),
           identity: {
             unit: type,
             build: clientRender.build || clientRender.version,

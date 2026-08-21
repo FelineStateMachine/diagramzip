@@ -10,7 +10,7 @@ describe('engine catalog', () => {
   })
 
   it('reports raw-only normalization until an engine profile earns themed support', () => {
-    for (const engine of ENGINE_CATALOG) {
+    for (const engine of ENGINE_CATALOG.filter(entry => entry.id !== 'graphviz')) {
       expect(engine.normalization).toMatchObject({
         schema: '1',
         normalizer: 'svg-normalizer-1',
@@ -19,6 +19,11 @@ describe('engine catalog', () => {
         appearances: ['raw'],
       })
     }
+    expect(ENGINE_CATALOG.find(entry => entry.id === 'graphviz')?.normalization).toMatchObject({
+      profile: 'graphviz-15-semantic-1',
+      conformance: 'semantic',
+      appearances: expect.arrayContaining(['raw', 'auto-transparent', 'dark-framed']),
+    })
   })
 
   it('marks the BlockDiag family as edge Python', () => {

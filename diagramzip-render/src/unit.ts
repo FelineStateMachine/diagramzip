@@ -76,7 +76,7 @@ async function render(
 ): Promise<Response> {
   const rendered = await descriptor.adapter.render(request, signal)
   if (signal.aborted) throw signal.reason
-  const body = sanitizeAndDecorateSvg(rendered.body, request.metadata, request.presentation, descriptor.id)
+  const body = sanitizeAndDecorateSvg(rendered.body, request.metadata, request.presentation, descriptor.id, rendered.engineVersion)
   return new Response(body, {
     headers: {
       'Access-Control-Allow-Origin': '*',

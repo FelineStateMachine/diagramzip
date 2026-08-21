@@ -141,8 +141,8 @@ Schema 1 uses the following root attributes:
   data-dz-appearance="light-transparent">
   <style>/* self-contained tokens and role rules */</style>
   <g data-dz-role="node">
-    <rect data-dz-paint="surface-1" />
-    <text data-dz-paint="ink">Service</text>
+    <rect data-dz-fill="surface-1" data-dz-stroke="line" />
+    <text data-dz-fill="ink">Service</text>
   </g>
 </svg>
 ```
@@ -167,6 +167,23 @@ Canonical SVG must be:
 The normalizer may preserve original IDs when safe. Any IDs it creates must be
 deterministically namespaced to avoid collisions with engine IDs, paint
 servers, masks, markers, filters, or embedded SVG fragments.
+
+Schema 1 separates fill and stroke roles. `data-dz-fill` controls paint inside
+an element, while `data-dz-stroke` controls its boundary or connector. This
+keeps arrowheads, unfilled nodes, and line geometry from inheriting the wrong
+property during materialization.
+
+## Current profile coverage
+
+The shared sanitizer, canonical serializer, and appearance materializer apply
+to browser and Worker renderers. Every catalog entry reports its active
+normalization capability. An unrecognized renderer contract remains on
+`safe-raw-1` and supports only `raw`.
+
+GraphViz `15.1.1` currently uses `graphviz-15-semantic-1`. The profile relies on
+GraphViz's stable `graph`, `node`, `edge`, and `cluster` groups. It adapts neutral
+surfaces, text, connectors, and arrowheads. Explicit non-neutral authored colors
+remain unchanged and are reported as a profile limitation.
 
 ## Semantic visual roles
 

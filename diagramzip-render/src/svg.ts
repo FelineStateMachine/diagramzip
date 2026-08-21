@@ -10,9 +10,10 @@ export function sanitizeAndDecorateSvg(
   metadata: RenderMetadata,
   presentation: RenderPresentation,
   engine: EngineId,
+  rendererVersion = '',
 ): string {
   try {
-    return normalizeSharedSvg(source, metadata, presentation, engine)
+    return normalizeSharedSvg(source, metadata, presentation, engine, rendererVersion)
   } catch (error) {
     if (error instanceof SvgNormalizationError) {
       throw new RenderError(error.status, error.code, error.message)
