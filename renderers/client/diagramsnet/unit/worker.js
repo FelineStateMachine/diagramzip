@@ -7,6 +7,9 @@ const CAPABILITIES = Object.freeze({
   build: 'diagramsnet-29.6.1-client-unit-1',
   pipeline: ['diagramsnet'],
   frame: '/index.html?v=1',
+  license: 'Apache-2.0 AND LicenseRef-diagrams-net-assets',
+  licenses: '/licenses/',
+  source: '/SOURCE.md',
   knownLosses: [
     'Rendering requires the sandboxed browser exporter; there is no server-side rendering fallback.',
     'External resources are blocked; embedded data images remain supported.',
