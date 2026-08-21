@@ -1,0 +1,11 @@
+# Hiding the SVG output files introduces friction when adding a new TXT,SVG pair to the test suite.
+#    */examples/*.svg
+
+# Local-only additions to test suite
+*/examples/_*
+
+# Hide common outputs of dev testing
+cmd/tmpl-expand/tmpl-expand
+
+# Output of local-only tests
+*.html

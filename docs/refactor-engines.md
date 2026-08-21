@@ -120,10 +120,10 @@ Standard Vega expressions use dynamic function generation, which is not allowed 
 | Catalog type | V2 renderer | Preview | Static SVG | Confidence and caveat |
 | --- | --- | --- | --- | --- |
 | GraphViz | `@viz-js/viz` | Browser or edge | Worker | High |
-| D2 | Official D2 WebAssembly | Browser | Worker adapter | High in browser, medium at edge; the published browser package uses a Web Worker, so the edge path needs a direct precompiled-WASM adapter |
+| D2 | Official D2 WebAssembly | Browser | Worker adapter blocked | The 0.1.33 package initializes as precompiled Wasm in Workerd, but both Dagre and ELK request prohibited runtime code generation; it also reports D2 `v0.7.0-HEAD` versus the Docker `v0.7.1` reference |
 | Pikchr | Existing C/WebAssembly build | Browser or edge | Worker | High |
 | Svgbob | Existing Rust/WebAssembly build | Browser or edge | Worker | Medium; parity-test fonts, layout, and SVG structure |
-| GoAT | Go/WebAssembly feasibility spike | Browser if successful | Worker if successful | Experimental; retain origin until a maintainable adapter proves parity |
+| GoAT | Pinned GoAT 0.5.1 via TinyGo | Browser or edge | Worker | Proven against the Docker reference byte-for-byte; a four-iterator slice adaptation removes the goroutine runtime from the precompiled module |
 
 Cloudflare Workers require WebAssembly modules to be compiled ahead of time and imported with the bundle. Adapters must not depend on runtime compilation, browser worker threads, or shared-memory threading.
 
@@ -380,7 +380,7 @@ This is substantial compatibility work, but it is bounded and removes Structuriz
 | Symbolator | Python/native dependencies | Keep on origin until traffic justifies a rewrite |
 | TikZ | Full TeX toolchain | Keep on origin; it is not a reasonable Worker port |
 | WireViz | Vendored Python/YAML parser and DOT composition through the GraphViz-family service binding | Keep its dependency-isolated Python translator; replace only if Python Workers fail measured limits |
-| GoAT | No proven maintained browser/Worker package | Go/WebAssembly spike; otherwise retain origin |
+| GoAT | Dedicated precompiled WebAssembly Worker | Cut over with no origin fallback |
 
 The origin is a compatibility bridge, not the target architecture for standardized diagram families. It should be consolidated for organization and operational efficiency. A separate public Fly app per renderer is not a product requirement. One application can contain grouped machines or services, with internal routing and enough isolation for the few engines that need it. Split an engine only when its resource profile, security boundary, release cadence, or failure mode warrants independent deployment.
 
@@ -401,12 +401,12 @@ The origin is a compatibility bridge, not the target architecture for standardiz
 | RackDiag | Upstream Python Worker | None after cutover |
 | BPMN | Client | Browser-render/origin |
 | Bytefield | Edge JavaScript | Origin |
-| DBML | Edge JavaScript | Origin |
+| DBML | Upstream DBML parser/checker/DOT composer → GraphViz WebAssembly | None after cutover |
 | diagrams.net | Client | Origin |
 | Ditaa | Origin | Origin |
 | ERD | Upstream-guided TypeScript port to GraphViz WASM | Existing ERD executable |
 | Excalidraw | Client | Browser-render/origin |
-| GoAT | WebAssembly spike | Origin |
+| GoAT | Dedicated precompiled WebAssembly Worker | None after cutover |
 | Nomnoml | Edge JavaScript | Origin |
 | Pikchr | Edge WebAssembly | None after cutover |
 | Structurizr | TypeScript DSL-to-PlantUML compiler; browser PlantUML preview | Existing Structurizr/PlantUML path |
@@ -419,7 +419,7 @@ The origin is a compatibility bridge, not the target architecture for standardiz
 | WaveDrom | Edge JavaScript | Origin |
 | WireViz | Upstream Python parser/model/DOT composer → GraphViz service binding | None after cutover |
 
-The first coverage milestone puts all 30 catalog types behind one contract and keeps unsupported edge engines on the origin. Its first native cohort is Bytefield, Nomnoml, WaveDrom, Vega, and Vega-Lite. DBML remains on the origin because its published package mixes module formats. GraphViz now imports its WebAssembly as a precompiled Worker module, ERD lowers into that same runtime, Pikchr has a separate precompiled WebAssembly unit, and Svgbob has a pinned Rust/Wasm unit. D2 remains only after a direct precompiled-Wasm adapter is proven. Seven engines can later move interactive preview into the browser: Mermaid, PlantUML, C4-PlantUML, BPMN, Excalidraw, diagrams.net, and UMLet.
+The first coverage milestone puts all 30 catalog types behind one contract and keeps unsupported edge engines on the origin. Its first native cohort is Bytefield, Nomnoml, WaveDrom, Vega, and Vega-Lite. DBML now retains its upstream parser/checker/DOT composer and shares the GraphViz WebAssembly runtime. GraphViz imports its WebAssembly as a precompiled Worker module, ERD lowers into that same runtime, and Pikchr, Svgbob, and GoAT have separate pinned WebAssembly units. The published D2 package is not promoted: Workerd accepts its precompiled module, but its layout engines attempt prohibited runtime code generation and its embedded version does not match the Docker reference. Seven engines can later move interactive preview into the browser: Mermaid, PlantUML, C4-PlantUML, BPMN, Excalidraw, diagrams.net, and UMLet.
 
 The upstream-reuse milestone moves all six BlockDiag-family types into one Python Worker, moves ERD to an upstream-guided TypeScript/GraphViz implementation, and preserves WireViz coverage in a dependency-isolated Python translator that reuses GraphViz through a service binding. Structurizr remains a later PlantUML translation target.
 
@@ -559,13 +559,13 @@ Use production traffic and latency data to choose the remaining rewrites. WireVi
 
 ## Implementation status — 2026-08-20
 
-The coverage plane is implemented across dedicated renderer hostnames. Nineteen
+The coverage plane is implemented across dedicated renderer hostnames. Twenty-one
 of 30 catalog engines no longer depend on Fly: five execute in JavaScript
-Workers, six share the `blockdiag-family` Python Worker, GraphViz and ERD share
-the `graphviz-family` WebAssembly Worker, Pikchr and Svgbob in dedicated WebAssembly Workers, and Mermaid, BPMN, and Excalidraw
+Workers, six share the `blockdiag-family` Python Worker, GraphViz, DBML, and ERD share
+the `graphviz-family` WebAssembly Worker, GoAT, Pikchr, and Svgbob run in dedicated WebAssembly Workers, and Mermaid, BPMN, and Excalidraw
 render in sandboxed browser units. WireViz preserves its upstream Python parser
 and DOT composer, then calls GraphViz through an internal service binding. The
-remaining 11 engines use 10
+remaining 9 engines use 8
 dependency-grouped compatibility units. Repository and production smokes require
 structurally valid SVG; pixel comparison remains intentionally deferred.
 
@@ -592,18 +592,25 @@ small Rust/wasm-bindgen wrapper around the pure library API. It preserves ASCII
 whitespace, maps the six Kroki settings, uses explicit byte/resource limits,
 and removes the upstream backdrop when presentation background is applied.
 
+The GoAT unit compiles upstream 0.5.1 through a pinned TinyGo Docker image into
+a zero-import, precompiled `wasm-unknown` module. Its only source adaptation
+replaces four goroutine/channel iterators with slices in the same traversal
+order. The full repository fixture is byte-identical to the Docker renderer,
+including the light/dark media CSS, and the Worker retains GoAT's three exposed
+options while rejecting CSS color injection.
+
 The WireViz unit vendors the actual `yuzutech/WireViz` v0.3.3 release source,
 whose own runtime version is 0.3.2, and stops before external `dot` execution.
 It rejects filesystem images and raw GraphViz tweaks, bounds YAML expansion,
 and forwards generated DOT to `graphviz-family`. BOM, HTML, and PNG sidecars
 remain outside the SVG rendering contract.
 
-The same hard boundary now applies to all nineteen migrated engines: direct
+The same hard boundary now applies to all twenty-one migrated engines: direct
 unit or client-renderer failure is surfaced to the editor, the gateway rejects
 their engine IDs before consulting its cache or origin adapter, and every
 catalog fallback is `null`.
 
-The first feasibility findings are already reflected in routing and the loss ledger: DBML's package cannot currently be imported cleanly in the Worker runtime. GraphViz's published wrapper required a small vendored backend change so Wrangler could bind the binary as a precompiled module; the renderer no longer depends on Fly. GraphViz version drift, unsupported `scale`, and the lack of an image asset loader are explicit losses rather than hidden fallbacks.
+The first feasibility findings are already reflected in routing and the loss ledger. DBML's parser/checker/DOT path is deterministically repacked without its legacy Viz.js SVG branch and shares GraphViz 15.1.1. GraphViz's published wrapper required a small vendored backend change so Wrangler could bind the binary as a precompiled module; version drift, unsupported `scale`, and the lack of an image asset loader are explicit losses rather than hidden fallbacks. D2 remains on its compatibility unit because the official Wasm package both embeds the wrong renderer version and invokes runtime code generation from its Dagre and ELK layout paths, which Workerd rejects during rendering. A future D2 extraction needs a no-eval layout build or a semantics-preserving lowering that retains nested-board animation.
 
 The SVG compatibility boundary preserves CDATA-backed text and embedded font styles used by Ditaa, Symbolator, diagrams.net, and TikZ. Mermaid retains a narrow allowlist of XHTML label formatting inside `foreignObject`, while scripts, event handlers, external links, and resource-loading elements remain blocked. When a user selects a canvas color, known full-size white renderer backdrops are removed before the chosen background is applied; internal white diagram shapes are left intact.
 

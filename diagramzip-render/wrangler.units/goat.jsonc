@@ -1,0 +1,10 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-goat",
+  "main": "../src/units/goat.ts",
+  "compatibility_date": "2026-08-20",
+  "rules": [{ "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": false }],
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
+  "vars": { "RENDERER_BUILD": "goat-0.5.1-edge-wasm-1" },
+  "routes": [{ "pattern": "goat.render.diagram.zip", "custom_domain": true }]
+}

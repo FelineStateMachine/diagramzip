@@ -47,6 +47,12 @@ describe('engine catalog', () => {
     expect(svgbob.version).toContain('svgbob@0.7.6')
   })
 
+  it('marks GoAT as a dedicated edge-Wasm unit', () => {
+    const goat = ENGINE_CATALOG.find(engine => engine.id === 'goat')!
+    expect(goat.activeRuntime).toBe('edge-wasm')
+    expect(goat.version).toContain('goat@0.5.1')
+  })
+
   it('does not retain a silent origin fallback for any engine', () => {
     for (const engine of ENGINE_CATALOG) {
       if (engine.activeRuntime === 'origin') expect(engine.version).toBe('compatibility-origin')

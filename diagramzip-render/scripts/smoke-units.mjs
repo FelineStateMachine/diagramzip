@@ -53,6 +53,7 @@ const pythonEngines = new Set(['blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'pac
 const graphvizEngines = new Set(['graphviz', 'erd', 'dbml'])
 const pikchrEngines = new Set(['pikchr'])
 const svgbobEngines = new Set(['svgbob'])
+const goatEngines = new Set(['goat'])
 const wirevizEngines = new Set(['wireviz'])
 
 async function smoke([engine, filename]) {
@@ -122,6 +123,10 @@ async function smoke([engine, filename]) {
     if (!response.headers.get('X-Renderer-Build')?.startsWith('svgbob-0.7.6-edge-wasm-')) {
       throw new Error(`${engine}: unexpected Svgbob Worker build ${response.headers.get('X-Renderer-Build')}`)
     }
+  }
+  if (goatEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-wasm') throw new Error(`${engine}: expected edge-wasm renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('goat-0.5.1-edge-wasm-')) throw new Error(`${engine}: unexpected GoAT Worker build ${response.headers.get('X-Renderer-Build')}`)
   }
   if (wirevizEngines.has(engine)) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-python') {

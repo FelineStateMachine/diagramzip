@@ -1,0 +1,12 @@
+# github.com/blampe/goat v0.5.1
+## explicit; go 1.25
+github.com/blampe/goat
+github.com/blampe/goat/ascii
+github.com/blampe/goat/internal
+github.com/blampe/goat/svg
+github.com/blampe/goat/utf8
+# github.com/tdewolff/parse/v2 v2.7.19
+## explicit; go 1.13
+github.com/tdewolff/parse/v2
+github.com/tdewolff/parse/v2/buffer
+github.com/tdewolff/parse/v2/css

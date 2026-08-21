@@ -60,11 +60,11 @@ catalog engine.
 | --- | --- |
 | Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
 | Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag); WireViz → DOT → GraphViz |
-| Worker WebAssembly | GraphViz family (GraphViz, DBML → DOT → GraphViz, and ERD → DOT → GraphViz); Pikchr; Svgbob |
+| Worker WebAssembly | GraphViz family (GraphViz, DBML → DOT → GraphViz, and ERD → DOT → GraphViz); GoAT; Pikchr; Svgbob |
 | Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
-| Compatibility unit | 9 dependency units covering the remaining 10 engines |
+| Compatibility unit | 8 dependency units covering the remaining 9 engines |
 
-The current split is 20/30 engines off Fly and 10/30 still dependent on it.
+The current split is 21/30 engines off Fly and 9/30 still dependent on it.
 Compatibility units are extraction seams, not final runtimes or fallbacks for
 an engine after cutover. DBML retains the upstream parser/checker/DOT model in
 an explicitly rebuilt Worker bundle, then shares the GraphViz-Wasm runtime.

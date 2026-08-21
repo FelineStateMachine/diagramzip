@@ -3,6 +3,7 @@ import { bytefieldAdapter } from './edge/bytefield'
 import { dbmlAdapter } from './edge/dbml'
 import { erdAdapter } from './edge/erd'
 import { graphvizAdapter } from './edge/graphviz'
+import { goatAdapter } from './edge/goat'
 import { nomnomlAdapter } from './edge/nomnoml'
 import { svgbobAdapter } from './edge/svgbob'
 import { vegaAdapter } from './edge/vega'
@@ -15,6 +16,7 @@ const adapters: Record<EdgeEngineId, RendererAdapter> = {
   dbml: dbmlAdapter,
   erd: erdAdapter,
   graphviz: graphvizAdapter,
+  goat: goatAdapter,
   nomnoml: nomnomlAdapter,
   svgbob: svgbobAdapter,
   vega: vegaAdapter,

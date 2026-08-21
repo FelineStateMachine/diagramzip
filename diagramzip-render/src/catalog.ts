@@ -61,6 +61,7 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
   dbml: 'edge-wasm',
   pikchr: 'edge-wasm',
   svgbob: 'edge-wasm',
+  goat: 'edge-wasm',
   erd: 'edge-wasm',
   wireviz: 'edge-python',
 }
@@ -84,6 +85,7 @@ const versions: Partial<Record<EngineId, string>> = {
   dbml: 'dbml@1.0.31+graphviz@15.1.1/edge-wasm-2',
   pikchr: 'pikchr@85e65b9686/edge-wasm-1',
   svgbob: 'svgbob@0.7.6/edge-wasm-1',
+  goat: 'goat@0.5.1/edge-wasm-1',
   erd: 'erd@0.2.1.0+graphviz@15.1.1/edge-wasm-1',
   wireviz: 'wireviz@0.3.2/python-translator-1',
 }
@@ -106,6 +108,12 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'Only SVG is supported.',
     'Kroki stroke-color is not exposed in the edge unit; the pure upstream library does not load external images or resources.',
     'The edge build is compiled from upstream svgbob 0.7.6 at pinned commit 04a9d85c4b1879051f205e9e434e058864c3d36f.',
+  ],
+  goat: [
+    'Only SVG is supported.',
+    'Custom CSS files are not exposed; native light/dark color options and embedded default CSS are retained.',
+    'Light and dark colors are limited to bounded named, hexadecimal, RGB(A), or HSL(A) values; CSS variables and resource-bearing values are rejected.',
+    'The edge build uses TinyGo with a slice-based vendored iterator adaptation; geometry and source grammar remain upstream GoAT 0.5.1.',
   ],
   bytefield: ['Only SVG is in the v2 rendering contract.'],
   dbml: [
