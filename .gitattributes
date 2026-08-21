@@ -1,0 +1,7 @@
+# Preserve the byte-identical upstream draw.io export runtime, including its
+# intentional indentation/trailing whitespace.
+diagrams.net/assets/js/export.js whitespace=-trailing-space
+
+# Production bundles may preserve meaningful diagram-example whitespace inside
+# generated JavaScript template literals.
+server/src/main/resources/web/diagramzip/assets/*.js whitespace=-trailing-space

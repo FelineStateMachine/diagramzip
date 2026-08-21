@@ -39,10 +39,11 @@ function fakeBrowser() {
 }
 
 test('registers the first client-native renderer cohort', () => {
-  assert.deepEqual(CLIENT_RENDERER_IDS, ['mermaid', 'bpmn', 'excalidraw'])
+  assert.deepEqual(CLIENT_RENDERER_IDS, ['mermaid', 'bpmn', 'excalidraw', 'diagramsnet'])
   assert.equal(CLIENT_RENDERERS.mermaid.frameUrl, 'https://mermaid.render.diagram.zip/index.html?v=1')
   assert.equal(CLIENT_RENDERERS.bpmn.frameUrl, 'https://bpmn.render.diagram.zip/index.html?v=1')
   assert.equal(CLIENT_RENDERERS.excalidraw.frameUrl, 'https://excalidraw.render.diagram.zip/index.html?v=3')
+  assert.equal(CLIENT_RENDERERS.diagramsnet.frameUrl, 'https://diagramsnet.render.diagram.zip/index.html?v=1')
   assert.equal(clientAdapterFor('graphviz'), null)
 })
 

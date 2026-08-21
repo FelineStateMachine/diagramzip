@@ -5,6 +5,7 @@ export const CLIENT_RENDERERS = Object.freeze({
   mermaid: Object.freeze({ frameUrl: 'https://mermaid.render.diagram.zip/index.html?v=1' }),
   bpmn: Object.freeze({ frameUrl: 'https://bpmn.render.diagram.zip/index.html?v=1' }),
   excalidraw: Object.freeze({ frameUrl: 'https://excalidraw.render.diagram.zip/index.html?v=3' }),
+  diagramsnet: Object.freeze({ frameUrl: 'https://diagramsnet.render.diagram.zip/index.html?v=1' }),
 })
 
 export const CLIENT_RENDERER_IDS = Object.freeze(Object.keys(CLIENT_RENDERERS))

@@ -1,0 +1,12 @@
+{
+  "name": "@diagramzip/renderer-diagramsnet",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "npm run build && node scripts/check.mjs",
+    "deploy": "../../diagramzip-render/node_modules/.bin/wrangler deploy --config wrangler.jsonc"
+  },
+  "devDependencies": { "esbuild": "0.28.1" }
+}

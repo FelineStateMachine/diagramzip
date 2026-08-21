@@ -13,6 +13,8 @@ ASSETSDIR=${2}
 
 rsync -avz --delete ${DRAWIODIR}/src/main/webapp/export3.html            ${ASSETSDIR}/index.html
 rsync -avz --delete ${DRAWIODIR}/src/main/webapp/js/app.min.js           ${ASSETSDIR}/js/app.min.js
+rsync -avz --delete ${DRAWIODIR}/src/main/webapp/js/export.js            ${ASSETSDIR}/js/export.js
+rsync -avz --delete ${DRAWIODIR}/src/main/webapp/js/export-init.js        ${ASSETSDIR}/js/export-init.js
 rsync -avz --delete ${DRAWIODIR}/src/main/webapp/js/shapes-14-6-5.min.js ${ASSETSDIR}/js/shapes-14-6-5.min.js
 rsync -avz --delete ${DRAWIODIR}/src/main/webapp/export-fonts.css        ${ASSETSDIR}/export-fonts.css
 rsync -avz --delete ${DRAWIODIR}/src/main/webapp/images/                 ${ASSETSDIR}/images

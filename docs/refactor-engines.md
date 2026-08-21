@@ -138,7 +138,7 @@ These engines should primarily stop being live-preview server responsibilities.
 | C4-PlantUML | PlantUML browser path plus pinned C4 macros/includes | Origin initially | Pin and test the precise macro set rather than permitting arbitrary remote includes |
 | BPMN | `bpmn-js`: import XML and export SVG | Frozen SVG or browser-render service | No backend renderer is required for normal preview/export |
 | Excalidraw | Official `exportToSvg()` | Frozen SVG or browser-render service | Lazy-load fonts and assets; preserve Excalidraw semantics |
-| diagrams.net | Official client export application/iframe | Existing origin fallback initially | Large asset surface and complex integration; isolate it from the core application bundle |
+| diagrams.net | Pinned diagrams.net 29.6.1 export application in a sandboxed iframe | Existing origin fallback initially | The official export application is browser/DOM-bound; keep its immutable asset tree isolated from the core application bundle |
 | UMLet | UMLetino/GWT web implementation | Origin initially | Requires an adapter and parity spike before removing the fallback |
 
 Untrusted source must be rendered in a sandboxed iframe, not directly in the application document. The frame should receive source by `postMessage`, render with self-hosted immutable assets, block external requests in secure mode, serialize the result, and return it to the parent. The parent should sanitize the SVG and display it through a Blob-backed image rather than inserting raw renderer markup into the application DOM.
