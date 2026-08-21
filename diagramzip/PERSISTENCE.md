@@ -110,7 +110,7 @@ Content-Type: application/json
     "type": "d2",
     "source": "a -> b",
     "options": {},
-    "presentation": { "background": "", "padding": 0, "frame": false }
+    "presentation": { "background": "", "padding": 0, "frame": false, "appearance": "raw" }
   },
   "metadata": { "title": "A to B", "description": "" }
 }
@@ -180,6 +180,11 @@ An open SVG read may add an `appearance` query parameter:
 The API materializes the requested appearance from the canonical R2 object. It
 does not store a second SVG. The appearance has its own ETag. Locked renders
 cannot use this server-side path because the API cannot decrypt their SVG.
+
+The saved presentation records the selected appearance. The editor places the
+same appearance on stable SVG and Markdown links. `raw` uses the renderer canvas
+controls. A shared appearance ignores those legacy controls and materializes its
+own palette and, for framed appearances, its own canvas.
 
 ## Editor and share UX
 

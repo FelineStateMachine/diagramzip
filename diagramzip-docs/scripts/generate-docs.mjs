@@ -109,7 +109,7 @@ function stylePage(type) {
     ? `\n## Renderer options\n\n${options(type)}\n`
     : ''
   return frontmatter(type, 'style', `Style a ${type.label} diagram in diagram.zip.`) +
-`# Style ${type.label}\n\n${type.styleSummary}\n\nStart with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.\n\n## Source controls\n\n${lines(type.sourceStyle).map((item) => `- ${item}`).join('\n')}\n${rendererOptions}` +
+`# Style ${type.label}\n\n${type.styleSummary}\n\nStart with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.\n\n## Source controls\n\n${lines(type.sourceStyle).map((item) => `- ${item}`).join('\n')}\n${rendererOptions}` +
 (limitations.length ? `## Limitations\n\n${limitations.map((item) => `- ${item}`).join('\n')}\n\n` : '') +
 `## Related pages\n\n- [Create ${article} ${type.label} diagram](${syntaxPath(type.id)})\n- [General presentation settings](/style/presentation)\n- [Open ${type.label} in the editor](${editorLink(type.id)})\n`
 }

@@ -1,6 +1,7 @@
 import { readFile, readdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { canonicalizeSvg, materializeSvg, supportedAppearances } from '../../diagramzip-svg/index.js'
 import { CLIENT_RENDERERS, httpRendererUrlFor } from '../src/components/DiagramExample/rendererRouting.mjs'
 
 const site = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -43,6 +44,20 @@ async function check(name) {
   if (!response.ok || !body.includes('<svg')) {
     throw new Error(`${example.engine}: HTTP ${response.status} ${body.replace(/\s+/g, ' ').slice(0, 240)}`)
   }
+  const version = [
+    response.headers.get('X-Diagram-Engine-Version'),
+    response.headers.get('X-Renderer-Build'),
+  ].filter(Boolean).join(' ')
+  const canonical = canonicalizeSvg(body, {}, example.engine, version)
+  const conformance = canonical.match(/data-dz-conformance="([^"]+)"/)?.[1]
+  if (conformance !== 'presentation-only' && !/data-dz-(?:fill|stroke)=/.test(canonical)) {
+    throw new Error(`${example.engine}: normalization profile produced no semantic paint roles`)
+  }
+  const appearances = supportedAppearances(canonical)
+  const appearance = appearances.includes('auto-transparent')
+    ? 'auto-transparent'
+    : appearances.includes('auto-framed') ? 'auto-framed' : 'raw'
+  materializeSvg(canonical, appearance)
   return example.engine
 }
 

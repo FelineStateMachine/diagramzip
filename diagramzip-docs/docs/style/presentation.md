@@ -1,17 +1,31 @@
 ---
 id: presentation
 title: General presentation settings
-description: Set the canvas background, padding, and frame for a diagram.zip diagram.
+description: Choose a shared appearance or keep the renderer canvas, padding, and frame.
 sidebar_position: 1
 ---
 
 # General presentation settings
 
-These settings apply to every rendered diagram. Set them after you create valid source.
+Open **Details**, then use **Appearance** to choose how diagram.zip presents the SVG.
+
+## Appearance
+
+**Renderer default** keeps the safe renderer output. It also enables the canvas, padding, and frame controls.
+
+The shared appearances apply one Diagram.zip palette to supported renderer output:
+
+- **Match device** includes light and dark palettes in one SVG. The SVG selects a palette with `prefers-color-scheme`.
+- **Light** always uses the light palette.
+- **Dark** always uses the dark palette.
+- **Transparent** does not add an outer canvas.
+- **Framed** adds a matching canvas, standard padding, and a border.
+
+The editor disables appearances that the current renderer profile cannot support. Diagrams.net, Excalidraw, and TikZ currently support framed appearances only. Their authored paint remains unchanged inside the shared frame.
 
 ## Background
 
-Set the canvas background to a color that supports your diagram. Use a light background for most documents. Check the contrast of labels and lines after you change it.
+Choose **Renderer default** before you set the background. Use a light background for most documents. Check the contrast of labels and lines after you change it.
 
 ## Padding
 
@@ -31,10 +45,9 @@ For example, [Mermaid styling](/style/types/mermaid/) uses Mermaid configuration
 
 ## A safe order
 
-1. Set the canvas background.
-2. Set padding.
-3. Choose the frame state.
-4. Apply type-specific styles.
-5. Check the preview at its target size.
+1. Choose a shared appearance when the renderer supports it.
+2. Use **Renderer default** when you need custom canvas controls.
+3. Apply type-specific styles.
+4. Check the preview at its target size.
 
 A **Renderer options** section appears only when the renderer adds options for that type.

@@ -21,7 +21,7 @@ function payload(source = 'a -> b') {
       type: 'd2',
       source,
       options: {},
-      presentation: { background: '', padding: 0, frame: false },
+      presentation: { background: '', padding: 0, frame: false, appearance: 'raw' },
     },
     metadata: { title: 'A to B', description: 'A small diagram.' },
   }

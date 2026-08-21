@@ -183,10 +183,27 @@ to browser and Worker renderers. Every catalog entry reports its active
 normalization capability. An unrecognized renderer contract remains on
 `safe-raw-1` and supports only `raw`.
 
-GraphViz `15.1.1` currently uses `graphviz-15-semantic-1`. The profile relies on
-GraphViz's stable `graph`, `node`, `edge`, and `cluster` groups. It adapts neutral
-surfaces, text, connectors, and arrowheads. Explicit non-neutral authored colors
-remain unchanged and are reported as a profile limitation.
+The current catalog uses these profile families:
+
+| Profile | Conformance | Engines | Supported appearances |
+| --- | --- | --- | --- |
+| `graphviz-15-semantic-1` | Semantic | Graphviz, DBML, ERD, WireViz | All |
+| `d2-0.7-semantic-1` | Semantic | D2 | All |
+| `plantuml-2026-semantic-1` | Semantic | PlantUML, C4 PlantUML, Structurizr | All |
+| `svgbob-0.7-semantic-1` | Semantic | Svgbob, Ditaa | All |
+| `neutral-svg-semantic-1` | Adaptive | BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag, Bytefield, Mermaid, BPMN, Nomnoml, Pikchr, Symbolator, UMLet | All |
+| `structured-svg-semantic-1` | Adaptive | GoAT, Vega, Vega-Lite, WaveDrom | All |
+| `authored-svg-presentation-1` | Presentation only | Diagrams.net, Excalidraw, TikZ | Raw and framed |
+
+Semantic profiles rely on pinned renderer structures and stable class or group
+meaning. Adaptive profiles recognize neutral paint and selected structural
+roles. They preserve authored data colors and other non-neutral paint.
+Presentation-only profiles do not claim that the authored drawing adapts. They
+add only the shared outer canvas and frame.
+
+Profile selection also checks the pinned renderer version. An engine upgrade
+does not inherit a profile until its output passes the catalog audit. Unknown
+builds fall back to `safe-raw-1`.
 
 ## Semantic visual roles
 

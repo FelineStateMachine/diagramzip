@@ -162,6 +162,19 @@ document.querySelector('#app').innerHTML = `
         </label>
         <fieldset class="presentation-fields">
           <legend>Presentation</legend>
+          <label class="appearance-field">
+            <span>Appearance</span>
+            <select id="diagram-appearance">
+              <option value="raw">Renderer default</option>
+              <option value="auto-transparent">Match device · transparent</option>
+              <option value="light-transparent">Light · transparent</option>
+              <option value="dark-transparent">Dark · transparent</option>
+              <option value="auto-framed">Match device · framed</option>
+              <option value="light-framed">Light · framed</option>
+              <option value="dark-framed">Dark · framed</option>
+            </select>
+            <small id="appearance-note">Renderer default keeps the renderer's paint and enables the canvas controls below.</small>
+          </label>
           <label>
             <span>Canvas</span>
             <select id="diagram-background">
@@ -252,6 +265,7 @@ document.querySelector('#app').innerHTML = `
 const typePicker = document.querySelector('#diagram-type')
 const titleInput = document.querySelector('#diagram-title')
 const descriptionInput = document.querySelector('#diagram-description')
+const appearanceInput = document.querySelector('#diagram-appearance')
 const backgroundInput = document.querySelector('#diagram-background')
 const paddingInput = document.querySelector('#diagram-padding')
 const frameInput = document.querySelector('#diagram-frame')
@@ -265,9 +279,11 @@ const initialPresentation = normalizePresentation(initialState.presentation)
 typePicker.value = initialState.type
 titleInput.value = initialMetadata.title
 descriptionInput.value = initialMetadata.description
+appearanceInput.value = initialPresentation.appearance
 backgroundInput.value = initialPresentation.background
 paddingInput.value = String(initialPresentation.padding)
 frameInput.checked = initialPresentation.frame
+syncPresentationControls()
 updateDocumentMetadata()
 activeType = initialState.type
 typeDrafts.set(initialState.type, initialState)
@@ -287,6 +303,7 @@ const preview = new PreviewController({
   minimap: document.querySelector('#minimap'),
   minimapImage: document.querySelector('#minimap-image'),
   minimapViewport: document.querySelector('#minimap-viewport'),
+  onAppearances: updateAppearanceOptions,
 })
 
 typePicker.addEventListener('change', () => {
@@ -299,8 +316,9 @@ document.querySelector('#details').addEventListener('click', () => {
   document.querySelector('#details-dialog').showModal()
   descriptionInput.focus()
 })
-for (const input of [titleInput, descriptionInput, backgroundInput, paddingInput, frameInput]) {
+for (const input of [titleInput, descriptionInput, appearanceInput, backgroundInput, paddingInput, frameInput]) {
   input.addEventListener('input', () => {
+    syncPresentationControls()
     updateDocumentMetadata()
     clearTimeout(commitDetails.timeout)
     commitDetails.timeout = setTimeout(commitDetails, 220)
@@ -372,11 +390,31 @@ function currentState() {
     options: {},
     meta: normalizeMetadata({ title: titleInput.value, description: descriptionInput.value }),
     presentation: normalizePresentation({
+      appearance: appearanceInput.value,
       background: backgroundInput.value,
       padding,
       frame: frameInput.checked,
     }),
   }
+}
+
+function syncPresentationControls() {
+  const usesRendererPresentation = appearanceInput.value === 'raw'
+  backgroundInput.disabled = !usesRendererPresentation
+  paddingInput.disabled = !usesRendererPresentation
+  frameInput.disabled = !usesRendererPresentation
+  document.querySelector('#appearance-note').textContent = usesRendererPresentation
+    ? "Renderer default keeps the renderer's paint and enables the canvas controls below."
+    : 'This appearance uses the shared Diagram.zip palette. Canvas, padding, and frame come from that appearance.'
+}
+
+function updateAppearanceOptions(appearances, appliedAppearance) {
+  const supported = new Set(appearances)
+  for (const option of appearanceInput.options) option.disabled = !supported.has(option.value)
+  if (appearanceInput.value === appliedAppearance) return
+  appearanceInput.value = appliedAppearance
+  syncPresentationControls()
+  queueMicrotask(commitDetails)
 }
 
 function scheduleUpdate(delay = 1200) {
@@ -448,9 +486,11 @@ function applyState(state, commit = true) {
   typePicker.value = state.type
   titleInput.value = meta.title
   descriptionInput.value = meta.description
+  appearanceInput.value = presentation.appearance
   backgroundInput.value = presentation.background
   paddingInput.value = String(presentation.padding)
   frameInput.checked = presentation.frame
+  syncPresentationControls()
   updateDocumentMetadata()
   sourceEditor.setDocument({ source: state.source, diagramType: state.type })
   if (commit) commitState()
@@ -471,7 +511,8 @@ function populateShareDialog() {
     ? editAliasUrl(location.origin, remote.aliasId, remote.writeCapability)
     : ''
   const savedState = savedLocked ? null : remote.savedState
-  const svgLink = savedState ? stableRenderUrl(location.origin, remote.aliasId, 'svg') : ''
+  const savedAppearance = savedState ? normalizePresentation(savedState.presentation).appearance : 'raw'
+  const svgLink = savedState ? stableRenderUrl(location.origin, remote.aliasId, 'svg', savedAppearance) : ''
   const imageLink = document.querySelector('#image-link')
   const markdownLink = document.querySelector('#markdown-link')
   const markdownTitle = savedState?.meta.title.trim().replace(/[\[\]\r\n]/g, ' ') || 'Diagram'

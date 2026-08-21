@@ -487,6 +487,8 @@ dialog::backdrop {
   border-radius: 12px;
 }
 .presentation-fields legend { padding: 0 6px; font-weight: 750; }
+.presentation-fields .appearance-field { grid-column: 1 / -1; }
+.presentation-fields .appearance-field small { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; line-height: 1.4; }
 .presentation-fields label > span { display: block; margin-bottom: 7px; font-weight: 700; }
 .presentation-fields select,
 .presentation-fields input[type="number"] {
@@ -509,6 +511,7 @@ dialog::backdrop {
 }
 .presentation-fields .checkbox-field input { width: 18px; height: 18px; accent-color: var(--ink); }
 .presentation-fields .checkbox-field span { display: inline; margin: 0; }
+.presentation-fields :disabled { cursor: not-allowed; opacity: .5; }
 
 .privacy-fields {
   display: flex;

@@ -1,5 +1,5 @@
 import { clientAdapterFor } from './client-renderers.js'
-import { canonicalizeSvg, materializePresentation } from './client-svg.js'
+import { canonicalizeSvg, materializePresentation, materializeSvg, supportedAppearances } from './client-svg.js'
 import { httpRendererUnitFor } from './renderer-units.js'
 
 const STATUS_LABELS = {
@@ -14,13 +14,14 @@ function clamp(value, minimum, maximum) {
 }
 
 export class PreviewController {
-  constructor({ stage, image, status, minimap, minimapImage, minimapViewport }) {
+  constructor({ stage, image, status, minimap, minimapImage, minimapViewport, onAppearances = () => {} }) {
     this.stage = stage
     this.image = image
     this.status = status
     this.minimap = minimap
     this.minimapImage = minimapImage
     this.minimapViewport = minimapViewport
+    this.onAppearances = onAppearances
     this.scale = 1
     this.x = 0
     this.y = 0
@@ -109,7 +110,14 @@ export class PreviewController {
       }
       if (requestNumber !== this.requestNumber) return
       const canonical = this.normalizedSvgBlob(rendered.body)
-      const displayed = this.normalizedSvgBlob(materializePresentation(rendered.body, presentation))
+      const appearances = supportedAppearances(rendered.body)
+      const requestedAppearance = presentation.appearance ?? 'raw'
+      const appearance = appearances.includes(requestedAppearance) ? requestedAppearance : 'raw'
+      this.onAppearances(appearances, appearance)
+      const displayedSvg = appearance === 'raw'
+        ? materializePresentation(rendered.body, presentation)
+        : materializeSvg(rendered.body, appearance)
+      const displayed = this.normalizedSvgBlob(displayedSvg)
       this.latestRenderKey = renderKey
       this.latestSvgBlob = canonical.blob
       this.latestRendererIdentity = rendered.identity
@@ -140,7 +148,11 @@ export class PreviewController {
       format: 'svg',
       options,
       metadata: meta,
-      presentation,
+      presentation: {
+        background: presentation.background ?? '',
+        padding: presentation.padding ?? 0,
+        frame: presentation.frame ?? false,
+      },
     }, signal)
     return this.renderResponse(response, type)
   }

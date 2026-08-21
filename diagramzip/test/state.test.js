@@ -22,9 +22,10 @@ test('round trips Unicode text', () => {
 })
 
 test('validates structured presentation values', () => {
-  assert.deepEqual(normalizePresentation(), { background: '', padding: 0, frame: false })
+  assert.deepEqual(normalizePresentation(), { background: '', padding: 0, frame: false, appearance: 'raw' })
   assert.throws(() => normalizePresentation({ background: 'red' }), /presentation/)
   assert.throws(() => normalizePresentation({ padding: 257 }), /presentation/)
+  assert.throws(() => normalizePresentation({ appearance: 'sepia' }), /presentation/)
 })
 
 test('validates metadata values', () => {
@@ -60,7 +61,18 @@ test('carries presentation in the static SVG payload', () => {
     presentation: { background: '#f4f4f4', padding: 24, frame: true },
   }))
   assert.deepEqual(JSON.parse(decodeText(url.searchParams.get('dz'))), {
-    presentation: { background: '#f4f4f4', padding: 24, frame: true },
+    presentation: { background: '#f4f4f4', padding: 24, frame: true, appearance: 'raw' },
+  })
+})
+
+test('carries a shared SVG appearance in presentation state', () => {
+  const url = new URL(imageUrl('https://diagram.zip', {
+    type: 'd2',
+    source: 'a -> b',
+    presentation: { appearance: 'auto-transparent' },
+  }))
+  assert.deepEqual(JSON.parse(decodeText(url.searchParams.get('dz'))), {
+    presentation: { background: '', padding: 0, frame: false, appearance: 'auto-transparent' },
   })
 })
 

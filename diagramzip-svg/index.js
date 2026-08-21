@@ -30,20 +30,127 @@ export const RAW_NORMALIZATION = Object.freeze({
   conformance: 'raw',
   appearances: Object.freeze(['raw']),
 })
-const THEMED_APPEARANCES = Object.freeze(APPEARANCES.filter(appearance => appearance !== 'raw'))
-const GRAPHVIZ_NORMALIZATION = Object.freeze({
-  schema: SVG_SCHEMA,
-  normalizer: NORMALIZER_BUILD,
-  profile: 'graphviz-15-semantic-1',
-  palette: PALETTE_BUILD,
-  conformance: 'semantic',
-  appearances: APPEARANCES,
-  limitations: Object.freeze(['Authored non-neutral colors are preserved and may not adapt between palettes.']),
+const FRAMED_APPEARANCES = Object.freeze(['raw', 'auto-framed', 'light-framed', 'dark-framed'])
+
+function capability(profile, conformance, limitations, appearances = APPEARANCES) {
+  return Object.freeze({
+    schema: SVG_SCHEMA,
+    normalizer: NORMALIZER_BUILD,
+    profile,
+    palette: PALETTE_BUILD,
+    conformance,
+    appearances,
+    limitations: Object.freeze(limitations),
+  })
+}
+
+const GRAPHVIZ_NORMALIZATION = capability(
+  'graphviz-15-semantic-1',
+  'semantic',
+  ['Authored non-neutral colors are preserved and may not adapt between palettes.'],
+)
+const D2_NORMALIZATION = capability(
+  'd2-0.7-semantic-1',
+  'semantic',
+  ['Authored D2 colors are preserved; the pinned neutral and primary theme roles adapt.'],
+)
+const PLANTUML_NORMALIZATION = capability(
+  'plantuml-2026-semantic-1',
+  'semantic',
+  ['Pinned neutral PlantUML paint adapts; explicit themes and authored colors remain renderer-defined.'],
+)
+const SVGBOB_NORMALIZATION = capability(
+  'svgbob-0.7-semantic-1',
+  'semantic',
+  ['Line art, labels, and ordinary surfaces adapt; source-specific non-neutral paint is preserved.'],
+)
+const NEUTRAL_SVG_NORMALIZATION = capability(
+  'neutral-svg-semantic-1',
+  'adaptive',
+  ['Neutral paint adapts; authored non-neutral fills, shadows, and data colors are preserved.'],
+)
+const DETAILED_SVG_NORMALIZATION = capability(
+  'structured-svg-semantic-1',
+  'adaptive',
+  ['Stable structural roles adapt; authored categorical and semantic colors are preserved.'],
+)
+const PRESENTATION_NORMALIZATION = capability(
+  'authored-svg-presentation-1',
+  'presentation-only',
+  ['The outer canvas and frame adapt. Paint inside the authored SVG remains unchanged.'],
+  FRAMED_APPEARANCES,
+)
+
+const PROFILE_BY_ENGINE = Object.freeze({
+  graphviz: GRAPHVIZ_NORMALIZATION,
+  dbml: GRAPHVIZ_NORMALIZATION,
+  erd: GRAPHVIZ_NORMALIZATION,
+  wireviz: GRAPHVIZ_NORMALIZATION,
+  d2: D2_NORMALIZATION,
+  plantuml: PLANTUML_NORMALIZATION,
+  c4plantuml: PLANTUML_NORMALIZATION,
+  structurizr: PLANTUML_NORMALIZATION,
+  svgbob: SVGBOB_NORMALIZATION,
+  ditaa: SVGBOB_NORMALIZATION,
+  blockdiag: NEUTRAL_SVG_NORMALIZATION,
+  seqdiag: NEUTRAL_SVG_NORMALIZATION,
+  actdiag: NEUTRAL_SVG_NORMALIZATION,
+  nwdiag: NEUTRAL_SVG_NORMALIZATION,
+  packetdiag: NEUTRAL_SVG_NORMALIZATION,
+  rackdiag: NEUTRAL_SVG_NORMALIZATION,
+  bytefield: NEUTRAL_SVG_NORMALIZATION,
+  mermaid: NEUTRAL_SVG_NORMALIZATION,
+  bpmn: NEUTRAL_SVG_NORMALIZATION,
+  nomnoml: NEUTRAL_SVG_NORMALIZATION,
+  pikchr: NEUTRAL_SVG_NORMALIZATION,
+  symbolator: NEUTRAL_SVG_NORMALIZATION,
+  umlet: NEUTRAL_SVG_NORMALIZATION,
+  goat: DETAILED_SVG_NORMALIZATION,
+  vega: DETAILED_SVG_NORMALIZATION,
+  vegalite: DETAILED_SVG_NORMALIZATION,
+  wavedrom: DETAILED_SVG_NORMALIZATION,
+  diagramsnet: PRESENTATION_NORMALIZATION,
+  excalidraw: PRESENTATION_NORMALIZATION,
+  tikz: PRESENTATION_NORMALIZATION,
+})
+
+const VERSION_PATTERNS = Object.freeze({
+  graphviz: /graphviz@15\.1\.1/,
+  dbml: /(?:dbml@1\.0\.31|graphviz@15\.1\.1)/,
+  erd: /(?:erd@0\.2\.1\.0|graphviz@15\.1\.1)/,
+  wireviz: /(?:wireviz@)?0\.3\.2/,
+  d2: /d2@0\.7\.1/,
+  plantuml: /plantuml@1\.2026\.6/,
+  c4plantuml: /(?:c4plantuml@2\.7\.0|plantuml@1\.2026\.6)/,
+  structurizr: /structurizr@6\.2\.2/,
+  svgbob: /svgbob@0\.7\.6/,
+  ditaa: /(?:ditaa-ascii|svgbob@0\.7\.6)/,
+  blockdiag: /(?:blockdiag@)?3\.4\.2/,
+  seqdiag: /(?:seqdiag@)?3\.0\.0/,
+  actdiag: /(?:actdiag@)?3\.0\.0/,
+  nwdiag: /(?:nwdiag@)?3\.0\.0/,
+  packetdiag: /(?:packetdiag@)?3\.0\.0/,
+  rackdiag: /(?:rackdiag@)?3\.0\.0/,
+  bytefield: /bytefield-svg@1\.11\.0/,
+  mermaid: /mermaid@11\.17\.0/,
+  bpmn: /bpmn-js@18\.25\.1/,
+  nomnoml: /nomnoml@1\.7\.0/,
+  pikchr: /pikchr@85e65b9686/,
+  symbolator: /(?:symbolator@)?1\.2\.2/,
+  umlet: /diagramzip-umlet-svg@1/,
+  goat: /goat@0\.5\.1/,
+  vega: /vega@6\.3\.1/,
+  vegalite: /vega-lite@6\.4\.3/,
+  wavedrom: /wavedrom@3\.6\.2/,
+  diagramsnet: /diagrams\.net@29\.6\.1/,
+  excalidraw: /@excalidraw\/excalidraw@0\.18\.1/,
+  tikz: /@planktimerr\/tikzjax@1\.0\.63/,
 })
 
 export function normalizationFor(engine, rendererVersion = '') {
-  if (engine === 'graphviz' && rendererVersion.startsWith('graphviz@15.1.1')) return GRAPHVIZ_NORMALIZATION
-  return RAW_NORMALIZATION
+  const profile = PROFILE_BY_ENGINE[engine]
+  const pattern = VERSION_PATTERNS[engine]
+  return profile && pattern?.test(rendererVersion) ? profile : RAW_NORMALIZATION
 }
 
 export class SvgNormalizationError extends Error {
@@ -84,7 +191,7 @@ function safeAttribute(name, value) {
 }
 
 function escapeText(value) {
-  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+  return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
 }
 
 function escapeAttribute(value) {
@@ -93,12 +200,21 @@ function escapeAttribute(value) {
 
 function serialize(node) {
   if (node.type === 'text') return escapeText(node.value)
-  const attributes = [...node.attributes].map(([name, value]) => ` ${name}="${escapeAttribute(value)}"`).join('')
+  let attributes = ''
+  node.attributes.forEach((value, name) => {
+    attributes += ` ${name}="${escapeAttribute(value)}"`
+  })
   return `<${node.name}${attributes}>${node.children.map(serialize).join('')}</${node.name}>`
 }
 
 function localName(element) {
   return element.name.toLowerCase().split(':').at(-1) ?? element.name.toLowerCase()
+}
+
+function qualifiedName(node) {
+  if (typeof node.name === 'string' && node.name !== '') return node.name
+  if (typeof node.prefix === 'string' && node.prefix !== '') return `${node.prefix}:${node.local}`
+  return node.local
 }
 
 function numericDimension(value) {
@@ -205,8 +321,156 @@ function applyGraphvizProfile(root) {
   visit(root)
 }
 
-function applyProfile(root, capability) {
+const BLACK_PAINT = new Set(['black', '#000', '#000000', '#111', '#111111', '#111827', '#181818', '#33322e', 'rgb(0,0,0)'])
+const WHITE_PAINT = new Set(['white', '#fff', '#ffffff', '#e2e2f0', '#e8e8e8', '#eee8d5', '#f1f1f1', '#f7f8fe', 'rgb(255,255,255)'])
+const MUTED_PAINT = new Set(['gray', 'grey', '#666', '#666666', '#7f7f7f', '#888', '#888888', '#aaa', '#aaaaaa'])
+const SHAPE_ELEMENTS = new Set(['circle', 'ellipse', 'line', 'path', 'polygon', 'polyline', 'rect'])
+const TEXT_ELEMENTS = new Set(['text', 'tspan', 'div', 'span', 'p', 'b', 'strong', 'i', 'em', 'small', 'sub', 'sup', 'code', 'li'])
+
+function normalizedPaint(value) {
+  return (value ?? '').replaceAll(' ', '').toLowerCase()
+}
+
+function ownPaint(element, property) {
+  return normalizedPaint(element.attributes.get(property) ?? styleValue(element, property) ?? '')
+}
+
+function classNames(element) {
+  return new Set((element.attributes.get('class') ?? '').split(/\s+/).filter(Boolean))
+}
+
+function filteredShadow(element) {
+  const style = element.attributes.get('style') ?? ''
+  return /(?:^|;)\s*filter\s*:/i.test(style) && /(?:^|;)\s*opacity\s*:/i.test(style)
+}
+
+function applyNeutralSvgProfile(root, engine, extraSurfacePaint = []) {
+  const bounds = presentationBounds(root)
+  const surfaces = new Set([...WHITE_PAINT, ...extraSurfacePaint.map(normalizedPaint)])
+  const visit = (node, inheritedFill = '', inheritedStroke = '') => {
+    if (node.type === 'text') return
+    const name = localName(node)
+    const fill = ownPaint(node, 'fill') || inheritedFill
+    const stroke = ownPaint(node, 'stroke') || inheritedStroke
+    const backdrop = rendererBackdrop(node, bounds, engine)
+    if (backdrop) node.attributes.set('data-dz-role', 'canvas')
+    if (TEXT_ELEMENTS.has(name)) {
+      if (BLACK_PAINT.has(fill) || fill === '') node.attributes.set('data-dz-fill', 'ink')
+      else if (MUTED_PAINT.has(fill)) node.attributes.set('data-dz-fill', 'ink-muted')
+    } else if (SHAPE_ELEMENTS.has(name) && !backdrop) {
+      if (surfaces.has(fill)) node.attributes.set('data-dz-fill', 'surface-1')
+      else if (BLACK_PAINT.has(fill) && !filteredShadow(node)) node.attributes.set('data-dz-fill', 'line')
+      if (BLACK_PAINT.has(stroke)) node.attributes.set('data-dz-stroke', 'line')
+      else if (MUTED_PAINT.has(stroke)) node.attributes.set('data-dz-stroke', 'line-muted')
+    }
+    for (const child of node.children) visit(child, fill, stroke)
+  }
+  visit(root)
+}
+
+function applyD2Profile(root) {
+  applyNeutralSvgProfile(root, 'd2', ['#f7f8fe'])
+  const visit = node => {
+    if (node.type === 'text') return
+    const classes = classNames(node)
+    const name = localName(node)
+    if (classes.has('fill-N1') && TEXT_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'ink')
+    if (classes.has('fill-N2') && TEXT_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'ink-muted')
+    if (classes.has('fill-B6') && SHAPE_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'surface-1')
+    if (classes.has('fill-B1')) node.attributes.set('data-dz-fill', 'accent-1')
+    if (classes.has('stroke-B1') || classes.has('connection')) node.attributes.set('data-dz-stroke', 'accent-1')
+    for (const child of node.children) visit(child)
+  }
+  visit(root)
+}
+
+function applySvgbobProfile(root) {
+  applyNeutralSvgProfile(root, 'svgbob')
+  const visit = node => {
+    if (node.type === 'text') return
+    const classes = classNames(node)
+    const name = localName(node)
+    if (classes.has('backdrop')) node.attributes.set('data-dz-role', 'canvas')
+    if (TEXT_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'ink')
+    if (classes.has('solid')) node.attributes.set('data-dz-stroke', 'line')
+    if (classes.has('nofill') || classes.has('bg_filled')) node.attributes.set('data-dz-fill', 'surface-1')
+    if (classes.has('filled')) node.attributes.set('data-dz-fill', 'line')
+    for (const child of node.children) visit(child)
+  }
+  visit(root)
+}
+
+function applyPlantumlProfile(root) {
+  applyNeutralSvgProfile(root, 'plantuml', ['#e2e2f0', '#f1f1f1'])
+}
+
+function applyGoatProfile(root) {
+  applyNeutralSvgProfile(root, 'goat')
+  const visit = node => {
+    if (node.type === 'text') return
+    const classes = classNames(node)
+    const name = localName(node)
+    if (TEXT_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'ink')
+    if (classes.has('path')) node.attributes.set('data-dz-stroke', 'line')
+    if (classes.has('arrowhead') || classes.has('filled')) node.attributes.set('data-dz-fill', 'line')
+    if (classes.has('hollow')) node.attributes.set('data-dz-fill', 'surface-1')
+    for (const child of node.children) visit(child)
+  }
+  visit(root)
+}
+
+function applyVegaProfile(root) {
+  applyNeutralSvgProfile(root, 'vega')
+  const visit = (node, context = '') => {
+    if (node.type === 'text') return
+    const classes = classNames(node)
+    const nextContext = [...classes].find(value => value.startsWith('role-')) ?? context
+    const name = localName(node)
+    if (classes.has('background') && rendererBackdrop(node, presentationBounds(root), 'vega')) node.attributes.set('data-dz-role', 'canvas')
+    if (nextContext === 'role-axis-label' || nextContext === 'role-legend-label' || nextContext === 'role-title') {
+      if (TEXT_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'ink')
+    }
+    if (nextContext === 'role-axis-tick' || nextContext === 'role-axis-domain' || nextContext === 'role-grid') {
+      if (SHAPE_ELEMENTS.has(name)) node.attributes.set('data-dz-stroke', 'line-muted')
+    }
+    for (const child of node.children) visit(child, nextContext)
+  }
+  visit(root)
+}
+
+function applyWavedromProfile(root) {
+  const accentClasses = new Map([
+    ['s8', 'accent-3'], ['s9', 'accent-3'], ['s10', 'accent-1'], ['s11', 'accent-1'],
+    ['s12', 'accent-2'], ['s13', 'accent-2'], ['s14', 'accent-3'], ['s15', 'accent-1'],
+  ])
+  const visit = node => {
+    if (node.type === 'text') return
+    const classes = classNames(node)
+    const name = localName(node)
+    if (TEXT_ELEMENTS.has(name) && ![...classes].some(value => ['muted', 'warning', 'error', 'info', 'success'].includes(value))) {
+      node.attributes.set('data-dz-fill', 'ink')
+    }
+    if ([...classes].some(value => ['s1', 's2', 's3', 's4'].includes(value))) node.attributes.set('data-dz-stroke', 'line')
+    if (classes.has('s5') || classes.has('s7')) node.attributes.set('data-dz-fill', 'surface-1')
+    if (classes.has('s6')) node.attributes.set('data-dz-fill', 'line')
+    for (const [className, role] of accentClasses) if (classes.has(className)) node.attributes.set('data-dz-fill', role)
+    if (classes.has('s16')) node.attributes.set('data-dz-stroke', 'accent-1')
+    for (const child of node.children) visit(child)
+  }
+  visit(root)
+}
+
+function applyProfile(root, capability, engine) {
   if (capability.profile === 'graphviz-15-semantic-1') applyGraphvizProfile(root)
+  else if (capability.profile === 'd2-0.7-semantic-1') applyD2Profile(root)
+  else if (capability.profile === 'plantuml-2026-semantic-1') applyPlantumlProfile(root)
+  else if (capability.profile === 'svgbob-0.7-semantic-1') applySvgbobProfile(root)
+  else if (capability.profile === 'neutral-svg-semantic-1') applyNeutralSvgProfile(root, engine)
+  else if (capability.profile === 'structured-svg-semantic-1') {
+    if (engine === 'goat') applyGoatProfile(root)
+    else if (engine === 'vega' || engine === 'vegalite') applyVegaProfile(root)
+    else if (engine === 'wavedrom') applyWavedromProfile(root)
+  }
 }
 
 function applyRootBackgroundStyle(root, background) {
@@ -283,9 +547,11 @@ function parseSafeSvg(source) {
       skippedDepth++
       return
     }
-    const next = element(tag.name)
-    for (const attribute of Object.values(tag.attributes)) {
-      if (safeAttribute(attribute.name, attribute.value)) next.attributes.set(attribute.name, attribute.value)
+    const next = element(qualifiedName(tag))
+    for (const [attributeKey, attribute] of Object.entries(tag.attributes)) {
+      const name = typeof attribute === 'string' ? attributeKey : qualifiedName(attribute) ?? attributeKey
+      const value = typeof attribute === 'string' ? attribute : attribute.value
+      if (safeAttribute(name, value)) next.attributes.set(name, value)
     }
     const parent = stack.at(-1)
     if (parent) parent.children.push(next)
@@ -330,15 +596,16 @@ export function sanitizeAndDecorateSvg(source, metadata, presentation, engine, r
 export function canonicalizeSvg(source, metadata, engine, rendererVersion = '') {
   const root = parseSafeSvg(source)
   const capability = normalizationFor(engine, rendererVersion)
-  applyProfile(root, capability)
+  applyProfile(root, capability, engine)
   root.attributes.set('data-dz-schema', SVG_SCHEMA)
   root.attributes.set('data-dz-normalizer', NORMALIZER_BUILD)
   root.attributes.set('data-dz-profile', capability.profile)
-  root.attributes.set('data-dz-palette', capability.palette)
+  root.attributes.set('data-dz-palette', 'renderer')
   root.attributes.set('data-dz-engine', engine)
   root.attributes.set('data-dz-appearance', 'raw')
   root.attributes.set('data-dz-conformance', capability.conformance)
-  if (capability !== RAW_NORMALIZATION) root.attributes.set('data-dz-appearances', THEMED_APPEARANCES.join(' '))
+  const appearances = capability.appearances.filter(appearance => appearance !== 'raw')
+  if (appearances.length > 0) root.attributes.set('data-dz-appearances', appearances.join(' '))
   const bounds = presentationBounds(root)
   if (bounds !== null) root.attributes.set('data-dz-bounds', bounds.join(' '))
   addMetadata(root, metadata)
@@ -435,4 +702,15 @@ export function materializeSvg(canonical, appearance) {
     if (root.attributes.has('height')) root.attributes.set('height', String(bounds[3]))
   }
   return serialize(root)
+}
+
+export function supportedAppearances(canonical) {
+  const root = parseSafeSvg(canonical)
+  if (root.attributes.get('data-dz-schema') !== SVG_SCHEMA) {
+    throw new SvgNormalizationError(422, 'not_canonical', 'SVG does not use the current Diagram.zip canonical schema.')
+  }
+  return Object.freeze([
+    'raw',
+    ...(root.attributes.get('data-dz-appearances') ?? '').split(/\s+/).filter(appearance => APPEARANCES.includes(appearance)),
+  ])
 }

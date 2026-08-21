@@ -7,6 +7,8 @@ import {
   canonicalizeSvg,
   materializePresentation,
   materializeSvg,
+  supportedAppearances,
+  normalizationFor,
   sanitizeAndDecorateSvg,
 } from '../../diagramzip-svg/index.js'
 
@@ -25,6 +27,11 @@ test('freezes namespaced appearance and raw capability contracts', () => {
     'dark-framed',
   ])
   assert.deepEqual(RAW_NORMALIZATION.appearances, ['raw'])
+})
+
+test('falls back to safe raw for an unknown renderer build', () => {
+  assert.equal(normalizationFor('d2', 'd2@future').profile, 'safe-raw-1')
+  assert.equal(normalizationFor('unknown', 'unknown@1').profile, 'safe-raw-1')
 })
 
 test('produces deterministic, idempotent raw canonical SVG', () => {
@@ -77,6 +84,18 @@ test('materializes explicit and automatic palettes without changing diagram geom
   assert.match(automatic, /@media\(prefers-color-scheme:dark\)/)
 })
 
+test('reports the appearances declared by the canonical profile', () => {
+  assert.deepEqual(supportedAppearances(semanticCanonical), [
+    'raw',
+    'auto-transparent',
+    'light-transparent',
+    'dark-transparent',
+    'auto-framed',
+    'light-framed',
+    'dark-framed',
+  ])
+})
+
 test('materializes a bounded frame and remains idempotent', () => {
   const framed = materializeSvg(semanticCanonical, 'dark-framed')
   const repeated = materializeSvg(framed, 'dark-framed')
@@ -109,4 +128,50 @@ test('applies the pinned GraphViz semantic profile without recoloring authored p
   assert.match(dark, /data-dz-role="canvas"\]:not/)
   assert.match(dark, /fill="red" stroke="red"/)
   assert.doesNotMatch(dark, /fill="red" stroke="red"[^>]*data-dz-/)
+})
+
+test('applies D2, PlantUML, Svgbob, and neutral SVG family roles', () => {
+  const fixtures = [
+    {
+      engine: 'd2', version: 'd2@0.7.1/dagre-wasm-1', profile: 'd2-0.7-semantic-1',
+      source: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><rect x="0" y="0" width="20" height="20" fill="#FFFFFF"></rect><rect class="shape fill-B6 stroke-B1" x="2" y="2" width="16" height="16" fill="#f7f8fe" stroke="#0d32b2"></rect><text class="fill-N1" fill="#0a0f25">A</text></svg>',
+      roles: ['data-dz-role="canvas"', 'data-dz-fill="surface-1"', 'data-dz-stroke="accent-1"', 'data-dz-fill="ink"'],
+    },
+    {
+      engine: 'plantuml', version: 'plantuml@1.2026.6/edge-wasm-1', profile: 'plantuml-2026-semantic-1',
+      source: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" fill="#E2E2F0" stroke="#181818"></rect><text fill="#000000">A</text></svg>',
+      roles: ['data-dz-fill="surface-1"', 'data-dz-stroke="line"', 'data-dz-fill="ink"'],
+    },
+    {
+      engine: 'svgbob', version: 'svgbob@0.7.6/edge-wasm-1', profile: 'svgbob-0.7-semantic-1',
+      source: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><style>.solid{stroke:black}.nofill{fill:white}</style><rect class="backdrop" x="0" y="0" width="20" height="20" fill="white"></rect><rect class="solid nofill" x="2" y="2" width="16" height="16"></rect><text>A</text></svg>',
+      roles: ['data-dz-role="canvas"', 'data-dz-stroke="line"', 'data-dz-fill="surface-1"', 'data-dz-fill="ink"'],
+    },
+    {
+      engine: 'blockdiag', version: 'blockdiag@3.4.2/python-worker-1', profile: 'neutral-svg-semantic-1',
+      source: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" fill="rgb(255,255,255)" stroke="rgb(0,0,0)"></rect><text fill="rgb(0,0,0)">A</text></svg>',
+      roles: ['data-dz-fill="surface-1"', 'data-dz-stroke="line"', 'data-dz-fill="ink"'],
+    },
+  ]
+
+  for (const fixture of fixtures) {
+    const canonical = canonicalizeSvg(fixture.source, metadata, fixture.engine, fixture.version)
+    assert.match(canonical, new RegExp(`data-dz-profile="${fixture.profile}"`))
+    for (const role of fixture.roles) assert.ok(canonical.includes(role), `${fixture.engine} missing ${role}`)
+    assert.match(materializeSvg(canonical, 'dark-transparent'), /data-dz-appearance="dark-transparent"/)
+  }
+})
+
+test('keeps authored SVG paint intact while offering an outer frame', () => {
+  const source = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="hotpink"></rect></svg>'
+  const canonical = canonicalizeSvg(source, metadata, 'tikz', '@planktimerr/tikzjax@1.0.63/client-unit-1')
+  const framed = materializeSvg(canonical, 'auto-framed')
+
+  assert.match(canonical, /data-dz-conformance="presentation-only"/)
+  assert.match(canonical, /data-dz-appearances="auto-framed light-framed dark-framed"/)
+  assert.match(framed, /fill="hotpink"/)
+  assert.throws(
+    () => materializeSvg(canonical, 'dark-transparent'),
+    error => error instanceof SvgNormalizationError && error.code === 'unsupported_appearance',
+  )
 })

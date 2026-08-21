@@ -73,8 +73,8 @@ function normalizeDiagram(value: unknown): Diagram {
   if (!isRecord(value.presentation)) {
     throw new RequestError(400, 'invalid_request', 'diagram.presentation must be an object.')
   }
-  assertOnlyKeys(value.presentation, ['background', 'padding', 'frame'], 'diagram.presentation')
-  const { background, padding, frame } = value.presentation
+  assertOnlyKeys(value.presentation, ['background', 'padding', 'frame', 'appearance'], 'diagram.presentation')
+  const { background, padding, frame, appearance = 'raw' } = value.presentation
   if (typeof background !== 'string' || !backgroundPattern.test(background)) {
     throw new RequestError(400, 'invalid_request', 'diagram.presentation.background is invalid.')
   }
@@ -84,12 +84,15 @@ function normalizeDiagram(value: unknown): Diagram {
   if (typeof frame !== 'boolean') {
     throw new RequestError(400, 'invalid_request', 'diagram.presentation.frame is invalid.')
   }
+  if (typeof appearance !== 'string' || !['raw', 'auto-transparent', 'light-transparent', 'dark-transparent', 'auto-framed', 'light-framed', 'dark-framed'].includes(appearance)) {
+    throw new RequestError(400, 'invalid_request', 'diagram.presentation.appearance is invalid.')
+  }
 
   return {
     type: value.type,
     source: value.source,
     options,
-    presentation: { background, padding: padding as number, frame },
+    presentation: { background, padding: padding as number, frame, appearance: appearance as Diagram['presentation']['appearance'] },
   }
 }
 

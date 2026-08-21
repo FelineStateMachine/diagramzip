@@ -1,4 +1,5 @@
 import { deflate, inflate } from 'pako'
+import { APPEARANCES } from './client-svg.js'
 
 // Leave room below Cloudflare's 16 KB request URL ceiling.
 export const MAX_IMAGE_URL_LENGTH = 15_000
@@ -73,13 +74,14 @@ export function normalizePresentation(presentation = {}) {
   const background = presentation.background ?? ''
   const padding = presentation.padding ?? 0
   const frame = presentation.frame ?? false
+  const appearance = presentation.appearance ?? 'raw'
   if (typeof background !== 'string' || (background && !/^#[0-9a-f]{6}$/i.test(background))) {
     throw new Error('Invalid diagram presentation.')
   }
-  if (!Number.isInteger(padding) || padding < 0 || padding > 256 || typeof frame !== 'boolean') {
+  if (!Number.isInteger(padding) || padding < 0 || padding > 256 || typeof frame !== 'boolean' || !APPEARANCES.includes(appearance)) {
     throw new Error('Invalid diagram presentation.')
   }
-  return { background, padding, frame }
+  return { background, padding, frame, appearance }
 }
 
 function hasMetadata(meta) {
@@ -87,7 +89,7 @@ function hasMetadata(meta) {
 }
 
 function hasPresentation(presentation) {
-  return Boolean(presentation.background || presentation.padding || presentation.frame)
+  return Boolean(presentation.background || presentation.padding || presentation.frame || presentation.appearance !== 'raw')
 }
 
 export function imageUrl(origin, { type, source, options = {}, meta = {}, presentation = {} }) {

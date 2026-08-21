@@ -60,7 +60,7 @@ sidebar_label: PlantUML
 
 PlantUML supports themes, skin parameters, colors, sprites, and element-specific style rules.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -145,7 +145,7 @@ sidebar_label: Mermaid
 
 Mermaid supports themes, frontmatter configuration, class definitions, and diagram-specific configuration.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -232,7 +232,7 @@ sidebar_label: Graphviz
 
 DOT supports graph, node, and edge attributes.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -318,7 +318,7 @@ sidebar_label: D2
 
 D2 supports themes, shape properties, style blocks, classes, and sketch mode.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -402,7 +402,7 @@ sidebar_label: C4 PlantUML
 
 C4 PlantUML supports layout macros, tags, legends, and PlantUML style controls.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -483,7 +483,7 @@ sidebar_label: BlockDiag
 
 BlockDiag supports diagram attributes and per-node or per-edge attributes.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -565,7 +565,7 @@ sidebar_label: SeqDiag
 
 SeqDiag supports participant, message, and diagram attributes.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -652,7 +652,7 @@ sidebar_label: ActDiag
 
 ActDiag supports lane, action, edge, and diagram attributes.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -736,7 +736,7 @@ sidebar_label: NwDiag
 
 NwDiag supports network and host attributes.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -820,7 +820,7 @@ sidebar_label: PacketDiag
 
 PacketDiag supports global layout values and field attributes.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -903,7 +903,7 @@ sidebar_label: RackDiag
 
 RackDiag supports rack and device attributes.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -989,7 +989,7 @@ sidebar_label: BPMN
 
 BPMN appearance usually comes from BPMN diagram interchange data and renderer defaults.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1067,7 +1067,7 @@ sidebar_label: Bytefield
 
 Bytefield uses drawing-form properties for spans, labels, and layout.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1151,7 +1151,7 @@ sidebar_label: DBML
 
 DBML describes schema structure. It does not define visual presentation.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1232,7 +1232,7 @@ sidebar_label: Diagrams.net
 
 Diagrams.net stores geometry and style values on cells in the XML source.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1304,7 +1304,7 @@ sidebar_label: Ditaa
 
 Ditaa supports shape tags, color tags, dashed lines, and renderer options.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1396,7 +1396,7 @@ sidebar_label: ERD
 
 ERD focuses on the data model. The renderer controls most visual values.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1475,7 +1475,7 @@ sidebar_label: Excalidraw
 
 Excalidraw stores the style of each element in the JSON source.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1568,7 +1568,7 @@ sidebar_label: GoAT
 
 GoAT takes most geometry from the text. Renderer options control SVG colors and character handling.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1653,7 +1653,7 @@ sidebar_label: Nomnoml
 
 Nomnoml uses hash directives and custom classifier styles.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1729,7 +1729,7 @@ sidebar_label: Pikchr
 
 Pikchr supports dimensions, colors, fills, line widths, and placement controls in the source.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1808,7 +1808,7 @@ sidebar_label: Structurizr
 
 Structurizr supports workspace styles, themes, tags, and automatic layout.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1889,7 +1889,7 @@ sidebar_label: Svgbob
 
 Svgbob takes geometry from the text and supports renderer-level SVG settings.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -1976,7 +1976,7 @@ sidebar_label: Symbolator
 
 Symbolator gets structure from hardware source. Renderer options control the title, scale, and output details.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -2062,7 +2062,7 @@ sidebar_label: TikZ
 
 TikZ supports colors, line forms, fills, node styles, scopes, and reusable style definitions.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -2141,7 +2141,7 @@ sidebar_label: UMLet
 
 UMLet stores position and style commands in the UXF XML source.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -2248,7 +2248,7 @@ sidebar_label: Vega
 
 Vega controls presentation through scales, mark encodings, axes, legends, and configuration.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -2337,7 +2337,7 @@ sidebar_label: Vega-Lite
 
 Vega-Lite controls presentation through marks, encodings, scales, axes, legends, and configuration.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -2421,7 +2421,7 @@ sidebar_label: WaveDrom
 
 WaveDrom supports source configuration, signal attributes, and a limited set of bundled skins.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 
@@ -2505,7 +2505,7 @@ sidebar_label: WireViz
 
 WireViz uses YAML properties for connector, cable, wire, and output styles.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 

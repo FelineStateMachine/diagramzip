@@ -10,7 +10,7 @@ sidebar_label: BPMN
 
 BPMN appearance usually comes from BPMN diagram interchange data and renderer defaults.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 

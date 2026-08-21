@@ -15,7 +15,7 @@ const state = {
   source: 'a -> b',
   options: { theme: 200 },
   meta: { title: 'Private map', description: 'Secret topology.' },
-  presentation: { background: '#ffffff', padding: 16, frame: true },
+  presentation: { background: '#ffffff', padding: 16, frame: true, appearance: 'raw' },
 }
 
 test('encrypts and unlocks a diagram with no plaintext in the payload', async () => {

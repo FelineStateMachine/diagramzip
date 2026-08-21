@@ -8,6 +8,7 @@ export interface Diagram {
     background: string
     padding: number
     frame: boolean
+    appearance: 'raw' | 'auto-transparent' | 'light-transparent' | 'dark-transparent' | 'auto-framed' | 'light-framed' | 'dark-framed'
   }
 }
 

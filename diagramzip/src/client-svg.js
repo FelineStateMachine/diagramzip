@@ -6,5 +6,7 @@ export {
   SvgNormalizationError as ClientSvgError,
   canonicalizeSvg,
   materializePresentation,
+  materializeSvg,
   sanitizeAndDecorateSvg,
+  supportedAppearances,
 } from '../../diagramzip-svg/index.js'

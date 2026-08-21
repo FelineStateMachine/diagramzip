@@ -10,7 +10,7 @@ sidebar_label: Nomnoml
 
 Nomnoml uses hash directives and custom classifier styles.
 
-Start with the [general presentation settings](/style/presentation). They control the canvas background, padding, and frame for every diagram.
+Start with the [general presentation settings](/style/presentation). Choose a shared appearance, or use the renderer defaults with custom canvas controls.
 
 ## Source controls
 

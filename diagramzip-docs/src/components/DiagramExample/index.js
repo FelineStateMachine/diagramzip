@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {canonicalizeSvg, materializeSvg} from '../../../../diagramzip-svg/index.js';
+import {canonicalizeSvg, materializeSvg, supportedAppearances} from '../../../../diagramzip-svg/index.js';
 import {fitView, zoomView} from './viewMath.mjs';
 import {clientFrameUrlFor, httpRendererUrlFor} from './rendererRouting.mjs';
 import styles from './styles.module.css';
@@ -54,7 +54,10 @@ class RendererFrame {
     if (!pending) return;
     this.pending.delete(event.data.requestId);
     pending.finish();
-    if (event.data.ok && typeof event.data.svg === 'string') pending.resolve(event.data.svg);
+    if (event.data.ok && typeof event.data.svg === 'string') pending.resolve({
+      svg: event.data.svg,
+      version: typeof event.data.version === 'string' ? event.data.version : '',
+    });
     else pending.reject(new Error(event.data.error || 'Client rendering failed.'));
   }
 
@@ -171,8 +174,8 @@ export default function DiagramExample({engine, label, sourceUrl}) {
         const clientRenderer = clientRendererFor(engine);
         let source;
         if (clientRenderer) {
-          source = await clientRenderer.render(engine, example.source, abortController.signal);
-          source = canonicalizeSvg(source, {title: '', description: ''}, engine);
+          const clientResult = await clientRenderer.render(engine, example.source, abortController.signal);
+          source = canonicalizeSvg(clientResult.svg, {title: '', description: ''}, engine, clientResult.version);
         } else {
           const renderResponse = await fetch(httpRendererUrlFor(engine), {
             method: 'POST',
@@ -189,12 +192,11 @@ export default function DiagramExample({engine, label, sourceUrl}) {
           if (!renderResponse.ok) throw new Error(await responseError(renderResponse));
           source = await renderResponse.text();
         }
-        try {
-          source = materializeSvg(source, 'auto-transparent');
-        } catch (error) {
-          if (error?.code !== 'unsupported_appearance') throw error;
-          source = materializeSvg(source, 'raw');
-        }
+        const appearances = supportedAppearances(source);
+        const appearance = appearances.includes('auto-transparent')
+          ? 'auto-transparent'
+          : appearances.includes('auto-framed') ? 'auto-framed' : 'raw';
+        source = materializeSvg(source, appearance);
         source = normalizeSvg(source);
         const objectUrl = URL.createObjectURL(new Blob([source], {type: 'image/svg+xml'}));
         if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);

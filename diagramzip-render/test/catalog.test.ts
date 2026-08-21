@@ -9,15 +9,24 @@ describe('engine catalog', () => {
     expect(ENGINE_CATALOG.map(engine => engine.id)).toEqual(ENGINE_IDS)
   })
 
-  it('reports raw-only normalization until an engine profile earns themed support', () => {
-    for (const engine of ENGINE_CATALOG.filter(entry => entry.id !== 'graphviz')) {
+  it('reports an honest capability for every pinned renderer contract', () => {
+    const presentationOnly = new Set(['diagramsnet', 'excalidraw', 'tikz'])
+    for (const engine of ENGINE_CATALOG) {
       expect(engine.normalization).toMatchObject({
         schema: '1',
         normalizer: 'svg-normalizer-1',
-        profile: 'safe-raw-1',
-        conformance: 'raw',
-        appearances: ['raw'],
       })
+      expect(engine.normalization.profile).not.toBe('safe-raw-1')
+      if (presentationOnly.has(engine.id)) {
+        expect(engine.normalization).toMatchObject({
+          profile: 'authored-svg-presentation-1',
+          conformance: 'presentation-only',
+          appearances: ['raw', 'auto-framed', 'light-framed', 'dark-framed'],
+        })
+      } else {
+        expect(['semantic', 'adaptive']).toContain(engine.normalization.conformance)
+        expect(engine.normalization.appearances).toEqual(expect.arrayContaining(['raw', 'auto-transparent', 'dark-framed']))
+      }
     }
     expect(ENGINE_CATALOG.find(entry => entry.id === 'graphviz')?.normalization).toMatchObject({
       profile: 'graphviz-15-semantic-1',
