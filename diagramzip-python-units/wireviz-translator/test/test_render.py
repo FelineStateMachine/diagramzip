@@ -5,11 +5,11 @@ import pytest
 from render import render_dot
 
 
-FIXTURE = Path(__file__).parents[3] / 'ci/tests/diagrams/wireviz.yaml'
+EXAMPLE = Path(__file__).parents[3] / 'examples/diagrams/wireviz.yaml'
 
 
-def test_upstream_fixture_lowers_to_graphviz_dot():
-    dot = render_dot(FIXTURE.read_text())
+def test_shared_example_lowers_to_graphviz_dot():
+    dot = render_dot(EXAMPLE.read_text())
     assert dot.startswith('graph {')
     assert 'X1' in dot and 'X2' in dot and 'W1' in dot
     assert 'port="w1"' in dot

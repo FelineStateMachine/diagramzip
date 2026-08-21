@@ -81,7 +81,7 @@ test('keeps shared image URLs below the edge request limit', () => {
 })
 
 test('fits the bundled periodic-table example in a shared image URL', () => {
-  const source = readFileSync(new URL('../examples/tikz.tex', import.meta.url), 'utf8')
+  const source = readFileSync(new URL('../../examples/diagrams/tikz.tex', import.meta.url), 'utf8')
   const url = imageUrl('https://diagram.zip', { type: 'tikz', source })
   assert.ok(url.length > 4096)
   assert.ok(url.length <= MAX_IMAGE_URL_LENGTH)

@@ -14,13 +14,14 @@
 | `diagramzip-python-units/` | Python renderer and translation units |
 | `diagramzip-shell/` | Cloudflare shell and routing layer |
 | `diagramzip-svg/` | Shared SVG normalization and presentation logic |
+| `examples/diagrams/` | Canonical diagram corpus shared by the editor and renderer tests |
 | `skills/` | Diagram-specific agent skills and reference material |
 
 Some top-level renderer directories retain foundation sources used to build the isolated units. The production application and renderer plane run on Cloudflare; there is no JVM gateway or shared rendering server.
 
 ## Development
 
-The main workspace requires Node.js 24.
+The JavaScript workspace uses npm with Node.js 24.
 
 ```sh
 npm install

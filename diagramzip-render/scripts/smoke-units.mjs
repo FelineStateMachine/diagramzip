@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-const fixtureDirectory = resolve(import.meta.dirname, '../../ci/tests/diagrams')
-const fixtures = {
+const diagramDirectory = resolve(import.meta.dirname, '../../examples/diagrams')
+const diagrams = {
   plantuml: 'architecture.puml',
   mermaid: 'contribute.mmd',
   graphviz: 'hello.dot',
@@ -85,7 +85,7 @@ async function smokeClientUnit(engine) {
 
 async function smoke([engine, filename]) {
   if (clientEngines.has(engine)) return smokeClientUnit(engine)
-  const source = await readFile(resolve(fixtureDirectory, filename), 'utf8')
+  const source = await readFile(resolve(diagramDirectory, filename), 'utf8')
   const endpoint = `https://${engine}.render.diagram.zip/v1/svg`
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -195,7 +195,7 @@ async function smoke([engine, filename]) {
   return `${engine.padEnd(10)} ${response.headers.get('X-Diagram-Cache')?.padEnd(4)} ${body.length} bytes`
 }
 
-const entries = Object.entries(fixtures)
+const entries = Object.entries(diagrams)
 const results = []
 for (let index = 0; index < entries.length; index += 4) {
   results.push(...await Promise.all(entries.slice(index, index + 4).map(smoke)))

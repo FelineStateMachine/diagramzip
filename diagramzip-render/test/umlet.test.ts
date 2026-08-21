@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import fixture from '../../ci/tests/diagrams/umlet.xml?raw'
+import example from '../../examples/diagrams/umlet.xml?raw'
 import { parseUmlet, renderUmlet } from '../src/umlet'
 
 describe('bounded UMLet UXF translation', () => {
   it('covers every element in the repository fixture without Java or a browser', () => {
-    const elements = parseUmlet(fixture)
+    const elements = parseUmlet(example)
     expect(elements).toHaveLength(28)
-    const svg = renderUmlet(fixture)
+    const svg = renderUmlet(example)
     expect(svg).toContain('<svg')
     expect(svg).toContain('viewBox=')
     expect(svg).toContain('read boarding')
@@ -16,7 +16,7 @@ describe('bounded UMLet UXF translation', () => {
   })
 
   it('renders the five repository custom classes explicitly', () => {
-    const svg = renderUmlet(fixture)
+    const svg = renderUmlet(example)
     expect(svg).toContain('rx=')
     expect(svg).toContain('<circle')
     expect(svg).toContain('>H</text>')
