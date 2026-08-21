@@ -1,6 +1,7 @@
 import { SaxesParser } from 'saxes'
 
 const MAX_SVG_LENGTH = 4_194_304
+const MAX_EDITABLE_SVG_LENGTH = 5_242_880
 const BLOCKED_ELEMENTS = new Set(['script', 'iframe', 'object', 'embed', 'audio', 'video'])
 const FOREIGN_OBJECT_ELEMENTS = new Set([
   'foreignobject', 'div', 'span', 'p', 'br', 'b', 'strong', 'i', 'em', 'small', 'sub', 'sup', 'code', 'ul', 'ol', 'li', 'a',
@@ -9,6 +10,7 @@ const SAFE_DATA_IMAGE = /^data:image\/(?:png|jpeg|gif|webp);base64,[a-z0-9+/=\s]
 const SAFE_DATA_FONT = /^data:(?:font\/(?:woff2?|opentype|truetype)|application\/(?:x-)?font-woff2?);base64,[a-z0-9+/=\s]+$/i
 
 export const SVG_SCHEMA = '1'
+export const EDITABLE_SVG_SCHEMA = '1'
 export const NORMALIZER_BUILD = 'svg-normalizer-2'
 export const MATERIALIZER_BUILD = 'svg-materializer-2'
 export const PALETTE_BUILD = 'diagramzip-palette-1'
@@ -210,6 +212,17 @@ function serialize(node) {
     attributes += ` ${name}="${escapeAttribute(value)}"`
   })
   return `<${node.name}${attributes}>${node.children.map(serialize).join('')}</${node.name}>`
+}
+
+function canonicalJson(value) {
+  if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') {
+    return JSON.stringify(value)
+  }
+  if (Array.isArray(value)) return `[${value.map(item => canonicalJson(item)).join(',')}]`
+  if (typeof value !== 'object' || value === null) {
+    throw new SvgNormalizationError(422, 'invalid_editable_document', 'Editable SVG data must contain only JSON values.')
+  }
+  return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`
 }
 
 function localName(element) {
@@ -781,8 +794,8 @@ function applyLegacyPresentation(root, presentation, engine) {
   if (frame) root.children.push(frame)
 }
 
-function parseSafeSvg(source) {
-  if (source.length > MAX_SVG_LENGTH) throw new SvgNormalizationError(413, 'render_too_large', 'Rendered SVG is too large.')
+function parseSafeSvg(source, maximumLength = MAX_SVG_LENGTH) {
+  if (source.length > maximumLength) throw new SvgNormalizationError(413, 'render_too_large', 'Rendered SVG is too large.')
   let root = null
   const stack = []
   let skippedDepth = 0
@@ -839,6 +852,50 @@ function parseSafeSvg(source) {
     throw new SvgNormalizationError(422, 'invalid_svg', 'Renderer returned invalid SVG.')
   }
   return root
+}
+
+export function attachEditableDocument(source, document) {
+  const root = parseSafeSvg(source, MAX_EDITABLE_SVG_LENGTH)
+  if (root.attributes.get('data-dz-schema') !== SVG_SCHEMA) {
+    throw new SvgNormalizationError(422, 'not_canonical', 'SVG does not use the current Diagram.zip canonical schema.')
+  }
+  root.children = root.children.filter(child => child.type === 'text'
+    || !(localName(child) === 'metadata' && child.attributes.get('data-dz-kind') === 'document'))
+  root.attributes.set('data-dz-document', EDITABLE_SVG_SCHEMA)
+  const metadata = element('metadata', [
+    ['data-dz-kind', 'document'],
+    ['data-dz-schema', EDITABLE_SVG_SCHEMA],
+  ], [{ type: 'text', value: canonicalJson(document) }])
+  const descriptiveEnd = root.children.findLastIndex(child => child.type !== 'text'
+    && ['title', 'desc'].includes(localName(child)))
+  root.children.splice(descriptiveEnd + 1, 0, metadata)
+  const serialized = serialize(root)
+  if (serialized.length > MAX_EDITABLE_SVG_LENGTH) {
+    throw new SvgNormalizationError(413, 'editable_svg_too_large', 'Editable SVG is too large.')
+  }
+  return serialized
+}
+
+export function extractEditableDocument(source) {
+  const root = parseSafeSvg(source, MAX_EDITABLE_SVG_LENGTH)
+  if (root.attributes.get('data-dz-document') !== EDITABLE_SVG_SCHEMA) {
+    throw new SvgNormalizationError(422, 'not_editable', 'SVG does not contain a supported Diagram.zip document.')
+  }
+  const manifests = root.children.filter(child => child.type !== 'text'
+    && localName(child) === 'metadata'
+    && child.attributes.get('data-dz-kind') === 'document')
+  if (manifests.length !== 1 || manifests[0].attributes.get('data-dz-schema') !== EDITABLE_SVG_SCHEMA) {
+    throw new SvgNormalizationError(422, 'invalid_editable_document', 'Editable SVG must contain exactly one supported Diagram.zip document.')
+  }
+  const manifest = manifests[0]
+  if (manifest.children.some(child => child.type !== 'text')) {
+    throw new SvgNormalizationError(422, 'invalid_editable_document', 'Editable SVG document metadata must contain JSON text only.')
+  }
+  try {
+    return JSON.parse(manifest.children.map(child => child.value).join(''))
+  } catch {
+    throw new SvgNormalizationError(422, 'invalid_editable_document', 'Editable SVG document metadata is not valid JSON.')
+  }
 }
 
 export function sanitizeAndDecorateSvg(source, metadata, presentation, engine, rendererVersion = '') {

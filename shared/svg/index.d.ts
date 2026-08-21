@@ -1,4 +1,5 @@
 export const SVG_SCHEMA: '1'
+export const EDITABLE_SVG_SCHEMA: '1'
 export const NORMALIZER_BUILD: 'svg-normalizer-2'
 export const MATERIALIZER_BUILD: 'svg-materializer-2'
 export const PALETTE_BUILD: 'diagramzip-palette-1'
@@ -55,6 +56,9 @@ export function canonicalizeSvg(
   engine: string,
   rendererVersion?: string,
 ): string
+
+export function attachEditableDocument(source: string, document: unknown): string
+export function extractEditableDocument(source: string): unknown
 
 export function materializePresentation(
   canonical: string,
