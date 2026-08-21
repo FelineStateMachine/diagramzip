@@ -1,4 +1,4 @@
-export type EngineRuntime = 'edge-js' | 'edge-wasm' | 'edge-python' | 'client' | 'origin'
+export type EngineRuntime = 'edge-js' | 'edge-wasm' | 'edge-python' | 'client'
 
 export interface RenderMetadata {
   title: string

@@ -19,7 +19,7 @@ const EXPOSED_RESPONSE_HEADERS = [
 
 export interface RendererUnitDescriptor {
   readonly id: EngineId
-  readonly kind: 'render' | 'translate' | 'compatibility'
+  readonly kind: 'render' | 'translate'
   readonly adapter: RendererAdapter
   readonly pipeline?: readonly EngineId[]
   readonly knownLosses?: readonly string[]

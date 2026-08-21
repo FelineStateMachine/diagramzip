@@ -13,8 +13,7 @@ const configs = [
   'wrangler.units/structurizr.jsonc',
   'wrangler.plantuml-family.jsonc',
   'wrangler.units/d2.jsonc',
-  'wrangler.compatibility/tikz.jsonc',
-  'wrangler.compatibility/umlet.jsonc',
+  'wrangler.units/umlet.jsonc',
 ]
 const wrangler = resolve(import.meta.dirname, '../node_modules/.bin/wrangler')
 const pending = [...configs]

@@ -1,16 +1,22 @@
 # diagramzip-render
 
-Cloudflare Worker rendering plane for diagram.zip. Every catalog engine owns
-`https://{engine}.render.diagram.zip`. The hostname selects the engine; the
-editor never sends an engine selector. Engines that ship as one dependency or
-runtime share a Worker deployment while retaining distinct hostnames. The older
-`/render/v1/svg` gateway remains only as a temporary migration path for engines
-that have not yet moved; an extracted engine cannot fall back through it.
+This directory contains the Cloudflare renderer plane for diagram.zip.
 
-The catalog deliberately contains all 30 diagram types. An engine does not
-disappear while its replacement is incomplete: its small compatibility unit
-proxies only the corresponding Fly endpoint. Known migration loss is exposed
-by the unit's `/v1/capabilities` response and the gateway catalog.
+All 30 catalog engines have a final renderer path. No renderer uses the Fly.io application. No renderer can use an origin fallback.
+
+Each engine has a hostname:
+
+```text
+https://{engine}.render.diagram.zip
+```
+
+The hostname selects the engine. A render request does not contain an engine selector.
+
+The Worker at `diagram.zip/render/v1/*` is a catalog service. It provides health and catalog routes. It does not provide a render proxy.
+
+## Validation
+
+Run these commands from this directory:
 
 ```sh
 npm install
@@ -18,70 +24,61 @@ npm run cf-typegen
 npm run check
 npm test
 npm run deploy:dry
-npm run deploy:worker-units
-npm run deploy:python-units
-npm run dev -- --port 8788
-npm run smoke
 ```
 
-The smoke command sends one existing repository fixture for every engine and
-checks only structural SVG coverage. It does not perform pixel comparisons.
+Run `npm run smoke:units` after all units are deployed. This command checks one repository fixture or capability response for each catalog engine. It checks coverage and SVG structure. It does not compare pixels.
 
-## Unit contract
+Run `npm run smoke` against a local catalog Worker. This command checks the health route, the 30-engine catalog, and the absence of the old render proxy.
 
-Server-rendered units expose `GET /v1/health`, `GET /v1/capabilities`, and
-`POST /v1/svg`. The POST body contains source, options, metadata, and
-presentation, but never an engine field. Responses identify the dependency unit,
-build, and pipeline with `X-Diagram-Unit`, `X-Renderer-Build`, and
-`X-Diagram-Pipeline`.
+## HTTP unit contract
 
-Browser-rendered units expose the same health and capability routes plus one
-sandboxed frame. The frame accepts only its own engine over the versioned
-postMessage protocol. Mermaid, BPMN, Excalidraw, and diagrams.net have separate packages,
-bundles, CSPs, deployments, and subdomains.
+An HTTP renderer provides these routes:
 
-A unit may expose multiple catalog hostnames when those engines share the same
-dependency stack. BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, and RackDiag
-share `blockdiag-family`; GraphViz, DBML, and the ERD-to-DOT translator share
-`graphviz-family`; PlantUML and C4 PlantUML share `plantuml-family`; Svgbob and
-the bounded Ditaa translation share `svgbob-family`; Vega and Vega-Lite share
-`vega-family`. Requests are still selected only by a dedicated
-hostname, so a caller cannot choose an unrelated engine in the body.
+- `GET /v1/health`
+- `GET /v1/capabilities`
+- `POST /v1/svg`
 
-A unit may translate into another renderer. Translation is declared as an
-ordered pipeline whose first stage is the deployable unit. Vega-Lite therefore
-reports `vega-family,vega`. WireViz preserves its upstream Python parser/model,
-emits DOT, and reports `wireviz,graphviz-family,graphviz`; service binding keeps
-the GraphViz dependency internal. `X-Diagram-Engine` still reports the selected
-catalog engine.
+The POST body contains source, options, metadata, and presentation settings. It does not contain an engine field.
 
-## Current runtime split
+The response headers identify the unit, build, and pipeline:
 
-| Runtime | Engines |
-| --- | --- |
-| Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
-| Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag); Symbolator; WireViz → DOT → GraphViz |
-| Worker WebAssembly | PlantUML family (PlantUML and bounded C4 → PlantUML); GraphViz family (GraphViz, DBML → DOT → GraphViz, and ERD → DOT → GraphViz); D2; GoAT; Pikchr; Svgbob family (Svgbob and bounded Ditaa → Svgbob) |
-| Sandboxed browser unit | Mermaid, BPMN, Excalidraw, diagrams.net |
-| Compatibility unit | 2 dependency units covering the remaining 2 engines |
+- `X-Diagram-Unit`
+- `X-Renderer-Build`
+- `X-Diagram-Pipeline`
 
-The current split is 28/30 engines off Fly and 2/30 still dependent on it.
-Compatibility units are extraction seams, not final runtimes or fallbacks for
-an engine after cutover. DBML retains the upstream parser/checker/DOT model in
-an explicitly rebuilt Worker bundle, then shares the GraphViz-Wasm runtime.
-GraphViz
-uses a precompiled Worker module; ERD lowers its upstream-compatible source
-language to DOT and reuses the same in-process GraphViz runtime. WireViz runs
-its vendored upstream parser and DOT composer in a separate Python Worker, then
-calls that same GraphViz deployment through a service binding. Pikchr compiles
-the pinned upstream C source into a small, isolated precompiled Wasm unit.
-PlantUML runs its pinned TeaVM browser core with a precompiled GraphViz module;
-C4-PlantUML lowers a bounded, documented macro surface into ordinary PlantUML
-inside the same dependency unit.
+## Client unit contract
 
-Renderer output is either generated by a bounded unit or passed through the
-shared sanitizer. Scripts, event handlers, external resources, and active
-embedded HTML are not allowed. Mermaid's
-`foreignObject` labels retain only a narrow formatting allowlist, with links and
-resource-loading elements stripped. Any observed engine-specific loss belongs
-in the catalog.
+A client renderer provides the health route, the capabilities route, and a sandboxed frame. The frame uses the `diagram.zip:renderer:v1` message protocol. The frame accepts only its assigned engine.
+
+The application loads each frame with `sandbox="allow-scripts"`. The frame does not receive same-origin access. A failed client render does not switch to an HTTP renderer.
+
+The client engines are Mermaid, BPMN, Excalidraw, diagrams.net, and TikZ.
+
+## Dependency groups
+
+One Worker can serve several hostnames when the engines use the same dependency stack.
+
+- `blockdiag-family` serves BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, and RackDiag.
+- `graphviz-family` serves GraphViz, DBML, and ERD.
+- `plantuml-family` serves PlantUML and C4 PlantUML.
+- `svgbob-family` serves Svgbob and the Ditaa translation.
+- `vega-family` serves Vega and Vega-Lite.
+
+Some units translate source into another engine. The pipeline header lists each stage in order. WireViz translates to GraphViz. Structurizr translates to PlantUML. DBML and ERD translate to GraphViz. Ditaa translates to Svgbob.
+
+## Runtime split
+
+| Runtime | Count | Engines |
+| --- | ---: | --- |
+| Worker JavaScript | 7 | Bytefield, Nomnoml, Structurizr, UMLet, Vega, Vega-Lite, WaveDrom |
+| Worker Python | 8 | BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag, Symbolator, WireViz |
+| Worker WebAssembly | 10 | PlantUML, C4 PlantUML, GraphViz, DBML, ERD, D2, Ditaa, GoAT, Pikchr, Svgbob |
+| Sandboxed client | 5 | Mermaid, BPMN, Excalidraw, diagrams.net, TikZ |
+
+The total is 30 of 30 engines. The Fly.io Java rendering image is not part of this renderer plane.
+
+## Output policy
+
+Every renderer returns SVG. Each HTTP unit sanitizes and decorates its output. Each client unit sanitizes its output before it sends the result to the application.
+
+Scripts, event handlers, active embedded HTML, and external resources are not allowed. Renderer-specific losses are listed in the catalog and in each unit's capabilities response.

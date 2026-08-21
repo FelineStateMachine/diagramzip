@@ -1,19 +1,31 @@
 import { readFile, readdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { CLIENT_RENDERERS, httpRendererUrlFor } from '../src/components/DiagramExample/rendererRouting.mjs'
 
 const site = join(dirname(fileURLToPath(import.meta.url)), '..')
 const examplesDir = join(site, 'static', 'examples')
-const endpoint = 'https://diagram.zip/render/v1/svg'
 const names = (await readdir(examplesDir)).filter((name) => name.endsWith('.json')).sort()
 
 async function check(name) {
   const example = JSON.parse(await readFile(join(examplesDir, name), 'utf8'))
-  const response = await fetch(endpoint, {
+  if (CLIENT_RENDERERS[example.engine]) {
+    const frameUrl = CLIENT_RENDERERS[example.engine]
+    const response = await fetch(frameUrl)
+    const body = await response.text()
+    const scriptMatch = body.match(/<script[^>]+src="([^"]+)"/i)
+    const scriptUrl = scriptMatch && new URL(scriptMatch[1], frameUrl).href
+    const scriptResponse = scriptUrl && await fetch(scriptUrl)
+    const script = scriptResponse ? await scriptResponse.text() : ''
+    if (!response.ok || !scriptResponse?.ok || !script.includes('diagram.zip:renderer:v1')) {
+      throw new Error(`${example.engine}: client frame unavailable (HTTP ${response.status})`)
+    }
+    return `${example.engine} client frame`
+  }
+  const response = await fetch(httpRendererUrlFor(example.engine), {
     method: 'POST',
     headers: { Accept: 'image/svg+xml', 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      engine: example.engine,
       source: example.source,
       format: 'svg',
       options: {},
@@ -34,7 +46,7 @@ for (let index = 0; index < names.length; index += 5) {
   const results = await Promise.allSettled(group.map(check))
   results.forEach((result) => {
     if (result.status === 'rejected') failures.push(result.reason.message)
-    else console.log(`Rendered ${result.value}.`)
+    else console.log(`Checked ${result.value}.`)
   })
 }
 

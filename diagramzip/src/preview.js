@@ -1,6 +1,6 @@
 import { clientAdapterFor } from './client-renderers.js'
 import { sanitizeAndDecorateSvg } from './client-svg.js'
-import { httpRendererUnitFor, requiresDedicatedRenderer } from './renderer-units.js'
+import { httpRendererUnitFor } from './renderer-units.js'
 
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), maximum)
@@ -86,25 +86,19 @@ export class PreviewController {
       const clientAdapter = clientAdapterFor(type)
       let rendered
       if (clientAdapter) {
-        try {
-          const clientRender = await clientAdapter.render({ type, source, options }, abortController.signal)
-          rendered = {
-            body: sanitizeAndDecorateSvg(clientRender.body, meta, presentation, type),
-            identity: {
-              unit: type,
-              build: clientRender.build || clientRender.version,
-              pipeline: Array.isArray(clientRender.pipeline) ? clientRender.pipeline : [type],
-            },
-          }
-          this.status.dataset.cache = 'browser'
-          this.status.dataset.renderer = type
-        } catch (error) {
-          if (error.name === 'AbortError') throw error
-          if (requiresDedicatedRenderer(type)) throw error
-          rendered = await this.renderThroughGateway({ type, source, options, meta, presentation }, abortController.signal)
+        const clientRender = await clientAdapter.render({ type, source, options }, abortController.signal)
+        rendered = {
+          body: sanitizeAndDecorateSvg(clientRender.body, meta, presentation, type),
+          identity: {
+            unit: type,
+            build: clientRender.build || clientRender.version,
+            pipeline: Array.isArray(clientRender.pipeline) ? clientRender.pipeline : [type],
+          },
         }
+        this.status.dataset.cache = 'browser'
+        this.status.dataset.renderer = type
       } else {
-        rendered = await this.renderThroughGateway({ type, source, options, meta, presentation }, abortController.signal)
+        rendered = await this.renderThroughUnit({ type, source, options, meta, presentation }, abortController.signal)
       }
       if (requestNumber !== this.requestNumber) return
       const { blob, background } = this.normalizedSvgBlob(rendered.body)
@@ -130,28 +124,10 @@ export class PreviewController {
     }
   }
 
-  async renderThroughGateway({ type, source, options, meta, presentation }, signal) {
+  async renderThroughUnit({ type, source, options, meta, presentation }, signal) {
     const unitEndpoint = httpRendererUnitFor(type)
-    if (unitEndpoint) {
-      try {
-        const response = await this.renderRequest(
-          unitEndpoint,
-          { source, format: 'svg', options, metadata: meta, presentation },
-          signal,
-        )
-        if (response.ok || response.status < 500) return await this.renderResponse(response, type)
-        await response.body?.cancel()
-      } catch (error) {
-        if (error.name === 'AbortError') throw error
-        if (requiresDedicatedRenderer(type)) throw error
-      }
-      if (requiresDedicatedRenderer(type)) {
-        throw new Error(`The ${type} renderer unit is unavailable.`)
-      }
-    }
-
-    const response = await this.renderRequest('/render/v1/svg', {
-      engine: type,
+    if (!unitEndpoint) throw new Error(`No renderer is registered for ${type}.`)
+    const response = await this.renderRequest(unitEndpoint, {
       source,
       format: 'svg',
       options,
@@ -175,7 +151,7 @@ export class PreviewController {
     this.status.dataset.cache = response.headers.get('X-Diagram-Cache')?.toLowerCase() ?? 'miss'
     this.status.dataset.renderer = response.headers.get('X-Diagram-Unit')?.toLowerCase()
       ?? response.headers.get('X-Diagram-Renderer')?.toLowerCase()
-      ?? 'gateway'
+      ?? fallbackUnit
     const unit = response.headers.get('X-Diagram-Unit')?.toLowerCase()
       ?? response.headers.get('X-Diagram-Engine')?.toLowerCase()
       ?? fallbackUnit
@@ -223,7 +199,7 @@ export class PreviewController {
         const payload = JSON.parse(body)
         if (typeof payload?.error?.message === 'string') return payload.error.message
       } catch {
-        // Fall through to the compatibility HTML/plain-text parser.
+        // Use the HTML/plain-text parser below.
       }
     }
     const document = new DOMParser().parseFromString(body, 'text/html')

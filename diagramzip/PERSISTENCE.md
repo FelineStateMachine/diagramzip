@@ -91,11 +91,11 @@ ID.
 
 ## Persistence API
 
-The persistence Worker is mounted at the same-origin `/api/v1/*` edge route.
-Transient renders go through the separate `/render/v1/svg` Worker gateway. The
-gateway owns the 30-engine registry, validation, SVG sanitization, presentation,
-and cache policy; it calls an edge renderer where one is active and otherwise
-uses the existing Fly application as a compatibility origin.
+The persistence Worker uses the same-origin `/api/v1/*` route. The editor sends
+each transient render to the selected engine subdomain. An HTTP engine uses
+`https://{engine}.render.diagram.zip/v1/svg`. A client engine uses its sandboxed
+renderer frame. No transient render uses the Fly.io application or a shared
+render proxy.
 
 ### Create
 

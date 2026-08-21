@@ -1,1 +1,0 @@
-{"$schema":"../node_modules/wrangler/config-schema.json","name":"diagramzip-render-tikz","main":"../src/units/compatibility.ts","compatibility_date":"2026-08-20","define":{"__ENGINE_ID__":"\"tikz\""},"observability":{"enabled":true},"vars":{"RENDERER_BUILD":"tikz-compat-unit-1"},"routes":[{"pattern":"tikz.render.diagram.zip","custom_domain":true}]}

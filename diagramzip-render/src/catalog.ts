@@ -5,7 +5,6 @@ export interface EngineCatalogEntry {
   targetRuntime: EngineRuntime
   activeRuntime: EngineRuntime
   version: string
-  fallback: 'origin' | null
   knownLosses: readonly string[]
 }
 
@@ -34,15 +33,15 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
   structurizr: 'edge-js',
   svgbob: 'edge-wasm',
   symbolator: 'edge-python',
-  tikz: 'origin',
-  umlet: 'client',
+  tikz: 'client',
+  umlet: 'edge-js',
   vega: 'edge-js',
   vegalite: 'edge-js',
   wavedrom: 'edge-js',
   wireviz: 'edge-python',
 }
 
-const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
+const activeRuntime: Record<EngineId, EngineRuntime> = {
   plantuml: 'edge-wasm',
   c4plantuml: 'edge-wasm',
   mermaid: 'client',
@@ -71,9 +70,11 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
   d2: 'edge-wasm',
   ditaa: 'edge-wasm',
   symbolator: 'edge-python',
+  tikz: 'client',
+  umlet: 'edge-js',
 }
 
-const versions: Partial<Record<EngineId, string>> = {
+const versions: Record<EngineId, string> = {
   plantuml: 'plantuml@1.2026.6/edge-wasm-1',
   c4plantuml: 'c4plantuml@2.7.0-lowered+plantuml@1.2026.6/edge-wasm-1',
   mermaid: 'mermaid@11.17.0',
@@ -102,6 +103,8 @@ const versions: Partial<Record<EngineId, string>> = {
   d2: 'd2@0.7.1/custom-grid-1',
   ditaa: 'ditaa-ascii+svgbob@0.7.6/edge-wasm-1',
   symbolator: 'symbolator@1.2.2/python-translation-1',
+  tikz: '@planktimerr/tikzjax@1.0.63/client-unit-1',
+  umlet: 'diagramzip-umlet-svg@1',
 }
 
 const losses: Partial<Record<EngineId, readonly string[]>> = {
@@ -196,14 +199,26 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'Ditaa shape and color directives are removed; specialized shapes and per-shape colors are not retained.',
     'Shadows, rounded corners, anti-aliasing, and edge separation flags are accepted for compatibility but have no effect in the Svgbob pipeline.',
   ],
+  tikz: [
+    'Only SVG is supported.',
+    'The browser unit uses the bundled TeX/PGF package set, not a full TeX Live installation.',
+    'Layout, fonts, and SVG details can differ from the native dvisvgm renderer.',
+    'External files, shell escape, external links, and resource loads are unavailable.',
+  ],
+  umlet: [
+    'Only SVG is supported.',
+    'The bounded translator preserves UXF coordinates but uses browser-independent SVG text metrics, so wrapping and typography differ from UMLet desktop.',
+    'Known base and repository custom elements have direct SVG shapes; unknown custom Java elements render as visibly labeled generic boxes instead of executing custom code.',
+    'Advanced PlotGrid and UMLSequenceAllInOne elements render as bounded labeled approximations.',
+    'Interactive sticking, resizing, Java/GWT facets, themes, and custom class loading are intentionally unavailable.',
+  ],
 }
 
 export const ENGINE_CATALOG: readonly EngineCatalogEntry[] = ENGINE_IDS.map(id => ({
   id,
   targetRuntime: targetRuntime[id],
-  activeRuntime: activeRuntime[id] ?? 'origin',
-  version: versions[id] ?? 'compatibility-origin',
-  fallback: null,
+  activeRuntime: activeRuntime[id],
+  version: versions[id],
   knownLosses: losses[id] ?? [],
 }))
 

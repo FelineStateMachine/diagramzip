@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 const fixtureDirectory = resolve(import.meta.dirname, '../../ci/tests/diagrams')
 const fixtures = {
   plantuml: 'architecture.puml',
+  mermaid: 'contribute.mmd',
   graphviz: 'hello.dot',
   d2: 'connections.d2',
   c4plantuml: 'banking-system.puml',
@@ -13,11 +14,13 @@ const fixtures = {
   nwdiag: 'network.diag',
   packetdiag: 'packet.diag',
   rackdiag: 'rack.diag',
+  bpmn: 'example.bpmn',
   bytefield: 'bytefield.bf',
   dbml: 'dbml.dbml',
   diagramsnet: 'diagramsnet-venn.xml',
   ditaa: 'components.ditaa',
   erd: 'schema.erd',
+  excalidraw: 'venn.excalidraw',
   goat: 'components.goat',
   nomnoml: 'pirate.nomnoml',
   pikchr: 'diamond.pikchr',
@@ -62,6 +65,8 @@ const plantumlEngines = new Set(['plantuml', 'c4plantuml'])
 const structurizrEngines = new Set(['structurizr'])
 const d2Engines = new Set(['d2'])
 const symbolatorEngines = new Set(['symbolator'])
+const umletEngines = new Set(['umlet'])
+const clientEngines = new Set(['mermaid', 'bpmn', 'excalidraw', 'diagramsnet', 'tikz'])
 
 async function smokeClientUnit(engine) {
   const base = `https://${engine}.render.diagram.zip`
@@ -79,7 +84,7 @@ async function smokeClientUnit(engine) {
 }
 
 async function smoke([engine, filename]) {
-  if (engine === 'diagramsnet') return smokeClientUnit(engine)
+  if (clientEngines.has(engine)) return smokeClientUnit(engine)
   const source = await readFile(resolve(fixtureDirectory, filename), 'utf8')
   const endpoint = `https://${engine}.render.diagram.zip/v1/svg`
   const response = await fetch(endpoint, {
@@ -182,6 +187,10 @@ async function smoke([engine, filename]) {
   if (symbolatorEngines.has(engine)) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-python') throw new Error(`${engine}: expected edge-python renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
     if (!response.headers.get('X-Renderer-Build')?.startsWith('symbolator-python-')) throw new Error(`${engine}: unexpected Symbolator Worker build ${response.headers.get('X-Renderer-Build')}`)
+  }
+  if (umletEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-js') throw new Error(`${engine}: expected edge-js renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('umlet-direct-svg-')) throw new Error(`${engine}: unexpected UMLet Worker build ${response.headers.get('X-Renderer-Build')}`)
   }
   return `${engine.padEnd(10)} ${response.headers.get('X-Diagram-Cache')?.padEnd(4)} ${body.length} bytes`
 }

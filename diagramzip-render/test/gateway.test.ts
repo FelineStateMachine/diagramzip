@@ -1,36 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import worker from '../src/index'
 
-const migrated = [
-  'mermaid', 'bpmn', 'excalidraw',
-  'plantuml', 'c4plantuml',
-  'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
-  'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',
-  'graphviz', 'erd', 'dbml', 'pikchr', 'svgbob', 'ditaa', 'wireviz', 'structurizr', 'symbolator',
-] as const
-const env = {
-  ORIGIN_URL: 'https://diagram-zip.fly.dev',
-  RENDERER_BUILD: 'gateway-test',
-} as unknown as Env
-const context = {
-  waitUntil() {},
-  passThroughOnException() {},
-  props: {},
-} as unknown as ExecutionContext
+describe('catalog service boundary', () => {
+  it('does not expose a rendering proxy', async () => {
+    const response = await worker.fetch(new Request('https://diagram.zip/render/v1/svg', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ engine: 'graphviz', source: 'digraph { a -> b }', format: 'svg' }),
+    }))
 
-describe('gateway renderer boundary', () => {
-  for (const engine of migrated) {
-    it(`does not proxy ${engine} to the compatibility origin`, async () => {
-      const response = await worker.fetch(new Request('https://diagram.zip/render/v1/svg', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ engine, source: 'A -> B', format: 'svg' }),
-      }), env, context)
+    expect(response.status).toBe(404)
+    await expect(response.json()).resolves.toMatchObject({ error: { code: 'not_found' } })
+  })
 
-      expect(response.status).toBe(503)
-      await expect(response.json()).resolves.toMatchObject({
-        error: { code: 'renderer_unit_required' },
-      })
-    })
-  }
+  it('publishes the complete catalog', async () => {
+    const response = await worker.fetch(new Request('https://diagram.zip/render/v1/catalog'))
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toMatchObject({ format: 'svg', engines: { length: 30 } })
+  })
 })

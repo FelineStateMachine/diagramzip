@@ -67,14 +67,14 @@ describe('renderer unit protocol', () => {
 function testAdapter(id: EngineId): RendererAdapter {
   return {
     id,
-    runtime: 'origin',
+    runtime: 'edge-js',
     version: 'test@1',
     async render() {
       return {
         body: `<svg xmlns="http://www.w3.org/2000/svg"><text>${id}</text></svg>`,
         contentType: 'image/svg+xml',
         engineVersion: 'test@1',
-        runtime: 'origin',
+        runtime: 'edge-js',
       }
     },
   }
@@ -82,8 +82,8 @@ function testAdapter(id: EngineId): RendererAdapter {
 
 describe('renderer dependency groups', () => {
   const group = createRendererUnitGroup('blockdiag-family', [
-    { id: 'blockdiag', kind: 'compatibility', adapter: testAdapter('blockdiag') },
-    { id: 'seqdiag', kind: 'compatibility', adapter: testAdapter('seqdiag') },
+    { id: 'blockdiag', kind: 'render', adapter: testAdapter('blockdiag') },
+    { id: 'seqdiag', kind: 'render', adapter: testAdapter('seqdiag') },
   ])
   const fetchGroup = group.fetch!
 
