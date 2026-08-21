@@ -134,7 +134,7 @@ Schema 1 uses the following root attributes:
 ```xml
 <svg
   data-dz-schema="1"
-  data-dz-normalizer="svg-normalizer-1"
+  data-dz-normalizer="svg-normalizer-2"
   data-dz-engine="example"
   data-dz-profile="semantic-markup-2"
   data-dz-palette="renderer"
@@ -187,13 +187,14 @@ The current catalog uses these profile families:
 
 | Profile | Conformance | Engines | Supported appearances |
 | --- | --- | --- | --- |
-| `graphviz-15-semantic-1` | Semantic | Graphviz, DBML, ERD, WireViz | All |
-| `d2-0.7-semantic-1` | Semantic | D2 | All |
-| `plantuml-2026-semantic-1` | Semantic | PlantUML, C4 PlantUML, Structurizr | All |
-| `svgbob-0.7-semantic-1` | Semantic | Svgbob, Ditaa | All |
-| `neutral-svg-semantic-1` | Adaptive | BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag, Bytefield, Mermaid, BPMN, Nomnoml, Pikchr, Symbolator, UMLet | All |
-| `structured-svg-semantic-1` | Adaptive | GoAT, Vega, Vega-Lite, WaveDrom | All |
-| `authored-svg-presentation-1` | Presentation only | Diagrams.net, Excalidraw, TikZ | Raw and framed |
+| `graphviz-15-semantic-2` | Semantic | Graphviz, DBML, ERD, WireViz | All |
+| `d2-0.7-semantic-2` | Semantic | D2 | All |
+| `plantuml-2026-semantic-2` | Semantic | PlantUML, C4 PlantUML, Structurizr | All |
+| `svgbob-0.7-semantic-2` | Semantic | Svgbob, Ditaa | All |
+| `neutral-svg-semantic-2` | Adaptive | BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag, Bytefield, Mermaid, BPMN, Nomnoml, Pikchr, Symbolator, UMLet | All |
+| `structured-svg-semantic-2` | Adaptive | GoAT, Vega, Vega-Lite, WaveDrom | All |
+| `authored-neutral-semantic-1` | Adaptive | Excalidraw, TikZ | All |
+| `authored-svg-presentation-1` | Presentation only | Diagrams.net | Raw and framed |
 
 Semantic profiles rely on pinned renderer structures and stable class or group
 meaning. Adaptive profiles recognize neutral paint and selected structural

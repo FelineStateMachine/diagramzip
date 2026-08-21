@@ -9,7 +9,7 @@ const SAFE_DATA_IMAGE = /^data:image\/(?:png|jpeg|gif|webp);base64,[a-z0-9+/=\s]
 const SAFE_DATA_FONT = /^data:(?:font\/(?:woff2?|opentype|truetype)|application\/(?:x-)?font-woff2?);base64,[a-z0-9+/=\s]+$/i
 
 export const SVG_SCHEMA = '1'
-export const NORMALIZER_BUILD = 'svg-normalizer-1'
+export const NORMALIZER_BUILD = 'svg-normalizer-2'
 export const MATERIALIZER_BUILD = 'svg-materializer-1'
 export const PALETTE_BUILD = 'diagramzip-palette-1'
 export const RAW_PROFILE = 'safe-raw-1'
@@ -45,32 +45,32 @@ function capability(profile, conformance, limitations, appearances = APPEARANCES
 }
 
 const GRAPHVIZ_NORMALIZATION = capability(
-  'graphviz-15-semantic-1',
+  'graphviz-15-semantic-2',
   'semantic',
   ['Authored non-neutral colors are preserved and may not adapt between palettes.'],
 )
 const D2_NORMALIZATION = capability(
-  'd2-0.7-semantic-1',
+  'd2-0.7-semantic-2',
   'semantic',
   ['Authored D2 colors are preserved; the pinned neutral and primary theme roles adapt.'],
 )
 const PLANTUML_NORMALIZATION = capability(
-  'plantuml-2026-semantic-1',
+  'plantuml-2026-semantic-2',
   'semantic',
   ['Pinned neutral PlantUML paint adapts; explicit themes and authored colors remain renderer-defined.'],
 )
 const SVGBOB_NORMALIZATION = capability(
-  'svgbob-0.7-semantic-1',
+  'svgbob-0.7-semantic-2',
   'semantic',
   ['Line art, labels, and ordinary surfaces adapt; source-specific non-neutral paint is preserved.'],
 )
 const NEUTRAL_SVG_NORMALIZATION = capability(
-  'neutral-svg-semantic-1',
+  'neutral-svg-semantic-2',
   'adaptive',
   ['Neutral paint adapts; authored non-neutral fills, shadows, and data colors are preserved.'],
 )
 const DETAILED_SVG_NORMALIZATION = capability(
-  'structured-svg-semantic-1',
+  'structured-svg-semantic-2',
   'adaptive',
   ['Stable structural roles adapt; authored categorical and semantic colors are preserved.'],
 )
@@ -79,6 +79,11 @@ const PRESENTATION_NORMALIZATION = capability(
   'presentation-only',
   ['The outer canvas and frame adapt. Paint inside the authored SVG remains unchanged.'],
   FRAMED_APPEARANCES,
+)
+const AUTHORED_NEUTRAL_NORMALIZATION = capability(
+  'authored-neutral-semantic-1',
+  'adaptive',
+  ['Neutral canvas, ink, and line paint adapts; authored non-neutral paint remains renderer-defined.'],
 )
 
 const PROFILE_BY_ENGINE = Object.freeze({
@@ -110,8 +115,8 @@ const PROFILE_BY_ENGINE = Object.freeze({
   vegalite: DETAILED_SVG_NORMALIZATION,
   wavedrom: DETAILED_SVG_NORMALIZATION,
   diagramsnet: PRESENTATION_NORMALIZATION,
-  excalidraw: PRESENTATION_NORMALIZATION,
-  tikz: PRESENTATION_NORMALIZATION,
+  excalidraw: AUTHORED_NEUTRAL_NORMALIZATION,
+  tikz: AUTHORED_NEUTRAL_NORMALIZATION,
 })
 
 const VERSION_PATTERNS = Object.freeze({
@@ -271,12 +276,31 @@ function rectCoversBounds(element, bounds) {
     && y + height >= boundY + boundHeight - tolerance
 }
 
+function polygonCoversBounds(element, bounds) {
+  const numbers = (element.attributes.get('points') ?? '').match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? []
+  if (numbers.length < 8 || numbers.length % 2 !== 0 || numbers.some(value => !Number.isFinite(value))) return false
+  const xs = numbers.filter((_, index) => index % 2 === 0)
+  const ys = numbers.filter((_, index) => index % 2 === 1)
+  const [boundX, boundY, boundWidth, boundHeight] = bounds
+  const tolerance = 0.01
+  return Math.min(...xs) <= boundX + tolerance
+    && Math.max(...xs) >= boundX + boundWidth - tolerance
+    && Math.min(...ys) <= boundY + tolerance
+    && Math.max(...ys) >= boundY + boundHeight - tolerance
+}
+
 function rendererBackdrop(element, bounds, engine) {
+  if (element.attributes.get('data-dz-role') === 'canvas') return true
   const name = localName(element)
   const classes = new Set((element.attributes.get('class') ?? '').toLowerCase().split(/\s+/))
   if (name === 'rect' && classes.has('backdrop')) return true
   if (name === 'rect' && bounds !== null && whiteFill(element) && rectCoversBounds(element, bounds)) return true
-  return engine === 'graphviz' && name === 'polygon' && whiteFill(element) && (element.attributes.get('stroke') ?? '').toLowerCase() === 'none'
+  return engine === 'graphviz'
+    && name === 'polygon'
+    && bounds !== null
+    && whiteFill(element)
+    && (element.attributes.get('stroke') ?? '').toLowerCase() === 'none'
+    && polygonCoversBounds(element, bounds)
 }
 
 function removeRendererBackdrops(element, inheritedBounds, engine) {
@@ -294,38 +318,52 @@ function neutralPaint(element, property, accepted) {
   return accepted.has(value)
 }
 
-function applyGraphvizProfile(root) {
-  const visit = (node, context = '') => {
+function applyGraphvizProfile(root, engine) {
+  const neutralInk = new Set(['', 'black', '#000', '#000000', 'rgb(0,0,0)'])
+  const graphvizLine = new Set([...neutralInk, ...(engine === 'dbml' ? ['#29235c'] : [])])
+  const visit = (node, context = '', inheritedBounds = presentationBounds(root)) => {
     if (node.type === 'text') return
     const classes = new Set((node.attributes.get('class') ?? '').toLowerCase().split(/\s+/).filter(Boolean))
-    const nextContext = classes.has('node') ? 'node' : classes.has('edge') ? 'edge' : classes.has('cluster') ? 'cluster' : context
+    const nextContext = classes.has('node') ? 'node' : classes.has('edge') ? 'edge' : classes.has('cluster') ? 'cluster' : classes.has('graph') ? 'graph' : context
     const name = localName(node)
-    if (rendererBackdrop(node, presentationBounds(root), 'graphviz')) node.attributes.set('data-dz-role', 'canvas')
-    if (name === 'text' && neutralPaint(node, 'fill', new Set(['', 'black', '#000', '#000000', 'rgb(0,0,0)']))) {
+    const bounds = name === 'svg' ? presentationBounds(node) ?? inheritedBounds : inheritedBounds
+    const backdrop = rendererBackdrop(node, bounds, 'graphviz')
+      || (nextContext === 'graph' && name === 'polygon' && whiteFill(node) && ownPaint(node, 'stroke') === 'none')
+    const fill = ownPaint(node, 'fill')
+    const stroke = ownPaint(node, 'stroke')
+    if (backdrop) node.attributes.set('data-dz-role', 'canvas')
+    if (name === 'text' && (neutralInk.has(fill) || (engine === 'dbml' && fill === '#29235c'))) {
       node.attributes.set('data-dz-fill', nextContext === 'edge' ? 'ink-muted' : 'ink')
     }
-    if (nextContext === 'node' && ['ellipse', 'polygon', 'path', 'rect'].includes(name)) {
-      if (neutralPaint(node, 'fill', new Set(['', 'none', 'white', '#fff', '#ffffff']))) node.attributes.set('data-dz-fill', 'surface-1')
-      if (neutralPaint(node, 'stroke', new Set(['', 'black', '#000', '#000000']))) node.attributes.set('data-dz-stroke', 'line')
+    if (name === 'text' && engine === 'dbml' && WHITE_PAINT.has(fill)) node.attributes.set('data-dz-fill', 'on-accent')
+    if (nextContext === 'node' && ['ellipse', 'polygon', 'path', 'rect'].includes(name) && !backdrop && !zeroStroke(node)) {
+      if ((WHITE_PAINT.has(fill) && !(engine === 'wireviz' && stroke === 'none'))
+        || (engine !== 'dbml' && !(engine === 'wireviz' && name === 'path') && transparentPaint(fill))) {
+        node.attributes.set('data-dz-fill', 'surface-1')
+      }
+      if (engine === 'dbml' && fill === '#e7e2dd') node.attributes.set('data-dz-fill', 'surface-1')
+      if (engine === 'dbml' && fill === '#1d71b8') node.attributes.set('data-dz-fill', 'accent-1')
+      if (graphvizLine.has(stroke)) node.attributes.set('data-dz-stroke', 'line')
     }
     if (nextContext === 'cluster' && ['polygon', 'path', 'rect'].includes(name)) {
       if (neutralPaint(node, 'fill', new Set(['', 'none', 'white', '#fff', '#ffffff']))) node.attributes.set('data-dz-fill', 'surface-2')
-      if (neutralPaint(node, 'stroke', new Set(['', 'black', '#000', '#000000']))) node.attributes.set('data-dz-stroke', 'line-muted')
+      if (graphvizLine.has(stroke)) node.attributes.set('data-dz-stroke', 'line-muted')
     }
     if (nextContext === 'edge') {
-      if (['path', 'polyline', 'line'].includes(name) && neutralPaint(node, 'stroke', new Set(['', 'black', '#000', '#000000']))) node.attributes.set('data-dz-stroke', 'line')
-      if (['polygon', 'path'].includes(name) && neutralPaint(node, 'fill', new Set(['black', '#000', '#000000']))) node.attributes.set('data-dz-fill', 'line')
+      if (['path', 'polyline', 'line', 'polygon'].includes(name) && graphvizLine.has(stroke)) node.attributes.set('data-dz-stroke', 'line')
+      if (['polygon', 'path'].includes(name) && graphvizLine.has(fill)) node.attributes.set('data-dz-fill', 'line')
     }
-    for (const child of node.children) visit(child, nextContext)
+    for (const child of node.children) visit(child, nextContext, bounds)
   }
   visit(root)
 }
 
-const BLACK_PAINT = new Set(['black', '#000', '#000000', '#111', '#111111', '#111827', '#181818', '#33322e', 'rgb(0,0,0)'])
+const BLACK_PAINT = new Set(['black', '#000', '#000000', '#111', '#111111', '#111827', '#181818', '#22242a', '#333', '#333333', '#33322e', 'rgb(0,0,0)', 'rgb(34,36,42)'])
 const WHITE_PAINT = new Set(['white', '#fff', '#ffffff', '#e2e2f0', '#e8e8e8', '#eee8d5', '#f1f1f1', '#f7f8fe', 'rgb(255,255,255)'])
 const MUTED_PAINT = new Set(['gray', 'grey', '#666', '#666666', '#7f7f7f', '#888', '#888888', '#aaa', '#aaaaaa'])
 const SHAPE_ELEMENTS = new Set(['circle', 'ellipse', 'line', 'path', 'polygon', 'polyline', 'rect'])
 const TEXT_ELEMENTS = new Set(['text', 'tspan', 'div', 'span', 'p', 'b', 'strong', 'i', 'em', 'small', 'sub', 'sup', 'code', 'li'])
+const NON_PAINT_CONTEXTS = new Set(['clippath', 'filter', 'mask', 'pattern'])
 
 function normalizedPaint(value) {
   return (value ?? '').replaceAll(' ', '').toLowerCase()
@@ -333,6 +371,15 @@ function normalizedPaint(value) {
 
 function ownPaint(element, property) {
   return normalizedPaint(element.attributes.get(property) ?? styleValue(element, property) ?? '')
+}
+
+function transparentPaint(value) {
+  return value === '' || value === 'none' || value === 'transparent' || value === '#00000000' || value === 'rgba(0,0,0,0)'
+}
+
+function zeroStroke(element) {
+  const value = element.attributes.get('stroke-width') ?? styleValue(element, 'stroke-width')
+  return value !== null && Number.parseFloat(value) === 0
 }
 
 function classNames(element) {
@@ -345,25 +392,30 @@ function filteredShadow(element) {
 }
 
 function applyNeutralSvgProfile(root, engine, extraSurfacePaint = []) {
-  const bounds = presentationBounds(root)
   const surfaces = new Set([...WHITE_PAINT, ...extraSurfacePaint.map(normalizedPaint)])
-  const visit = (node, inheritedFill = '', inheritedStroke = '') => {
+  const visit = (node, inheritedFill = '', inheritedStroke = '', inheritedBounds = presentationBounds(root), skipPaint = false) => {
     if (node.type === 'text') return
     const name = localName(node)
+    const nextSkipPaint = skipPaint || NON_PAINT_CONTEXTS.has(name)
+    const bounds = name === 'svg' ? presentationBounds(node) ?? inheritedBounds : inheritedBounds
     const fill = ownPaint(node, 'fill') || inheritedFill
     const stroke = ownPaint(node, 'stroke') || inheritedStroke
-    const backdrop = rendererBackdrop(node, bounds, engine)
+    const classes = classNames(node)
+    const backdrop = !nextSkipPaint && (rendererBackdrop(node, bounds, engine) || (engine === 'd2' && name === 'rect' && classes.has('fill-N7')))
     if (backdrop) node.attributes.set('data-dz-role', 'canvas')
-    if (TEXT_ELEMENTS.has(name)) {
-      if (BLACK_PAINT.has(fill) || fill === '') node.attributes.set('data-dz-fill', 'ink')
+    if (!nextSkipPaint && TEXT_ELEMENTS.has(name)) {
+      if (BLACK_PAINT.has(fill) || transparentPaint(fill)) node.attributes.set('data-dz-fill', 'ink')
       else if (MUTED_PAINT.has(fill)) node.attributes.set('data-dz-fill', 'ink-muted')
-    } else if (SHAPE_ELEMENTS.has(name) && !backdrop) {
+    } else if (!nextSkipPaint && SHAPE_ELEMENTS.has(name) && !backdrop) {
       if (surfaces.has(fill)) node.attributes.set('data-dz-fill', 'surface-1')
       else if (BLACK_PAINT.has(fill) && !filteredShadow(node)) node.attributes.set('data-dz-fill', 'line')
       if (BLACK_PAINT.has(stroke)) node.attributes.set('data-dz-stroke', 'line')
       else if (MUTED_PAINT.has(stroke)) node.attributes.set('data-dz-stroke', 'line-muted')
+      if (engine === 'pikchr' && name === 'path' && transparentPaint(fill) && /(?:z|Z)\s*$/.test(node.attributes.get('d') ?? '')) {
+        node.attributes.set('data-dz-fill', 'surface-1')
+      }
     }
-    for (const child of node.children) visit(child, fill, stroke)
+    for (const child of node.children) visit(child, fill, stroke, bounds, nextSkipPaint)
   }
   visit(root)
 }
@@ -384,24 +436,81 @@ function applyD2Profile(root) {
   visit(root)
 }
 
-function applySvgbobProfile(root) {
-  applyNeutralSvgProfile(root, 'svgbob')
+function lineEndpoints(node) {
+  if (node.type === 'text' || localName(node) !== 'line') return null
+  const values = ['x1', 'y1', 'x2', 'y2'].map(name => numericCoordinate(node.attributes.get(name)))
+  return values.some(value => value === null) ? null : values
+}
+
+function addSvgbobObjectSurfaces(root) {
   const visit = node => {
     if (node.type === 'text') return
-    const classes = classNames(node)
-    const name = localName(node)
-    if (classes.has('backdrop')) node.attributes.set('data-dz-role', 'canvas')
-    if (TEXT_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'ink')
-    if (classes.has('solid')) node.attributes.set('data-dz-stroke', 'line')
-    if (classes.has('nofill') || classes.has('bg_filled')) node.attributes.set('data-dz-fill', 'surface-1')
-    if (classes.has('filled')) node.attributes.set('data-dz-fill', 'line')
+    if (node.children.some(child => child.type !== 'text' && child.attributes.get('data-dz-owned') === 'normalizer')) return
+    const lines = node.children.map(lineEndpoints).filter(Boolean)
+    const vertical = lines.filter(([x1, y1, x2, y2]) => x1 === x2 && y1 !== y2)
+    const horizontal = lines.filter(([x1, y1, x2, y2]) => y1 === y2 && x1 !== x2)
+    const key = values => values.join(',')
+    const horizontalKeys = new Set(horizontal.map(([x1, y1, x2]) => key([Math.min(x1, x2), y1, Math.max(x1, x2)])))
+    const additions = []
+    for (let first = 0; first < vertical.length; first++) {
+      const [leftX, firstY1, , firstY2] = vertical[first]
+      const top = Math.min(firstY1, firstY2)
+      const bottom = Math.max(firstY1, firstY2)
+      for (let second = first + 1; second < vertical.length; second++) {
+        const [rightX, secondY1, , secondY2] = vertical[second]
+        if (Math.min(secondY1, secondY2) !== top || Math.max(secondY1, secondY2) !== bottom || leftX === rightX) continue
+        const minX = Math.min(leftX, rightX)
+        const maxX = Math.max(leftX, rightX)
+        if (!horizontalKeys.has(key([minX, top, maxX])) || !horizontalKeys.has(key([minX, bottom, maxX]))) continue
+        additions.push(element('rect', [
+          ['x', String(minX)], ['y', String(top)], ['width', String(maxX - minX)], ['height', String(bottom - top)],
+          ['fill', 'none'], ['data-dz-owned', 'normalizer'], ['data-dz-role', 'object-surface'], ['data-dz-fill', 'surface-1'],
+        ]))
+      }
+    }
+    if (additions.length > 0) node.children.unshift(...additions)
     for (const child of node.children) visit(child)
   }
   visit(root)
 }
 
-function applyPlantumlProfile(root) {
+function applySvgbobProfile(root) {
+  applyNeutralSvgProfile(root, 'svgbob')
+  addSvgbobObjectSurfaces(root)
+  const visit = (node, marker = '') => {
+    if (node.type === 'text') return
+    const classes = classNames(node)
+    const name = localName(node)
+    const nextMarker = name === 'marker' ? node.attributes.get('id') ?? '' : marker
+    if (classes.has('backdrop')) node.attributes.set('data-dz-role', 'canvas')
+    if (TEXT_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'ink')
+    if (classes.has('solid')) node.attributes.set('data-dz-stroke', 'line')
+    if (classes.has('nofill') || classes.has('bg_filled')) node.attributes.set('data-dz-fill', 'surface-1')
+    if (classes.has('filled') || ['arrow', 'diamond', 'circle'].includes(nextMarker)) node.attributes.set('data-dz-fill', 'line')
+    if (classes.has('filled') || classes.has('bg_filled') || nextMarker !== '') node.attributes.set('data-dz-stroke', 'line')
+    for (const child of node.children) visit(child, nextMarker)
+  }
+  visit(root)
+}
+
+function applyPlantumlProfile(root, engine) {
   applyNeutralSvgProfile(root, 'plantuml', ['#e2e2f0', '#f1f1f1'])
+  if (engine !== 'c4plantuml') return
+  const c4Accent = new Set(['#08427b', '#1168bd'])
+  const visit = node => {
+    if (node.type === 'text') return
+    const name = localName(node)
+    const fill = ownPaint(node, 'fill')
+    if (SHAPE_ELEMENTS.has(name) && c4Accent.has(fill)) node.attributes.set('data-dz-fill', 'accent-1')
+    for (const child of node.children) visit(child)
+    const ownsAccent = node.children.some(child => child.type !== 'text' && child.attributes.get('data-dz-fill') === 'accent-1')
+    if (ownsAccent) {
+      for (const child of node.children) {
+        if (child.type !== 'text' && TEXT_ELEMENTS.has(localName(child))) child.attributes.set('data-dz-fill', 'on-accent')
+      }
+    }
+  }
+  visit(root)
 }
 
 function applyGoatProfile(root) {
@@ -412,8 +521,14 @@ function applyGoatProfile(root) {
     const name = localName(node)
     if (TEXT_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'ink')
     if (classes.has('path')) node.attributes.set('data-dz-stroke', 'line')
-    if (classes.has('arrowhead') || classes.has('filled')) node.attributes.set('data-dz-fill', 'line')
-    if (classes.has('hollow')) node.attributes.set('data-dz-fill', 'surface-1')
+    if (classes.has('arrowhead') || classes.has('filled')) {
+      node.attributes.set('data-dz-fill', 'line')
+      node.attributes.set('data-dz-stroke', 'line')
+    }
+    if (classes.has('hollow')) {
+      node.attributes.set('data-dz-fill', 'surface-1')
+      node.attributes.set('data-dz-stroke', 'line')
+    }
     for (const child of node.children) visit(child)
   }
   visit(root)
@@ -439,6 +554,7 @@ function applyVegaProfile(root) {
 }
 
 function applyWavedromProfile(root) {
+  applyNeutralSvgProfile(root, 'wavedrom')
   const accentClasses = new Map([
     ['s8', 'accent-3'], ['s9', 'accent-3'], ['s10', 'accent-1'], ['s11', 'accent-1'],
     ['s12', 'accent-2'], ['s13', 'accent-2'], ['s14', 'accent-3'], ['s15', 'accent-1'],
@@ -447,8 +563,9 @@ function applyWavedromProfile(root) {
     if (node.type === 'text') return
     const classes = classNames(node)
     const name = localName(node)
-    if (TEXT_ELEMENTS.has(name) && ![...classes].some(value => ['muted', 'warning', 'error', 'info', 'success'].includes(value))) {
-      node.attributes.set('data-dz-fill', 'ink')
+    if (TEXT_ELEMENTS.has(name)) {
+      if ([...classes].some(value => ['muted', 'info'].includes(value))) node.attributes.set('data-dz-fill', 'ink-muted')
+      else if (![...classes].some(value => ['warning', 'error', 'success'].includes(value))) node.attributes.set('data-dz-fill', 'ink')
     }
     if ([...classes].some(value => ['s1', 's2', 's3', 's4'].includes(value))) node.attributes.set('data-dz-stroke', 'line')
     if (classes.has('s5') || classes.has('s7')) node.attributes.set('data-dz-fill', 'surface-1')
@@ -460,17 +577,110 @@ function applyWavedromProfile(root) {
   visit(root)
 }
 
+function applyNeutralRendererDetails(root, engine) {
+  const visit = node => {
+    if (node.type === 'text') return
+    const name = localName(node)
+    const classes = classNames(node)
+    const fill = ownPaint(node, 'fill')
+    if (engine === 'mermaid') {
+      if (classes.has('label-container')) {
+        node.attributes.set('data-dz-fill', 'surface-1')
+        node.attributes.set('data-dz-stroke', 'line')
+      }
+      if (classes.has('flowchart-link')) node.attributes.set('data-dz-stroke', 'line')
+      if (classes.has('arrowMarkerPath')) {
+        node.attributes.set('data-dz-fill', 'line')
+        node.attributes.set('data-dz-stroke', 'line')
+      }
+    }
+    if (engine === 'blockdiag' && SHAPE_ELEMENTS.has(name) && (fill === '#dbeafe' || fill === 'rgb(219,234,254)')) {
+      node.attributes.set('data-dz-fill', 'surface-2')
+    }
+    if (engine === 'umlet' && classes.has('solid')) {
+      node.attributes.set('data-dz-fill', 'line')
+      node.attributes.set('data-dz-stroke', 'line')
+    }
+    for (const child of node.children) visit(child)
+  }
+  visit(root)
+}
+
+function elementPaintBounds(node) {
+  if (node.type === 'text') return null
+  const name = localName(node)
+  if (name === 'rect') {
+    const x = numericCoordinate(node.attributes.get('x') ?? '0')
+    const y = numericCoordinate(node.attributes.get('y') ?? '0')
+    const width = numericCoordinate(node.attributes.get('width'))
+    const height = numericCoordinate(node.attributes.get('height'))
+    return [x, y, width, height].some(value => value === null) ? null : [x, y, x + width, y + height]
+  }
+  if (name === 'circle' || name === 'ellipse') {
+    const cx = numericCoordinate(node.attributes.get('cx'))
+    const cy = numericCoordinate(node.attributes.get('cy'))
+    const rx = numericCoordinate(node.attributes.get(name === 'circle' ? 'r' : 'rx'))
+    const ry = numericCoordinate(node.attributes.get(name === 'circle' ? 'r' : 'ry'))
+    return [cx, cy, rx, ry].some(value => value === null) ? null : [cx - rx, cy - ry, cx + rx, cy + ry]
+  }
+  if (name === 'polygon') {
+    const values = (node.attributes.get('points') ?? '').match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? []
+    if (values.length < 6 || values.length % 2 !== 0) return null
+    const xs = values.filter((_, index) => index % 2 === 0)
+    const ys = values.filter((_, index) => index % 2 === 1)
+    return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]
+  }
+  return null
+}
+
+function resolveSiblingTextContrast(root) {
+  const visit = node => {
+    if (node.type === 'text') return
+    const surfaces = []
+    for (const child of node.children) {
+      if (child.type === 'text') continue
+      const bounds = elementPaintBounds(child)
+      const role = child.attributes.get('data-dz-fill') ?? ''
+      const structuralRole = child.attributes.get('data-dz-role') ?? ''
+      const fill = ownPaint(child, 'fill')
+      if (bounds !== null && structuralRole !== 'canvas' && !filteredShadow(child)
+        && (role.startsWith('surface-') || role.startsWith('accent-') || (!transparentPaint(fill) && !BLACK_PAINT.has(fill)))) {
+        surfaces.push({ bounds, role, fill })
+      }
+      if (TEXT_ELEMENTS.has(localName(child))) {
+        const x = numericCoordinate(child.attributes.get('x'))
+        const y = numericCoordinate(child.attributes.get('y'))
+        const owner = x === null || y === null ? null : surfaces.findLast(surface => {
+          const [left, top, right, bottom] = surface.bounds
+          return x >= left && x <= right && y >= top && y <= bottom
+        })
+        if (owner?.role.startsWith('accent-')) child.attributes.set('data-dz-fill', 'on-accent')
+        else if (owner?.role.startsWith('surface-')) child.attributes.set('data-dz-fill', 'ink')
+        else if (owner !== null && owner !== undefined) child.attributes.delete('data-dz-fill')
+      }
+    }
+    for (const child of node.children) visit(child)
+  }
+  visit(root)
+}
+
 function applyProfile(root, capability, engine) {
-  if (capability.profile === 'graphviz-15-semantic-1') applyGraphvizProfile(root)
-  else if (capability.profile === 'd2-0.7-semantic-1') applyD2Profile(root)
-  else if (capability.profile === 'plantuml-2026-semantic-1') applyPlantumlProfile(root)
-  else if (capability.profile === 'svgbob-0.7-semantic-1') applySvgbobProfile(root)
-  else if (capability.profile === 'neutral-svg-semantic-1') applyNeutralSvgProfile(root, engine)
-  else if (capability.profile === 'structured-svg-semantic-1') {
+  if (capability.profile === 'graphviz-15-semantic-2') applyGraphvizProfile(root, engine)
+  else if (capability.profile === 'd2-0.7-semantic-2') applyD2Profile(root)
+  else if (capability.profile === 'plantuml-2026-semantic-2') applyPlantumlProfile(root, engine)
+  else if (capability.profile === 'svgbob-0.7-semantic-2') applySvgbobProfile(root)
+  else if (capability.profile === 'neutral-svg-semantic-2') {
+    const surfacePaint = engine === 'mermaid' ? ['#ececff', '#f9f9f9'] : []
+    applyNeutralSvgProfile(root, engine, surfacePaint)
+    applyNeutralRendererDetails(root, engine)
+  }
+  else if (capability.profile === 'structured-svg-semantic-2') {
     if (engine === 'goat') applyGoatProfile(root)
     else if (engine === 'vega' || engine === 'vegalite') applyVegaProfile(root)
     else if (engine === 'wavedrom') applyWavedromProfile(root)
   }
+  else if (capability.profile === 'authored-neutral-semantic-1') applyNeutralSvgProfile(root, engine)
+  if (capability.conformance !== 'presentation-only') resolveSiblingTextContrast(root)
 }
 
 function applyRootBackgroundStyle(root, background) {
@@ -497,6 +707,20 @@ function addMetadata(root, metadata) {
   if (metadata.title && !directText('title')) additions.push(element('title', [], [{ type: 'text', value: metadata.title }]))
   if (metadata.description && !directText('desc')) additions.push(element('desc', [], [{ type: 'text', value: metadata.description }]))
   root.children.unshift(...additions)
+}
+
+function removeStaleNormalizerOutput(root) {
+  const visit = node => {
+    if (node.type === 'text') return
+    node.attributes.delete('data-dz-role')
+    node.attributes.delete('data-dz-fill')
+    node.attributes.delete('data-dz-stroke')
+    node.children = node.children.filter(child => child.type === 'text'
+      || !['materializer', 'normalizer'].includes(child.attributes.get('data-dz-owned')))
+    for (const child of node.children) visit(child)
+  }
+  visit(root)
+  root.attributes.delete('data-dz-materializer')
 }
 
 function applyLegacyPresentation(root, presentation, engine) {
@@ -600,6 +824,12 @@ export function sanitizeAndDecorateSvg(source, metadata, presentation, engine, r
 
 export function canonicalizeSvg(source, metadata, engine, rendererVersion = '') {
   const root = parseSafeSvg(source)
+  const previousNormalizer = root.attributes.get('data-dz-normalizer')
+  if (previousNormalizer !== undefined && previousNormalizer !== NORMALIZER_BUILD) removeStaleNormalizerOutput(root)
+  else if (root.attributes.has('data-dz-materializer')) {
+    removeMaterializerOutput(root)
+    root.attributes.delete('data-dz-materializer')
+  }
   const capability = normalizationFor(engine, rendererVersion)
   applyProfile(root, capability, engine)
   root.attributes.set('data-dz-schema', SVG_SCHEMA)
@@ -609,8 +839,10 @@ export function canonicalizeSvg(source, metadata, engine, rendererVersion = '') 
   root.attributes.set('data-dz-engine', engine)
   root.attributes.set('data-dz-appearance', 'raw')
   root.attributes.set('data-dz-conformance', capability.conformance)
+  root.attributes.delete('data-dz-appearances')
   const appearances = capability.appearances.filter(appearance => appearance !== 'raw')
   if (appearances.length > 0) root.attributes.set('data-dz-appearances', appearances.join(' '))
+  root.attributes.delete('data-dz-bounds')
   const bounds = presentationBounds(root)
   if (bounds !== null) root.attributes.set('data-dz-bounds', bounds.join(' '))
   addMetadata(root, metadata)

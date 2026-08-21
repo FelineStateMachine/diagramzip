@@ -10,11 +10,11 @@ describe('engine catalog', () => {
   })
 
   it('reports an honest capability for every pinned renderer contract', () => {
-    const presentationOnly = new Set(['diagramsnet', 'excalidraw', 'tikz'])
+    const presentationOnly = new Set(['diagramsnet'])
     for (const engine of ENGINE_CATALOG) {
       expect(engine.normalization).toMatchObject({
         schema: '1',
-        normalizer: 'svg-normalizer-1',
+        normalizer: 'svg-normalizer-2',
       })
       expect(engine.normalization.profile).not.toBe('safe-raw-1')
       if (presentationOnly.has(engine.id)) {
@@ -29,10 +29,17 @@ describe('engine catalog', () => {
       }
     }
     expect(ENGINE_CATALOG.find(entry => entry.id === 'graphviz')?.normalization).toMatchObject({
-      profile: 'graphviz-15-semantic-1',
+      profile: 'graphviz-15-semantic-2',
       conformance: 'semantic',
       appearances: expect.arrayContaining(['raw', 'auto-transparent', 'dark-framed']),
     })
+    for (const id of ['excalidraw', 'tikz']) {
+      expect(ENGINE_CATALOG.find(entry => entry.id === id)?.normalization).toMatchObject({
+        profile: 'authored-neutral-semantic-1',
+        conformance: 'adaptive',
+        appearances: expect.arrayContaining(['raw', 'auto-transparent', 'dark-framed']),
+      })
+    }
   })
 
   it('marks the BlockDiag family as edge Python', () => {
