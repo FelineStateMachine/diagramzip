@@ -37,7 +37,7 @@ build, and pipeline with `X-Diagram-Unit`, `X-Renderer-Build`, and
 
 Browser-rendered units expose the same health and capability routes plus one
 sandboxed frame. The frame accepts only its own engine over the versioned
-postMessage protocol. Mermaid, BPMN, and Excalidraw have separate packages,
+postMessage protocol. Mermaid, BPMN, Excalidraw, and diagrams.net have separate packages,
 bundles, CSPs, deployments, and subdomains.
 
 A unit may expose multiple catalog hostnames when those engines share the same
@@ -61,10 +61,10 @@ catalog engine.
 | Worker JavaScript | Bytefield, Nomnoml, Vega family (Vega and Vega-Lite → Vega), WaveDrom |
 | Worker Python | BlockDiag family (BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag); WireViz → DOT → GraphViz |
 | Worker WebAssembly | PlantUML family (PlantUML and bounded C4 → PlantUML); GraphViz family (GraphViz, DBML → DOT → GraphViz, and ERD → DOT → GraphViz); GoAT; Pikchr; Svgbob |
-| Sandboxed browser unit | Mermaid, BPMN, Excalidraw |
-| Compatibility unit | 7 dependency units covering the remaining 7 engines |
+| Sandboxed browser unit | Mermaid, BPMN, Excalidraw, diagrams.net |
+| Compatibility unit | 6 dependency units covering the remaining 6 engines |
 
-The current split is 23/30 engines off Fly and 7/30 still dependent on it.
+The current split is 24/30 engines off Fly and 6/30 still dependent on it.
 Compatibility units are extraction seams, not final runtimes or fallbacks for
 an engine after cutover. DBML retains the upstream parser/checker/DOT model in
 an explicitly rebuilt Worker bundle, then shares the GraphViz-Wasm runtime.

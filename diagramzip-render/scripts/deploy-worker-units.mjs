@@ -12,7 +12,6 @@ const configs = [
   'wrangler.units/goat.jsonc',
   'wrangler.plantuml-family.jsonc',
   'wrangler.compatibility/d2.jsonc',
-  'wrangler.compatibility/diagramsnet.jsonc',
   'wrangler.compatibility/ditaa.jsonc',
   'wrangler.compatibility/structurizr.jsonc',
   'wrangler.compatibility/symbolator.jsonc',

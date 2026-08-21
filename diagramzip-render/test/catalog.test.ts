@@ -62,6 +62,13 @@ describe('engine catalog', () => {
     }
   })
 
+  it('marks diagrams.net as an official browser renderer without origin fallback', () => {
+    const diagramsnet = ENGINE_CATALOG.find(engine => engine.id === 'diagramsnet')!
+    expect(diagramsnet.activeRuntime).toBe('client')
+    expect(diagramsnet.version).toContain('diagrams.net@29.6.1')
+    expect(diagramsnet.fallback).toBeNull()
+  })
+
   it('does not retain a silent origin fallback for any engine', () => {
     for (const engine of ENGINE_CATALOG) {
       if (engine.activeRuntime === 'origin') expect(engine.version).toBe('compatibility-origin')

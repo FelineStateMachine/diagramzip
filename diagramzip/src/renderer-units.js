@@ -11,7 +11,6 @@ export const HTTP_RENDERER_UNITS = Object.freeze({
   rackdiag: 'https://rackdiag.render.diagram.zip/v1/svg',
   bytefield: 'https://bytefield.render.diagram.zip/v1/svg',
   dbml: 'https://dbml.render.diagram.zip/v1/svg',
-  diagramsnet: 'https://diagramsnet.render.diagram.zip/v1/svg',
   ditaa: 'https://ditaa.render.diagram.zip/v1/svg',
   erd: 'https://erd.render.diagram.zip/v1/svg',
   goat: 'https://goat.render.diagram.zip/v1/svg',
@@ -29,7 +28,7 @@ export const HTTP_RENDERER_UNITS = Object.freeze({
 })
 
 export const NO_GATEWAY_FALLBACK_ENGINES = Object.freeze([
-  'mermaid', 'bpmn', 'excalidraw',
+  'mermaid', 'bpmn', 'excalidraw', 'diagramsnet',
   'plantuml', 'c4plantuml',
   'bytefield', 'nomnoml', 'vega', 'vegalite', 'wavedrom',
   'blockdiag', 'seqdiag', 'actdiag', 'nwdiag', 'packetdiag', 'rackdiag',

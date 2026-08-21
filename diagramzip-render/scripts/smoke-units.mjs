@@ -57,7 +57,23 @@ const goatEngines = new Set(['goat'])
 const wirevizEngines = new Set(['wireviz'])
 const plantumlEngines = new Set(['plantuml', 'c4plantuml'])
 
+async function smokeClientUnit(engine) {
+  const base = `https://${engine}.render.diagram.zip`
+  const [capabilitiesResponse, frameResponse] = await Promise.all([
+    fetch(`${base}/v1/capabilities`),
+    fetch(`${base}/index.html`),
+  ])
+  if (!capabilitiesResponse.ok) throw new Error(`${engine}: capabilities HTTP ${capabilitiesResponse.status}`)
+  if (!frameResponse.ok) throw new Error(`${engine}: frame HTTP ${frameResponse.status}`)
+  const capabilities = await capabilitiesResponse.json()
+  if (capabilities.id !== engine || capabilities.runtime !== 'client' || capabilities.format !== 'svg') {
+    throw new Error(`${engine}: unexpected client capabilities ${JSON.stringify(capabilities)}`)
+  }
+  return `${engine.padEnd(10)} client ${capabilities.build}`
+}
+
 async function smoke([engine, filename]) {
+  if (engine === 'diagramsnet') return smokeClientUnit(engine)
   const source = await readFile(resolve(fixtureDirectory, filename), 'utf8')
   const endpoint = `https://${engine}.render.diagram.zip/v1/svg`
   const response = await fetch(endpoint, {
@@ -154,4 +170,4 @@ for (let index = 0; index < entries.length; index += 4) {
   results.push(...await Promise.all(entries.slice(index, index + 4).map(smoke)))
 }
 for (const result of results) console.log(result)
-console.log(`${results.length}/${results.length} catalog engines returned SVG through dependency-backed units`)
+console.log(`${results.length}/${results.length} catalog engines passed structural unit smoke`)

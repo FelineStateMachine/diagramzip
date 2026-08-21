@@ -48,6 +48,7 @@ const activeRuntime: Partial<Record<EngineId, EngineRuntime>> = {
   mermaid: 'client',
   bpmn: 'client',
   bytefield: 'edge-js',
+  diagramsnet: 'client',
   excalidraw: 'client',
   nomnoml: 'edge-js',
   vega: 'edge-js',
@@ -73,6 +74,7 @@ const versions: Partial<Record<EngineId, string>> = {
   c4plantuml: 'c4plantuml@2.7.0-lowered+plantuml@1.2026.6/edge-wasm-1',
   mermaid: 'mermaid@11.17.0',
   bpmn: 'bpmn-js@18.25.1',
+  diagramsnet: 'diagrams.net@29.6.1/client-unit-1',
   bytefield: 'bytefield-svg@1.11.0',
   excalidraw: '@excalidraw/excalidraw@0.18.1',
   nomnoml: 'nomnoml@1.7.0',
@@ -134,6 +136,10 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'Only SVG is supported.',
     'DBML URLs are lowered to GraphViz HREFs, then external links are removed by SVG sanitization.',
     'The translated graph uses GraphViz 15.1.1 versus the compatibility DBML image Viz.js/GraphViz 2.47.0; output differences are possible.',
+  ],
+  diagramsnet: [
+    'Rendering runs in the sandboxed official diagrams.net browser exporter; there is no server-side or Fly fallback.',
+    'External resources are blocked; embedded data images remain supported.',
   ],
   excalidraw: [
     'External resources are blocked; image data must be embedded in the scene.',

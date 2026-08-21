@@ -102,3 +102,27 @@ test('does not send a failed client renderer to the gateway', async () => {
   assert.equal(gatewayCalls, 0)
   assert.equal(statuses.at(-1).state, 'error')
 })
+
+test('does not send a failed diagrams.net renderer to the gateway', async () => {
+  let gatewayCalls = 0
+  const statuses = []
+  const controller = {
+    abortController: null,
+    stage: { style: { setProperty() {} } },
+    setStatus(message, state) { statuses.push({ message, state }) },
+    async renderThroughGateway() { gatewayCalls += 1 },
+  }
+
+  await PreviewController.prototype.performRender.call(controller, {
+    type: 'diagramsnet',
+    source: '<mxGraphModel/>',
+    options: {},
+    meta: {},
+    presentation: {},
+    renderKey: 'diagramsnet-client-failure',
+    requestNumber: 1,
+  })
+
+  assert.equal(gatewayCalls, 0)
+  assert.equal(statuses.at(-1).state, 'error')
+})

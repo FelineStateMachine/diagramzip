@@ -8,7 +8,7 @@ const CAPABILITIES = Object.freeze({
   pipeline: ['diagramsnet'],
   frame: '/index.html?v=1',
   knownLosses: [
-    'SVG is the client preview format; server-side static rendering remains on the compatibility origin.',
+    'Rendering requires the sandboxed browser exporter; there is no server-side rendering fallback.',
     'External resources are blocked; embedded data images remain supported.',
   ],
 })
