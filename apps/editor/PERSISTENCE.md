@@ -84,7 +84,7 @@ remain transient and use the current renderer. Only an
 explicit alias create or save writes immutable content.
 
 The schema is executable in
-`workers/api/migrations/0001_aliases.sql`. Open content contains `type`,
+`services/api/migrations/0001_aliases.sql`. Open content contains `type`,
 `source`, `options`, and presentation settings. Alias metadata contains `title`
 and `description`, so metadata can change without manufacturing a new content
 ID.

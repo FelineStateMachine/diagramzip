@@ -12,7 +12,16 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "strict": true,
+    "paths": { "vitest": ["./node_modules/vitest"] },
     "types": ["node", "@cloudflare/vitest-pool-workers/types"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.ts", "worker-configuration.d.ts"]
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "../catalog/src/**/*.ts",
+    "../catalog/test/**/*.ts",
+    "../catalog/worker-configuration.d.ts",
+    "../shared/**/*.ts",
+    "vitest.config.ts"
+  ]
 }

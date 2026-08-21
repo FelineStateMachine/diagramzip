@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import example from '../../../examples/diagrams/umlet.xml?raw'
-import { parseUmlet, renderUmlet } from '../src/umlet'
+import { parseUmlet, renderUmlet } from '../src/languages/umlet'
 
 describe('bounded UMLet UXF translation', () => {
   it('covers every element in the repository fixture without Java or a browser', () => {

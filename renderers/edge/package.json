@@ -7,17 +7,19 @@
     "node": ">=24"
   },
   "scripts": {
-    "cf-typegen": "wrangler types",
-    "build:dbml": "node scripts/build-dbml.mjs",
-    "build:d2-wasm": "node scripts/build-d2-wasm.mjs",
+    "generate:types": "wrangler types ../catalog/worker-configuration.d.ts --config ../catalog/wrangler.jsonc",
+    "generate:licenses": "node scripts/check-runtime-licenses.mjs --write",
+    "build:dbml": "node scripts/build/dbml.mjs",
+    "build:d2": "node scripts/build/d2.mjs",
     "check": "tsc --noEmit",
-    "deploy:dry": "wrangler deploy --dry-run",
-    "deploy:worker-units": "node scripts/deploy-worker-units.mjs",
-    "deploy:python-units": "node scripts/deploy-python-units.mjs",
-    "dev": "wrangler dev",
-    "smoke": "node scripts/smoke.mjs",
-    "smoke:units": "node scripts/smoke-units.mjs",
-    "test": "vitest run"
+    "check:licenses": "node scripts/check-runtime-licenses.mjs",
+    "deploy:dry-run": "wrangler deploy --dry-run --config ../catalog/wrangler.jsonc",
+    "deploy:edge": "node scripts/deploy/worker-units.mjs",
+    "deploy:python": "node ../scripts/deploy-python-units.mjs",
+    "dev:catalog": "wrangler dev --config ../catalog/wrangler.jsonc",
+    "smoke:catalog": "node ../catalog/scripts/smoke.mjs",
+    "smoke:renderers": "node ../scripts/smoke-units.mjs",
+    "test": "vitest run --dir .. edge/test catalog/test"
   },
   "dependencies": {
     "@softwaretechnik/dbml-renderer": "1.0.31",

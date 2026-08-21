@@ -1,5 +1,5 @@
-import { umletAdapter } from '../adapters/edge/umlet'
-import { createRendererUnit } from '../unit'
+import { umletAdapter } from '../adapters/umlet'
+import { createRendererUnit } from '../runtime/unit'
 
 export default createRendererUnit({
   id: 'umlet',

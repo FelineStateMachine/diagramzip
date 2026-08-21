@@ -1,0 +1,13 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-svgbob-family",
+  "main": "../../src/units/svgbob.ts",
+  "compatibility_date": "2026-08-20",
+  "rules": [{ "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": false }],
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
+  "vars": { "RENDERER_BUILD": "svgbob-0.7.6-ditaa-translation-1" },
+  "routes": [
+    { "pattern": "svgbob.render.diagram.zip", "custom_domain": true },
+    { "pattern": "ditaa.render.diagram.zip", "custom_domain": true }
+  ]
+}

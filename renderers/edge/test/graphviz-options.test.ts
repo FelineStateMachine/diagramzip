@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { graphvizAdapter, optionsFor, renderGraphvizSource } from '../src/adapters/edge/graphviz'
-import type { RenderRequest } from '../src/types'
+import { graphvizAdapter, optionsFor, renderGraphvizSource } from '../src/adapters/graphviz'
+import type { RenderRequest } from '../src/runtime/types'
 
 describe('GraphViz option lowering', () => {
   it('maps layout and default graph/node/edge attributes', () => {

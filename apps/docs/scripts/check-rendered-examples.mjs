@@ -1,7 +1,7 @@
 import { readFile, readdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { canonicalizeSvg, materializeSvg, supportedAppearances } from '../../../packages/svg/index.js'
+import { canonicalizeSvg, materializeSvg, supportedAppearances } from '../../../shared/svg/index.js'
 import { CLIENT_RENDERERS, httpRendererUrlFor } from '../src/components/DiagramExample/rendererRouting.mjs'
 
 const site = join(dirname(fileURLToPath(import.meta.url)), '..')

@@ -1,4 +1,4 @@
-import { createRendererUnitGroup } from '../unit'
+import { createRendererUnitGroup } from '../runtime/unit'
 import { vegaDescriptor } from './vega'
 import { vegaliteDescriptor } from './vegalite'
 

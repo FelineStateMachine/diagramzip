@@ -1,5 +1,5 @@
-import { pikchrAdapter } from '../adapters/edge/pikchr'
-import { createRendererUnit } from '../unit'
+import { pikchrAdapter } from '../adapters/pikchr'
+import { createRendererUnit } from '../runtime/unit'
 
 export default createRendererUnit({
   id: 'pikchr', kind: 'render', adapter: pikchrAdapter,

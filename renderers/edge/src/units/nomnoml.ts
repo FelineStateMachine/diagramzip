@@ -1,5 +1,5 @@
-import { nomnomlAdapter } from '../adapters/edge/nomnoml'
-import { createRendererUnit } from '../unit'
+import { nomnomlAdapter } from '../adapters/nomnoml'
+import { createRendererUnit } from '../runtime/unit'
 
 export default createRendererUnit({
   id: 'nomnoml',

@@ -1,7 +1,7 @@
-import { erdAdapter } from '../adapters/edge/erd'
-import { dbmlAdapter } from '../adapters/edge/dbml'
-import { graphvizAdapter } from '../adapters/edge/graphviz'
-import { createRendererUnitGroup } from '../unit'
+import { erdAdapter } from '../adapters/erd'
+import { dbmlAdapter } from '../adapters/dbml'
+import { graphvizAdapter } from '../adapters/graphviz'
+import { createRendererUnitGroup } from '../runtime/unit'
 
 export default createRendererUnitGroup('graphviz-family', [
   {

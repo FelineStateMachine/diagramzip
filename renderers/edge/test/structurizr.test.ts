@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { lowerStructurizr, parseStructurizr } from '../src/structurizr'
+import { lowerStructurizr, parseStructurizr } from '../src/languages/structurizr'
 import awsSource from './fixtures/structurizr/aws.structurizr?raw'
 import bigbankSource from './fixtures/structurizr/bigbank.structurizr?raw'
 import docsSource from './fixtures/structurizr/docs.structurizr?raw'

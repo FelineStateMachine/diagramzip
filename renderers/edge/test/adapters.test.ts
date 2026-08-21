@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { edgeAdapter } from '../src/adapters/edge'
-import type { RenderRequest } from '../src/types'
+import { edgeAdapter } from '../src/adapters/index'
+import type { RenderRequest } from '../src/runtime/types'
 
 const fixtures = {
   graphviz: 'digraph { a -> b }',

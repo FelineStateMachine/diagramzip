@@ -1,0 +1,10 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-plantuml-family-local",
+  "main": "../../src/units/plantuml-family.ts",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "define": {},
+  "observability": { "enabled": true },
+  "vars": { "RENDERER_BUILD": "plantuml-family-edge-wasm-local" }
+}

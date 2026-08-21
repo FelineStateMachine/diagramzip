@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sanitizeAndDecorateSvg } from '../src/svg'
+import { sanitizeAndDecorateSvg } from '../src/runtime/svg'
 
 describe('SVG normalization', () => {
   it('removes active content and external links', () => {

@@ -1,6 +1,6 @@
-import { ditaaAdapter, DITAA_KNOWN_LOSSES } from '../adapters/edge/ditaa'
-import { svgbobAdapter } from '../adapters/edge/svgbob'
-import { createRendererUnitGroup } from '../unit'
+import { ditaaAdapter, DITAA_KNOWN_LOSSES } from '../adapters/ditaa'
+import { svgbobAdapter } from '../adapters/svgbob'
+import { createRendererUnitGroup } from '../runtime/unit'
 
 export default createRendererUnitGroup('svgbob-family', [
   {

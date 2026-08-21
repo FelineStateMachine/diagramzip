@@ -9,4 +9,4 @@ export {
   materializeSvg,
   sanitizeAndDecorateSvg,
   supportedAppearances,
-} from '../../../packages/svg/index.js'
+} from '../../../shared/svg/index.js'

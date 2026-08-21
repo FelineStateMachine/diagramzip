@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { pikchrAdapter } from '../src/adapters/edge/pikchr'
-import type { RenderRequest } from '../src/types'
+import { pikchrAdapter } from '../src/adapters/pikchr'
+import type { RenderRequest } from '../src/runtime/types'
 
 const request = (source: string, options: Record<string, string> = {}): RenderRequest => ({
   engine: 'pikchr', source, format: 'svg', options,

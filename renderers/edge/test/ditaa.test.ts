@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { ditaaAdapter } from '../src/adapters/edge/ditaa'
-import type { RenderRequest } from '../src/types'
+import { ditaaAdapter } from '../src/adapters/ditaa'
+import type { RenderRequest } from '../src/runtime/types'
 
 const request = (source: string, options: Record<string, string> = {}): RenderRequest => ({
   engine: 'ditaa', source, format: 'svg', options,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createRendererUnit, createRendererUnitGroup } from '../src/unit'
-import type { EngineId, RendererAdapter } from '../src/types'
+import { createRendererUnit, createRendererUnitGroup } from '../src/runtime/unit'
+import type { EngineId, RendererAdapter } from '../src/runtime/types'
 
 const adapter: RendererAdapter = {
   id: 'vegalite',

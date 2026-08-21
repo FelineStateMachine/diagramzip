@@ -1,5 +1,5 @@
-import { goatAdapter } from '../adapters/edge/goat'
-import { createRendererUnit } from '../unit'
+import { goatAdapter } from '../adapters/goat'
+import { createRendererUnit } from '../runtime/unit'
 
 export default createRendererUnit({
   id: 'goat', kind: 'render', adapter: goatAdapter,

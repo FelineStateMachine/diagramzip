@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { goatAdapter } from '../src/adapters/edge/goat'
-import type { RenderRequest } from '../src/types'
+import { goatAdapter } from '../src/adapters/goat'
+import type { RenderRequest } from '../src/runtime/types'
 
 const request = (source: string, options: Record<string, string> = {}): RenderRequest => ({
   engine: 'goat', source, format: 'svg', options,

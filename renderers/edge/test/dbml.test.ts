@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { dbmlAdapter } from '../src/adapters/edge/dbml'
-import { sanitizeAndDecorateSvg } from '../src/svg'
-import type { RenderRequest } from '../src/types'
-import { dbmlToDot } from '../src/vendor/dbml-backend.js'
+import { dbmlAdapter } from '../src/adapters/dbml'
+import { sanitizeAndDecorateSvg } from '../src/runtime/svg'
+import type { RenderRequest } from '../src/runtime/types'
+import { dbmlToDot } from '../artifacts/dbml/dbml-backend.js'
 
 function request(source: string, options: Record<string, string> = {}): RenderRequest {
   return {

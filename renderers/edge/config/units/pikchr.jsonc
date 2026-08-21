@@ -1,0 +1,10 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-pikchr",
+  "main": "../../src/units/pikchr.ts",
+  "compatibility_date": "2026-08-20",
+  "rules": [{ "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": false }],
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
+  "vars": { "RENDERER_BUILD": "pikchr-85e65b9686-edge-wasm-1" },
+  "routes": [{ "pattern": "pikchr.render.diagram.zip", "custom_domain": true }]
+}

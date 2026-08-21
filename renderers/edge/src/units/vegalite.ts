@@ -1,5 +1,5 @@
-import { vegaliteAdapter } from '../adapters/edge/vegalite'
-import { createRendererUnit } from '../unit'
+import { vegaliteAdapter } from '../adapters/vegalite'
+import { createRendererUnit } from '../runtime/unit'
 
 export const vegaliteDescriptor = {
   id: 'vegalite',

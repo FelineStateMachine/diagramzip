@@ -1,5 +1,5 @@
-import { d2Adapter } from '../adapters/edge/d2'
-import { createRendererUnit } from '../unit'
+import { d2Adapter } from '../adapters/d2'
+import { createRendererUnit } from '../runtime/unit'
 
 export default createRendererUnit({
   id: 'd2',

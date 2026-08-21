@@ -1,5 +1,5 @@
-import { bytefieldAdapter } from '../adapters/edge/bytefield'
-import { createRendererUnit } from '../unit'
+import { bytefieldAdapter } from '../adapters/bytefield'
+import { createRendererUnit } from '../runtime/unit'
 
 export default createRendererUnit({
   id: 'bytefield',

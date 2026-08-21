@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { svgbobAdapter } from '../src/adapters/edge/svgbob'
-import type { RenderRequest } from '../src/types'
+import { svgbobAdapter } from '../src/adapters/svgbob'
+import type { RenderRequest } from '../src/runtime/types'
 
 const request = (source: string, options: Record<string, string> = {}): RenderRequest => ({
   engine: 'svgbob', source, format: 'svg', options,

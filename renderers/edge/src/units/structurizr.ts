@@ -1,6 +1,6 @@
-import { parseStructurizr, lowerStructurizr } from '../structurizr'
-import { RenderError, RequestError } from '../errors'
-import { parseUnitRenderRequest } from '../validation'
+import { parseStructurizr, lowerStructurizr } from '../languages/structurizr'
+import { RenderError, RequestError } from '../runtime/errors'
+import { parseUnitRenderRequest } from '../runtime/validation'
 
 const UNIT_ID = 'structurizr'
 const VERSION = 'structurizr@6.2.2/plantuml@1.2026.6-translation-1'

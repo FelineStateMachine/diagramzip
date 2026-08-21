@@ -4,6 +4,6 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [cloudflareTest({
-    wrangler: { configPath: resolve(import.meta.dirname, 'wrangler.jsonc') },
+    wrangler: { configPath: resolve(import.meta.dirname, '../catalog/wrangler.jsonc') },
   })],
 })

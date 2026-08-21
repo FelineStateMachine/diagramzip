@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ErdSyntaxError, erdToDot, parseErd } from '../src/erd'
+import { ErdSyntaxError, erdToDot, parseErd } from '../src/languages/erd'
 
 describe('ERD source lowering', () => {
   it('parses the repository schema and emits entities, fields, and cardinalities', () => {

@@ -96,7 +96,7 @@ function sourceIds(text) {
 
 const expectedSet = new Set(diagramTypeIds)
 const editorSource = await source(join(repo, 'apps', 'editor', 'src', 'diagram-types.js'))
-const rendererSource = await source(join(repo, 'renderers', 'edge', 'src', 'types.ts'))
+const rendererSource = await source(join(repo, 'renderers', 'shared', 'engines.ts'))
 assert(JSON.stringify(sourceIds(editorSource)) === JSON.stringify([...expectedSet].sort()), 'Editor diagram type IDs do not match the documentation catalog.')
 assert(JSON.stringify(sourceIds(rendererSource)) === JSON.stringify([...expectedSet].sort()), 'Renderer diagram type IDs do not match the documentation catalog.')
 

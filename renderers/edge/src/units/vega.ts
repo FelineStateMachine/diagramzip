@@ -1,5 +1,5 @@
-import { vegaAdapter } from '../adapters/edge/vega'
-import { createRendererUnit } from '../unit'
+import { vegaAdapter } from '../adapters/vega'
+import { createRendererUnit } from '../runtime/unit'
 
 export const vegaDescriptor = {
   id: 'vega',

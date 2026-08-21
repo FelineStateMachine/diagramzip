@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {canonicalizeSvg, materializeSvg, supportedAppearances} from '../../../../../packages/svg/index.js';
+import {canonicalizeSvg, materializeSvg, supportedAppearances} from '../../../../../shared/svg/index.js';
 import {fitView, zoomView} from './viewMath.mjs';
 import {clientFrameUrlFor, httpRendererUrlFor} from './rendererRouting.mjs';
 import styles from './styles.module.css';

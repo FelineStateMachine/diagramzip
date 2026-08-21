@@ -10,7 +10,7 @@ import {
   supportedAppearances,
   normalizationFor,
   sanitizeAndDecorateSvg,
-} from '../../../packages/svg/index.js'
+} from '../../../shared/svg/index.js'
 
 const metadata = { title: '', description: '' }
 const presentation = { background: '', padding: 0, frame: false }

@@ -1,5 +1,5 @@
-import { wavedromAdapter } from '../adapters/edge/wavedrom'
-import { createRendererUnit } from '../unit'
+import { wavedromAdapter } from '../adapters/wavedrom'
+import { createRendererUnit } from '../runtime/unit'
 
 export default createRendererUnit({
   id: 'wavedrom',

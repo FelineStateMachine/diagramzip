@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { lowerC4 } from '../src/adapters/edge/c4-lowerer'
+import { lowerC4 } from '../src/adapters/c4-lowerer'
 
 describe('C4 bounded lowering', () => {
   it('preserves entity semantics, relationships, technology, and local include aliases', () => {

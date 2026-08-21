@@ -1,5 +1,5 @@
-import { plantumlFamilyAdapter } from '../adapters/edge/plantuml-family'
-import { createRendererUnitGroup } from '../unit'
+import { plantumlFamilyAdapter } from '../adapters/plantuml-family'
+import { createRendererUnitGroup } from '../runtime/unit'
 
 export default createRendererUnitGroup('plantuml-family', [
   {

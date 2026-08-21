@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DOMParser } from 'linkedom'
-import { d2Adapter } from '../src/adapters/edge/d2'
-import type { RenderRequest } from '../src/types'
+import { d2Adapter } from '../src/adapters/d2'
+import type { RenderRequest } from '../src/runtime/types'
 
 const request = (source: string, options: Record<string, string> = {}): RenderRequest => ({
   engine: 'd2',
