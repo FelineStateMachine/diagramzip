@@ -69,15 +69,47 @@ document.querySelector('#app').innerHTML = `
           <span class="sr-only">Diagram type</span>
           <select id="diagram-type"></select>
         </label>
-        <a class="docs-link" href="https://docs.diagram.zip/" aria-label="Documentation" title="Documentation">
-          <svg class="docs-link-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M5 4.75A2.75 2.75 0 0 1 7.75 2H19v16.25A2.75 2.75 0 0 0 16.25 21H5a2 2 0 0 1-2-2V6.75A2 2 0 0 1 5 4.75Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-            <path d="M19 18.25A2.75 2.75 0 0 0 16.25 21H7.75A2.75 2.75 0 0 1 5 18.25V4.75M8 7h7M8 10.5h7M8 14h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-          </svg>
-        </a>
-        <button class="secondary-action" id="details" type="button" aria-label="Details">Details</button>
-        <button class="secondary-action" id="save" type="button">Save</button>
-        <button class="primary-action" id="share" type="button">Share</button>
+        <div class="header-actions" role="group" aria-label="Diagram actions">
+          <a class="header-icon-action" href="https://docs.diagram.zip/" aria-label="Documentation" title="Documentation">
+            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3.5 5.5c3.25-.75 6-.1 8.5 2v12c-2.5-2.1-5.25-2.75-8.5-2V5.5Zm17 0c-3.25-.75-6-.1-8.5 2v12c2.5-2.1 5.25-2.75 8.5-2V5.5Z"/>
+              <path d="M12 7.5v12"/>
+            </svg>
+          </a>
+          <button class="header-icon-action" id="details" type="button" aria-label="Details" title="Details">
+            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 3.5h8l4 4v13H6v-17Z"/>
+              <path d="M14 3.5V8h4M9 12h6M9 15.5h6"/>
+            </svg>
+          </button>
+          <button class="header-icon-action" id="save" type="button" data-save-state="save" aria-label="Save" title="Save">
+            <svg class="header-action-icon save-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <g data-save-icon="save">
+                <path d="M5 3.5h11.5L19 6v14.5H5v-17Z"/>
+                <path d="M8 3.5V9h8V3.5M8 20.5v-7h8v7"/>
+              </g>
+              <g data-save-icon="saving">
+                <path d="M19.5 8.5A8 8 0 1 0 20 14"/>
+                <path d="M19.5 4.5v4h-4"/>
+              </g>
+              <g data-save-icon="saved">
+                <path d="m5.5 12 4 4 9-9"/>
+              </g>
+              <g data-save-icon="copy">
+                <path d="M8 7.5h11v13H8v-13Z"/>
+                <path d="M5 16.5H4v-13h11v1M13.5 11v6M10.5 14h6"/>
+              </g>
+            </svg>
+          </button>
+          <button class="header-icon-action" id="share" type="button" aria-label="Share" title="Share">
+            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="18" cy="5" r="2.5"/>
+              <circle cx="6" cy="12" r="2.5"/>
+              <circle cx="18" cy="19" r="2.5"/>
+              <path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -902,18 +934,25 @@ function setRemoteAlias(alias, writeCapability, state, bundleKey = null) {
 function updateSaveButton() {
   const button = document.querySelector('#save')
   updateDraftControls()
+  let state = 'save'
+  let label = 'Save'
+  let disabled = false
   if (saving) {
-    button.textContent = 'Saving…'
-    button.disabled = true
-    return
+    state = 'saving'
+    label = 'Saving'
+    disabled = true
+  } else if (remote.aliasId && !remote.dirty) {
+    state = 'saved'
+    label = 'Saved'
+    disabled = true
+  } else if (remote.aliasId && !remote.writeCapability) {
+    state = 'copy'
+    label = 'Save a copy'
   }
-  if (remote.aliasId && !remote.dirty) {
-    button.textContent = 'Saved'
-    button.disabled = true
-    return
-  }
-  button.textContent = remote.aliasId && !remote.writeCapability ? 'Save copy' : 'Save'
-  button.disabled = false
+  button.dataset.saveState = state
+  button.setAttribute('aria-label', label)
+  button.title = label
+  button.disabled = disabled
 }
 
 function updateDraftControls() {

@@ -41,6 +41,8 @@ describe('renderer unit protocol', () => {
     expect(response.headers.get('X-Diagram-Pipeline')).toBe('vegalite,vega')
     expect(response.headers.get('Access-Control-Expose-Headers')).toContain('X-Diagram-Unit')
     expect(response.headers.get('Access-Control-Expose-Headers')).toContain('X-Renderer-Build')
+    expect(response.headers.get('Content-Type')).toContain('image/svg+xml')
+    expect(response.headers.get('Content-Security-Policy')).toBe("default-src 'none'; style-src 'unsafe-inline'; sandbox")
     expect(await response.text()).toContain('<text x="1" y="8">ok</text>')
   })
 

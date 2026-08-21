@@ -309,6 +309,7 @@ describe('open aliases', () => {
     expect(render.headers.get('X-Renderer-Unit')).toBe('d2')
     expect(render.headers.get('X-Renderer-Build')).toBe('d2-compat-unit-1')
     expect(render.headers.get('X-Renderer-Pipeline')).toBe('d2')
+    expect(render.headers.get('Content-Security-Policy')).toBe("default-src 'none'; style-src 'unsafe-inline'; sandbox")
     expect(await render.text()).toBe(svg)
 
     const head = await env.CONTENT.get(`render-heads/open/${renderId}.svg.json`)

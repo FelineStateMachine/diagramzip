@@ -30,11 +30,13 @@ export function imageCompatibleAnimations(svg: string): string {
     const animation = styleDeclaration(style, 'animation')
     const duration = animation?.match(/^dashdraw\s+(\d+(?:\.\d+)?)s\s+linear\s+infinite$/)?.[1]
     if (!offset || !/^-?\d+(?:\.\d+)?(?:px)?$/.test(offset) || !duration) return tag
-    const withoutCssAnimation = style
+    const imageCompatibleStyle = style
       .split(';')
-      .filter(declaration => declaration.trim() && !/^\s*animation\s*:/i.test(declaration))
+      .filter(declaration => declaration.trim() && !/^\s*(?:animation|stroke-dashoffset)\s*:/i.test(declaration))
       .join(';')
-    const normalizedTag = tag.replace(/\bstyle="[^"]*"/, `style="${withoutCssAnimation};"`)
+    const normalizedTag = tag
+      .replace(/\s+mask="[^"]*"/, '')
+      .replace(/\bstyle="[^"]*"/, `style="${imageCompatibleStyle};"`)
     const animate = `<animate attributeName="stroke-dashoffset" from="0" to="${offset}" dur="${duration}s" calcMode="linear" repeatCount="indefinite"></animate>`
     return /\/\s*>$/.test(normalizedTag)
       ? `${normalizedTag.replace(/\/\s*>$/, '>')}${animate}</path>`

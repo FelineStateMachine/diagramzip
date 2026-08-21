@@ -2,6 +2,13 @@ import { clientAdapterFor } from './client-renderers.js'
 import { sanitizeAndDecorateSvg } from './client-svg.js'
 import { httpRendererUnitFor } from './renderer-units.js'
 
+const STATUS_LABELS = {
+  idle: 'Ready',
+  loading: 'Rendering',
+  ready: 'Rendered',
+  error: 'Error',
+}
+
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), maximum)
 }
@@ -227,7 +234,10 @@ export class PreviewController {
   }
 
   setStatus(message, state) {
-    this.status.textContent = message
+    const label = STATUS_LABELS[state] ?? 'Ready'
+    this.status.textContent = label
+    this.status.title = message === label ? '' : message
+    this.status.setAttribute('aria-label', message === label ? label : `${label}: ${message}`)
     this.status.dataset.state = state
   }
 

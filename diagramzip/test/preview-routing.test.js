@@ -108,3 +108,19 @@ test('does not send a failed diagrams.net renderer to an HTTP unit', async () =>
   assert.equal(unitCalls, 0)
   assert.equal(statuses.at(-1).state, 'error')
 })
+
+test('keeps render status text to a single state word', () => {
+  const attributes = new Map()
+  const status = {
+    dataset: {},
+    setAttribute(name, value) { attributes.set(name, value) },
+  }
+  const controller = { status }
+
+  PreviewController.prototype.setStatus.call(controller, 'The renderer rejected this source.', 'error')
+
+  assert.equal(status.textContent, 'Error')
+  assert.equal(status.title, 'The renderer rejected this source.')
+  assert.equal(status.dataset.state, 'error')
+  assert.equal(attributes.get('aria-label'), 'Error: The renderer rejected this source.')
+})

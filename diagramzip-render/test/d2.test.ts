@@ -24,6 +24,8 @@ describe('D2 dedicated Worker adapter', () => {
     expect(result.body).toContain('repeatCount="indefinite"')
     expect(result.body).toMatch(/<path[^>]*animated-connection[^>]*><animate[^>]*><\/animate><\/path>/)
     expect(result.body).not.toContain('animation: dashdraw')
+    expect(result.body).not.toMatch(/<path[^>]*animated-connection[^>]*style="[^"]*stroke-dashoffset/)
+    expect(result.body).not.toMatch(/<path[^>]*animated-connection[^>]*mask=/)
     expect(result.body).toContain('next')
   })
 })

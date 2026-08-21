@@ -521,7 +521,9 @@ async function getRender(
   object.writeHttpMetadata(headers)
   headers.set('ETag', object.httpEtag)
   headers.set('X-Content-Type-Options', 'nosniff')
-  headers.set('Content-Security-Policy', "default-src 'none'; sandbox")
+  headers.set('Content-Security-Policy', format === 'svg'
+    ? "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+    : "default-src 'none'; sandbox")
   headers.set('X-Renderer-Unit', head.unit)
   headers.set('X-Renderer-Build', head.build)
   headers.set('X-Renderer-Pipeline', head.pipeline.join(','))
