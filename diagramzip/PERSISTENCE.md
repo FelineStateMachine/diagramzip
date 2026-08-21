@@ -149,8 +149,8 @@ Orphans can be collected later with a grace period.
 
 ### Durable renders
 
-After a successful save, the browser stores the normalized SVG and, where the
-browser can rasterize it, a PNG:
+After a successful save, the browser stores one canonical safe SVG and, where
+the browser can rasterize it, a PNG:
 
 ```http
 PUT /api/v1/aliases/{alias_id}/renders/{svg|png}
@@ -162,12 +162,24 @@ X-Renderer-Build: vegalite-6.4.3-vega-6.3.1-unit-1
 X-Renderer-Pipeline: vegalite,vega
 ```
 
-The revision and render ID prevent a slow render from being attached after the
+The SVG upload must use the current Diagram.zip canonical schema. The API
+validates and deterministically serializes it before R2 accepts it. The
+revision and render ID prevent a slow render from being attached after the
 alias has changed. Open bytes use their image media type. Locked bytes are
 AES-GCM ciphertext encoded as JSON. Open embeds use the stable URL
 `/api/v1/aliases/{alias_id}/renders/svg`; locked aliases return a clear 403 from
 that route. An unlocked browser can fetch opaque bytes with `?encrypted=1` and
 decrypt them with the same in-memory bundle key.
+
+An open SVG read may add an `appearance` query parameter:
+
+```text
+/api/v1/aliases/{alias_id}/renders/svg?appearance=auto-framed
+```
+
+The API materializes the requested appearance from the canonical R2 object. It
+does not store a second SVG. The appearance has its own ETag. Locked renders
+cannot use this server-side path because the API cannot decrypt their SVG.
 
 ## Editor and share UX
 

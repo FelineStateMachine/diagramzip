@@ -1,4 +1,5 @@
 import { normalizeMetadata, normalizePresentation } from './state.js'
+import { APPEARANCES } from './client-svg.js'
 
 export const API_PREFIX = '/api/v1'
 export const ALIAS_ID_PATTERN = /^[A-Za-z0-9_-]{16}$/
@@ -31,10 +32,14 @@ export function editAliasUrl(origin, aliasId, writeCapability) {
   return url.toString()
 }
 
-export function stableRenderUrl(origin, aliasId, format = 'svg') {
+export function stableRenderUrl(origin, aliasId, format = 'svg', appearance = 'raw') {
   if (!ALIAS_ID_PATTERN.test(aliasId)) throw new Error('Invalid diagram alias.')
   if (format !== 'svg' && format !== 'png') throw new Error('Invalid render format.')
-  return new URL(`${API_PREFIX}/aliases/${aliasId}/renders/${format}`, origin).toString()
+  if (!APPEARANCES.includes(appearance)) throw new Error('Invalid SVG appearance.')
+  if (format !== 'svg' && appearance !== 'raw') throw new Error('SVG appearances require SVG format.')
+  const url = new URL(`${API_PREFIX}/aliases/${aliasId}/renders/${format}`, origin)
+  if (appearance !== 'raw') url.searchParams.set('appearance', appearance)
+  return url.toString()
 }
 
 export function writeCapabilityFromHash(hash) {

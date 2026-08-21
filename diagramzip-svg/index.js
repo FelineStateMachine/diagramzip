@@ -223,11 +223,16 @@ function element(name, attributes = [], children = []) {
   return { type: 'element', name, attributes: new Map(attributes), children }
 }
 
-function decorate(root, metadata, presentation, engine) {
+function addMetadata(root, metadata) {
   const additions = []
-  let frame = null
   if (metadata.title) additions.push(element('title', [], [{ type: 'text', value: metadata.title }]))
   if (metadata.description) additions.push(element('desc', [], [{ type: 'text', value: metadata.description }]))
+  root.children.unshift(...additions)
+}
+
+function applyLegacyPresentation(root, presentation, engine) {
+  const additions = []
+  let frame = null
   const bounds = presentationBounds(root)
   if ((presentation.padding || presentation.background || presentation.frame) && bounds === null) {
     throw new SvgNormalizationError(422, 'missing_dimensions', 'Renderer output has no usable SVG dimensions for presentation settings.')
@@ -319,6 +324,10 @@ function parseSafeSvg(source) {
 }
 
 export function sanitizeAndDecorateSvg(source, metadata, presentation, engine, rendererVersion = '') {
+  return materializePresentation(canonicalizeSvg(source, metadata, engine, rendererVersion), presentation)
+}
+
+export function canonicalizeSvg(source, metadata, engine, rendererVersion = '') {
   const root = parseSafeSvg(source)
   const capability = normalizationFor(engine, rendererVersion)
   applyProfile(root, capability)
@@ -332,7 +341,16 @@ export function sanitizeAndDecorateSvg(source, metadata, presentation, engine, r
   if (capability !== RAW_NORMALIZATION) root.attributes.set('data-dz-appearances', THEMED_APPEARANCES.join(' '))
   const bounds = presentationBounds(root)
   if (bounds !== null) root.attributes.set('data-dz-bounds', bounds.join(' '))
-  decorate(root, metadata, presentation, engine)
+  addMetadata(root, metadata)
+  return serialize(root)
+}
+
+export function materializePresentation(canonical, presentation) {
+  const root = parseSafeSvg(canonical)
+  if (root.attributes.get('data-dz-schema') !== SVG_SCHEMA) {
+    throw new SvgNormalizationError(422, 'not_canonical', 'SVG does not use the current Diagram.zip canonical schema.')
+  }
+  applyLegacyPresentation(root, presentation, root.attributes.get('data-dz-engine') ?? '')
   return serialize(root)
 }
 

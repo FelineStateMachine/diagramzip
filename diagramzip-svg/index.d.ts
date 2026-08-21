@@ -49,5 +49,17 @@ export function sanitizeAndDecorateSvg(
   rendererVersion?: string,
 ): string
 
+export function canonicalizeSvg(
+  source: string,
+  metadata: SvgMetadata,
+  engine: string,
+  rendererVersion?: string,
+): string
+
+export function materializePresentation(
+  canonical: string,
+  presentation: SvgPresentation,
+): string
+
 export type SvgAppearance = typeof APPEARANCES[number]
 export function materializeSvg(canonical: string, appearance: SvgAppearance): string

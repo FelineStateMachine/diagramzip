@@ -137,15 +137,18 @@ Schema 1 uses the following root attributes:
   data-dz-normalizer="svg-normalizer-1"
   data-dz-engine="example"
   data-dz-profile="semantic-markup-2"
-  data-dz-palette="diagramzip-1"
-  data-dz-appearance="light-transparent">
-  <style>/* self-contained tokens and role rules */</style>
+  data-dz-palette="renderer"
+  data-dz-appearance="raw">
   <g data-dz-role="node">
     <rect data-dz-fill="surface-1" data-dz-stroke="line" />
     <text data-dz-fill="ink">Service</text>
   </g>
 </svg>
 ```
+
+Appearance materialization adds the self-contained tokens, owned canvas, and
+owned frame after the canonical SVG is stored. The canonical object remains
+unchanged.
 
 These attributes are namespaced to Diagram.zip. The generic `data-theme`
 attribute is not part of the contract because it can collide with renderer and

@@ -4,6 +4,8 @@ import {
   APPEARANCES,
   RAW_NORMALIZATION,
   SvgNormalizationError,
+  canonicalizeSvg,
+  materializePresentation,
   materializeSvg,
   sanitizeAndDecorateSvg,
 } from '../../diagramzip-svg/index.js'
@@ -37,6 +39,17 @@ test('produces deterministic, idempotent raw canonical SVG', () => {
   assert.match(first, /data-dz-palette="renderer"/)
   assert.match(first, /data-dz-conformance="raw"/)
   assert.doesNotMatch(first, /data-theme=/)
+})
+
+test('keeps legacy editor presentation outside the canonical render', () => {
+  const canonical = canonicalizeSvg(source, metadata, 'pikchr')
+  const displayed = materializePresentation(canonical, { background: '#ffffff', padding: 8, frame: true })
+
+  assert.match(canonical, /data-dz-bounds="0 0 10 10"/)
+  assert.doesNotMatch(canonical, /fill="#ffffff"/)
+  assert.doesNotMatch(canonical, /viewBox="-8 -8 26 26"/)
+  assert.match(displayed, /fill="#ffffff"/)
+  assert.match(displayed, /viewBox="-8 -8 26 26"/)
 })
 
 test('exposes structured normalization failures to both callers', () => {

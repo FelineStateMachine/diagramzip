@@ -1,8 +1,8 @@
 import { RenderError, RequestError } from './errors'
-import { sanitizeAndDecorateSvg } from './svg'
+import { canonicalizeSvg } from './svg'
 import type { EngineId, RendererAdapter, RenderRequest } from './types'
 import { parseUnitRenderRequest } from './validation'
-import { RAW_NORMALIZATION } from '../../diagramzip-svg/index.js'
+import { normalizationFor } from '../../diagramzip-svg/index.js'
 
 const CACHE_MAX_AGE = 1_800
 const CACHE_SCHEMA = '2'
@@ -47,7 +47,8 @@ function errorResponse(error: unknown): Response {
 
 function canonicalRequest(request: RenderRequest): string {
   const options = Object.fromEntries(Object.entries(request.options).sort(([left], [right]) => left.localeCompare(right)))
-  return JSON.stringify({ ...request, options })
+  const { presentation: _presentation, ...canonical } = request
+  return JSON.stringify({ ...canonical, options })
 }
 
 function base64Url(bytes: Uint8Array): string {
@@ -76,7 +77,7 @@ async function render(
 ): Promise<Response> {
   const rendered = await descriptor.adapter.render(request, signal)
   if (signal.aborted) throw signal.reason
-  const body = sanitizeAndDecorateSvg(rendered.body, request.metadata, request.presentation, descriptor.id, rendered.engineVersion)
+  const body = canonicalizeSvg(rendered.body, request.metadata, descriptor.id, rendered.engineVersion)
   return new Response(body, {
     headers: {
       'Access-Control-Allow-Origin': '*',
@@ -106,7 +107,7 @@ function capabilities(unitId: string, descriptor: RendererUnitDescriptor, build:
     build,
     pipeline: [unitId, ...(descriptor.pipeline ?? [])],
     knownLosses: descriptor.knownLosses ?? [],
-    normalization: RAW_NORMALIZATION,
+    normalization: normalizationFor(descriptor.id, descriptor.adapter.version),
   }, { headers: { 'Cache-Control': 'public, max-age=300' } })
 }
 

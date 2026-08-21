@@ -1,6 +1,7 @@
 import { env, exports } from 'cloudflare:workers'
 import { applyD1Migrations } from 'cloudflare:test'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { canonicalizeSvg } from '../../diagramzip-svg/index.js'
 
 const capability = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 const otherCapability = 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBA'
@@ -288,7 +289,12 @@ describe('open aliases', () => {
   it('stores and serves a content-addressed open SVG render', async () => {
     const created = await create()
     const { aliasId, renderId } = await created.json<{ aliasId: string; renderId: string }>()
-    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>'
+    const svg = canonicalizeSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>',
+      { title: '', description: '' },
+      'd2',
+      'd2@0.7.1',
+    )
     const stored = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg`, {
       method: 'PUT',
       headers: {
@@ -309,6 +315,8 @@ describe('open aliases', () => {
     expect(render.headers.get('X-Renderer-Unit')).toBe('d2')
     expect(render.headers.get('X-Renderer-Build')).toBe('d2-compat-unit-1')
     expect(render.headers.get('X-Renderer-Pipeline')).toBe('d2')
+    expect(render.headers.get('X-Diagram-Appearance')).toBe('raw')
+    expect(render.headers.get('X-SVG-Schema')).toBe('1')
     expect(render.headers.get('Content-Security-Policy')).toBe("default-src 'none'; style-src 'unsafe-inline'; sandbox")
     expect(await render.text()).toBe(svg)
 
@@ -319,6 +327,73 @@ describe('open aliases', () => {
       pipeline: ['d2'],
       objectKey: `renders/open/d2/d2-compat-unit-1/${renderId}.svg`,
     })
+  })
+
+  it('materializes supported appearances from one canonical SVG object', async () => {
+    const created = await create()
+    const { aliasId, renderId } = await created.json<{ aliasId: string; renderId: string }>()
+    const svg = canonicalizeSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 20"><g class="graph"><polygon fill="white" stroke="none" points="0,0 40,0 40,20 0,20"></polygon><g class="node"><rect x="5" y="5" width="30" height="10" fill="white" stroke="black"></rect><text x="10" y="12" fill="black">Node</text></g></g></svg>',
+      { title: '', description: '' },
+      'graphviz',
+      'graphviz@15.1.1',
+    )
+    const stored = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${capability}`,
+        'Content-Type': 'image/svg+xml',
+        'If-Match': '"1"',
+        'X-Render-Id': renderId,
+        'X-Renderer-Unit': 'graphviz',
+        'X-Renderer-Build': 'graphviz-wasm-unit-1',
+        'X-Renderer-Pipeline': 'graphviz',
+      },
+      body: svg,
+    })
+    expect(stored.status).toBe(204)
+
+    const raw = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg`)
+    const framed = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg?appearance=dark-framed`)
+    expect(raw.status).toBe(200)
+    expect(framed.status).toBe(200)
+    expect(framed.headers.get('X-Diagram-Appearance')).toBe('dark-framed')
+    expect(framed.headers.get('X-SVG-Materializer')).toBe('svg-materializer-1')
+    expect(framed.headers.get('X-SVG-Palette')).toBe('diagramzip-palette-1')
+    expect(framed.headers.get('ETag')).not.toBe(raw.headers.get('ETag'))
+    const framedSvg = await framed.text()
+    expect(framedSvg).toContain('data-dz-appearance="dark-framed"')
+    expect(framedSvg).toContain('data-dz-owned="materializer"')
+    expect(framedSvg).toContain('viewBox="-24 -24 88 68"')
+
+    const unchanged = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg?appearance=dark-framed`, {
+      headers: { 'If-None-Match': framed.headers.get('ETag')! },
+    })
+    expect(unchanged.status).toBe(304)
+    const objects = await env.CONTENT.list({ prefix: 'renders/open/graphviz/' })
+    expect(objects.objects).toHaveLength(1)
+  })
+
+  it('rejects non-canonical SVG uploads and unsupported appearances', async () => {
+    const created = await create()
+    const { aliasId, renderId } = await created.json<{ aliasId: string; renderId: string }>()
+    const stored = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${capability}`,
+        'Content-Type': 'image/svg+xml',
+        'If-Match': '"1"',
+        'X-Render-Id': renderId,
+        ...rendererHeaders,
+      },
+      body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>',
+    })
+    expect(stored.status).toBe(422)
+    expect((await stored.json<{ error: { code: string } }>()).error.code).toBe('not_canonical')
+
+    const invalid = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg?appearance=sepia`)
+    expect(invalid.status).toBe(400)
+    expect((await invalid.json<{ error: { code: string } }>()).error.code).toBe('invalid_appearance')
   })
 
   it('stores locked renders opaquely and refuses an embed response', async () => {
@@ -345,6 +420,10 @@ describe('open aliases', () => {
     const encrypted = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/png?encrypted=1`)
     expect(encrypted.status).toBe(200)
     expect(await encrypted.json()).toEqual(encryptedRender)
+
+    const themed = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/png?encrypted=1&appearance=dark-framed`)
+    expect(themed.status).toBe(422)
+    expect((await themed.json<{ error: { code: string } }>()).error.code).toBe('encrypted_appearance_unavailable')
   })
 
   it('rejects a stale render upload after an alias update', async () => {

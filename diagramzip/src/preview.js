@@ -1,5 +1,5 @@
 import { clientAdapterFor } from './client-renderers.js'
-import { sanitizeAndDecorateSvg } from './client-svg.js'
+import { canonicalizeSvg, materializePresentation } from './client-svg.js'
 import { httpRendererUnitFor } from './renderer-units.js'
 
 const STATUS_LABELS = {
@@ -95,7 +95,7 @@ export class PreviewController {
       if (clientAdapter) {
         const clientRender = await clientAdapter.render({ type, source, options }, abortController.signal)
         rendered = {
-          body: sanitizeAndDecorateSvg(clientRender.body, meta, presentation, type, clientRender.version || clientRender.build || ''),
+          body: canonicalizeSvg(clientRender.body, meta, type, clientRender.version || clientRender.build || ''),
           identity: {
             unit: type,
             build: clientRender.build || clientRender.version,
@@ -108,13 +108,14 @@ export class PreviewController {
         rendered = await this.renderThroughUnit({ type, source, options, meta, presentation }, abortController.signal)
       }
       if (requestNumber !== this.requestNumber) return
-      const { blob, background } = this.normalizedSvgBlob(rendered.body)
+      const canonical = this.normalizedSvgBlob(rendered.body)
+      const displayed = this.normalizedSvgBlob(materializePresentation(rendered.body, presentation))
       this.latestRenderKey = renderKey
-      this.latestSvgBlob = blob
+      this.latestSvgBlob = canonical.blob
       this.latestRendererIdentity = rendered.identity
-      this.imageFallbackUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(await blob.text())}`
-      this.stage.style.setProperty('--render-background', background)
-      const nextObjectUrl = URL.createObjectURL(blob)
+      this.imageFallbackUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(await displayed.blob.text())}`
+      this.stage.style.setProperty('--render-background', displayed.background)
+      const nextObjectUrl = URL.createObjectURL(displayed.blob)
       const previousObjectUrl = this.objectUrl
       this.objectUrl = nextObjectUrl
       this.activeImageUrl = nextObjectUrl

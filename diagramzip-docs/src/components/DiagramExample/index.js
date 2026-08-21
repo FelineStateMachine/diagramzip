@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {canonicalizeSvg, materializeSvg} from '../../../../diagramzip-svg/index.js';
 import {fitView, zoomView} from './viewMath.mjs';
 import {clientFrameUrlFor, httpRendererUrlFor} from './rendererRouting.mjs';
 import styles from './styles.module.css';
@@ -171,6 +172,7 @@ export default function DiagramExample({engine, label, sourceUrl}) {
         let source;
         if (clientRenderer) {
           source = await clientRenderer.render(engine, example.source, abortController.signal);
+          source = canonicalizeSvg(source, {title: '', description: ''}, engine);
         } else {
           const renderResponse = await fetch(httpRendererUrlFor(engine), {
             method: 'POST',
@@ -180,12 +182,18 @@ export default function DiagramExample({engine, label, sourceUrl}) {
               format: 'svg',
               options: {},
               metadata: {},
-              presentation: {background: '', padding: 24, frame: false},
+              presentation: {background: '', padding: 0, frame: false},
             }),
             signal: abortController.signal,
           });
           if (!renderResponse.ok) throw new Error(await responseError(renderResponse));
           source = await renderResponse.text();
+        }
+        try {
+          source = materializeSvg(source, 'auto-transparent');
+        } catch (error) {
+          if (error?.code !== 'unsupported_appearance') throw error;
+          source = materializeSvg(source, 'raw');
         }
         source = normalizeSvg(source);
         const objectUrl = URL.createObjectURL(new Blob([source], {type: 'image/svg+xml'}));

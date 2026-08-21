@@ -73,6 +73,8 @@ test('builds short read and capability-bearing edit links', () => {
   assert.equal(readAliasUrl('https://diagram.zip', aliasId), `https://diagram.zip/d/${aliasId}`)
   assert.equal(editAliasUrl('https://diagram.zip', aliasId, writeCapability), `https://diagram.zip/d/${aliasId}#w=${writeCapability}`)
   assert.equal(stableRenderUrl('https://diagram.zip', aliasId), `https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg`)
+  assert.equal(stableRenderUrl('https://diagram.zip', aliasId, 'svg', 'auto-framed'), `https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg?appearance=auto-framed`)
+  assert.throws(() => stableRenderUrl('https://diagram.zip', aliasId, 'png', 'dark-framed'), /require SVG/)
   assert.equal(writeCapabilityFromHash(`#w=${writeCapability}`), writeCapability)
 })
 

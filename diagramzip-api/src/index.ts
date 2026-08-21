@@ -17,6 +17,15 @@ import {
   readJsonBody,
   RequestError,
 } from './validation'
+import {
+  APPEARANCES,
+  MATERIALIZER_BUILD,
+  PALETTE_BUILD,
+  SVG_SCHEMA,
+  SvgNormalizationError,
+  materializeSvg,
+  type SvgAppearance,
+} from '../../diagramzip-svg/index.js'
 
 const API_PREFIX = '/api/v1'
 const encoder = new TextEncoder()
@@ -25,6 +34,38 @@ const renderPathPattern = /^\/api\/v1\/aliases\/([A-Za-z0-9_-]{16})\/renders\/(s
 const MAX_RENDER_BYTES = 12 * 1024 * 1024
 const rendererUnitPattern = /^[a-z][a-z0-9-]{0,31}$/
 const rendererBuildPattern = /^[A-Za-z0-9][A-Za-z0-9._@+-]{0,127}$/
+
+function normalizationError(error: unknown): never {
+  if (error instanceof SvgNormalizationError) {
+    throw new RequestError(error.status, error.code, error.message)
+  }
+  throw error
+}
+
+function requestedAppearance(request: Request, format: 'svg' | 'png'): SvgAppearance {
+  const value = new URL(request.url).searchParams.get('appearance') ?? 'raw'
+  if (!APPEARANCES.some(appearance => appearance === value)) {
+    throw new RequestError(400, 'invalid_appearance', `Unknown SVG appearance: ${value}.`)
+  }
+  if (format !== 'svg' && value !== 'raw') {
+    throw new RequestError(400, 'appearance_requires_svg', 'SVG appearances are only available for SVG renders.')
+  }
+  return value as SvgAppearance
+}
+
+function canonicalSvg(bytes: Uint8Array, appearance: SvgAppearance): Uint8Array {
+  let source: string
+  try {
+    source = new TextDecoder('utf-8', { fatal: true, ignoreBOM: false }).decode(bytes)
+  } catch {
+    throw new RequestError(422, 'invalid_svg', 'Rendered SVG must use valid UTF-8.')
+  }
+  try {
+    return encoder.encode(materializeSvg(source, appearance))
+  } catch (error) {
+    normalizationError(error)
+  }
+}
 
 interface RendererIdentity {
   unit: string
@@ -470,6 +511,8 @@ async function putRender(
     contentType = 'application/json; charset=utf-8'
   } else if (request.headers.get('Content-Type')?.split(';', 1)[0]?.trim().toLowerCase() !== mediaType) {
     throw new RequestError(415, 'unsupported_media_type', `Render must use ${mediaType}.`)
+  } else if (format === 'svg') {
+    storedBytes = canonicalSvg(bytes, 'raw')
   }
 
   const objectKey = renderObjectKey(record, format, renderer)
@@ -502,7 +545,12 @@ async function getRender(
 ): Promise<Response> {
   const record = await findAlias(env, aliasId)
   if (record === null) throw new RequestError(404, 'alias_not_found', 'Diagram alias not found.')
-  const encryptedRequest = new URL(request.url).searchParams.get('encrypted') === '1'
+  const url = new URL(request.url)
+  const encryptedRequest = url.searchParams.get('encrypted') === '1'
+  if (record.mode === 'locked' && url.searchParams.has('appearance')) {
+    throw new RequestError(422, 'encrypted_appearance_unavailable', 'Encrypted renders cannot be materialized by the server.')
+  }
+  const appearance = requestedAppearance(request, format)
   if (record.mode === 'locked' && !encryptedRequest) {
     throw new RequestError(403, 'encrypted_diagram_not_embeddable', 'Password-locked diagrams cannot be embedded.')
   }
@@ -514,12 +562,20 @@ async function getRender(
   const head = normalizeRenderHead(await headObject.json<unknown>(), record, format)
   const object = await env.CONTENT.get(head.objectKey)
   if (object === null) throw new RequestError(404, 'render_not_found', 'Saved render not found.')
-  if (request.headers.get('If-None-Match') === object.httpEtag) {
-    return new Response(null, { status: 304, headers: { ETag: object.httpEtag } })
+  let body: ReadableStream | Uint8Array | null = object.body
+  let etag = object.httpEtag
+  if (record.mode === 'open' && format === 'svg') {
+    const bytes = canonicalSvg(new Uint8Array(await object.arrayBuffer()), appearance)
+    const identity = await contentId(bytes)
+    etag = `"${identity.id}"`
+    body = bytes
+  }
+  if (request.headers.get('If-None-Match') === etag) {
+    return new Response(null, { status: 304, headers: { ETag: etag } })
   }
   const headers = new Headers()
   object.writeHttpMetadata(headers)
-  headers.set('ETag', object.httpEtag)
+  headers.set('ETag', etag)
   headers.set('X-Content-Type-Options', 'nosniff')
   headers.set('Content-Security-Policy', format === 'svg'
     ? "default-src 'none'; style-src 'unsafe-inline'; sandbox"
@@ -527,10 +583,18 @@ async function getRender(
   headers.set('X-Renderer-Unit', head.unit)
   headers.set('X-Renderer-Build', head.build)
   headers.set('X-Renderer-Pipeline', head.pipeline.join(','))
+  if (format === 'svg' && record.mode === 'open') {
+    headers.set('X-Diagram-Appearance', appearance)
+    headers.set('X-SVG-Schema', SVG_SCHEMA)
+    if (appearance !== 'raw') {
+      headers.set('X-SVG-Materializer', MATERIALIZER_BUILD)
+      headers.set('X-SVG-Palette', PALETTE_BUILD)
+    }
+  }
   headers.set('Cache-Control', record.mode === 'open'
     ? 'public, max-age=60, stale-while-revalidate=300'
     : 'no-store')
-  return new Response(request.method === 'HEAD' ? null : object.body, { headers })
+  return new Response(request.method === 'HEAD' ? null : body, { headers })
 }
 
 async function route(request: Request, env: Env): Promise<Response> {
