@@ -1,6 +1,68 @@
 # diagram.zip documentation
 
-> Use these stable pages to create, style, save, and share diagrams.
+> Choose the semantic story first, then choose a renderer and source format.
+
+- [Diagram routing skill](https://docs.diagram.zip/skills/diagramming/SKILL.md): Select a diagram family from the reader's question.
+- [Machine-readable semantic catalog](https://docs.diagram.zip/diagram-skills.json): Inspect every skill, use case, exclusion, role, and invocation constraint.
+
+## Routing and collaboration
+
+- [Choose a diagram](https://docs.diagram.zip/skills/diagramming/SKILL.md): Choose the semantic diagram story first, then select a diagram.zip renderer and produce a clear, reviewable diagram.
+- [Diagram workshop](https://docs.diagram.zip/skills/diagram-workshop/SKILL.md): Work with me to discover the right diagram question, audience, scope, and level of detail before making a diagram. Explicit user invocation only.
+- [Review a diagram](https://docs.diagram.zip/skills/diagram-review/SKILL.md): Review a proposed diagram for semantic fit, evidence, readability, accessibility, and renderer or standards limitations; recommend precise revisions.
+
+## Behavior and process
+
+- [Flowchart](https://docs.diagram.zip/skills/flowchart/SKILL.md): Choose a flowchart when the user needs a readable decision or process path with a clear start, sequence, branch, merge, or end.
+- [Sequence diagram](https://docs.diagram.zip/skills/sequence-diagram/SKILL.md): Choose a sequence diagram when the user needs to explain ordered messages, calls, responses, or time-dependent collaboration between participants.
+- [State machine diagram](https://docs.diagram.zip/skills/state-machine-diagram/SKILL.md): Choose a state-machine diagram when an entity's permitted states, event-triggered transitions, guards, and entry or exit behavior are the central story.
+- [Activity diagram](https://docs.diagram.zip/skills/activity-diagram/SKILL.md): Choose an activity diagram when the user needs to explain workflow logic, parallel work, decisions, joins, and responsibility across actions.
+- [BPMN process](https://docs.diagram.zip/skills/bpmn-process/SKILL.md): Choose BPMN when the user needs a formal business-process model with events, tasks, gateways, pools, lanes, and message or sequence flows.
+- [Use-case diagram](https://docs.diagram.zip/skills/use-case-diagram/SKILL.md): Use when the user needs to explain who can achieve which externally visible goals with a system, including actors, system boundaries, and goal relationships.
+- [Data-flow diagram](https://docs.diagram.zip/skills/data-flow-diagram/SKILL.md): Use when the user needs to show where information originates, how processes transform it, where stores retain it, and which external entities exchange it.
+- [Timeline](https://docs.diagram.zip/skills/timeline/SKILL.md): Use when the user needs to communicate events or milestones in chronological order, with dates, intervals, eras, or parallel tracks.
+- [Gantt chart](https://docs.diagram.zip/skills/gantt-chart/SKILL.md): Use when the user needs a time-scaled schedule showing tasks, durations, dependencies, milestones, and progress across teams or workstreams.
+- [User journey map](https://docs.diagram.zip/skills/user-journey-map/SKILL.md): Use when the user needs to understand a person’s experience across stages, touchpoints, actions, thoughts, emotions, pain points, and opportunities.
+
+## Software and system structure
+
+- [Choose an architecture diagram](https://docs.diagram.zip/skills/choose-architecture-diagram/SKILL.md): Choose the smallest architecture view that answers the stakeholder's question, then route it to a suitable diagram source.
+- [System landscape diagram](https://docs.diagram.zip/skills/system-landscape-diagram/SKILL.md): Show the systems and people across an organization or domain, emphasizing ownership and meaningful dependencies.
+- [System context diagram](https://docs.diagram.zip/skills/system-context-diagram/SKILL.md): Explain one system in its environment by showing its users, external systems, and the relationships that matter.
+- [Container diagram](https://docs.diagram.zip/skills/container-diagram/SKILL.md): Show the major deployable or runtime containers inside one software system and how they collaborate.
+- [Component diagram](https://docs.diagram.zip/skills/component-diagram/SKILL.md): Create a component-level view of software structure, interfaces, and dependencies when the audience needs implementation boundaries rather than deployment topology.
+- [Architecture dynamic diagram](https://docs.diagram.zip/skills/architecture-dynamic-diagram/SKILL.md): Explain an architecture scenario over time by showing participating components, messages, and state changes for one concrete use case.
+- [Deployment diagram](https://docs.diagram.zip/skills/deployment-diagram/SKILL.md): Show where software artifacts run, which infrastructure nodes host them, and how runtime communication crosses environments or trust boundaries.
+- [Block diagram](https://docs.diagram.zip/skills/block-diagram/SKILL.md): Arrange labeled blocks and relationships to communicate system decomposition, signal or data paths, and high-level structure without committing to a specialized formal notation.
+- [Class diagram](https://docs.diagram.zip/skills/class-diagram/SKILL.md): Create or review class diagrams that explain types, responsibilities, contracts, and structural relationships in an object-oriented or domain model.
+- [Entity-relationship diagram](https://docs.diagram.zip/skills/entity-relationship-diagram/SKILL.md): Model persistent data with entities, attributes, keys, relationships, cardinality, optionality, and integrity boundaries using an entity-relationship diagram.
+- [Dependency graph](https://docs.diagram.zip/skills/dependency-graph/SKILL.md): Show dependencies between packages, modules, services, artifacts, or concepts when the important story is coupling, direction, reachability, or change impact.
+- [Network topology](https://docs.diagram.zip/skills/network-topology/SKILL.md): Document physical or logical networks with nodes, interfaces, links, segments, addressing, trust zones, and traffic boundaries.
+
+## Conceptual and planning
+
+- [Mind map](https://docs.diagram.zip/skills/mind-map/SKILL.md): Use when the user needs to explore one central topic through associative branches, capture brainstorming, or organize an unconstrained idea space before choosing a structure.
+- [Concept map](https://docs.diagram.zip/skills/concept-map/SKILL.md): Use when the user needs to explain concepts and the labeled relationships between them, especially definitions, dependencies, evidence, or cross-domain connections.
+- [Hierarchy diagram](https://docs.diagram.zip/skills/hierarchy-diagram/SKILL.md): Use when the user needs a ranked, nested, or reporting structure such as a taxonomy, organization chart, tree, or work breakdown structure.
+- [Decision tree](https://docs.diagram.zip/skills/decision-tree/SKILL.md): Use when the user needs to show a sequence of choices, branching rules, outcomes, or diagnostic paths.
+- [Matrix diagram](https://docs.diagram.zip/skills/matrix-diagram/SKILL.md): Use when the user needs to compare two dimensions, expose a portfolio or prioritization space, or show a many-to-many relationship in a grid or quadrant.
+- [Set diagram](https://docs.diagram.zip/skills/set-diagram/SKILL.md): Use when the user needs to show membership, overlap, exclusion, union, intersection, or nested categories with sets.
+
+## Data visualization
+
+- [Choose a data visualization](https://docs.diagram.zip/skills/choose-data-visualization/SKILL.md): Choose and design a data visualization when the user has data, a comparison, trend, distribution, relationship, flow, or geographic question but has not yet chosen a chart form. Use the simplest honest encoding, explain the story, and route the result to Vega or Vega-Lite when appropriate.
+
+## Technical and hardware
+
+- [Protocol layout diagram](https://docs.diagram.zip/skills/protocol-layout-diagram/SKILL.md): Use when a diagram must explain the bit, byte, or word layout of a protocol message, file header, register, or binary record.
+- [Digital timing diagram](https://docs.diagram.zip/skills/digital-timing-diagram/SKILL.md): Use when a diagram must show digital signals changing over time, including clocked interfaces, bus transactions, handshakes, setup/hold relationships, or waveform protocols.
+- [Rack diagram](https://docs.diagram.zip/skills/rack-diagram/SKILL.md): Use when documenting equipment placement in a cabinet or rack, including rack units, device identity, power, network uplinks, and physical capacity.
+- [Wiring harness diagram](https://docs.diagram.zip/skills/wiring-harness-diagram/SKILL.md): Use when the user needs to document wires, cables, connectors, splices, branches, pin mappings, or harness manufacturing/service information.
+- [HDL component diagram](https://docs.diagram.zip/skills/hdl-component-diagram/SKILL.md): Use when the user needs a hardware-design view of HDL entities, modules, interfaces, ports, parameters, clocks, resets, and hierarchy.
+- [Circuit diagram](https://docs.diagram.zip/skills/circuit-diagram/SKILL.md): Use when the user needs an electrical or electronic schematic showing components, nets, reference designators, power, signal flow, and test points.
+- [Technical illustration](https://docs.diagram.zip/skills/technical-illustration/SKILL.md): Use when the user needs an explanatory technical figure showing parts, assemblies, operation, dimensions, callouts, or a controlled visual sequence.
+
+## Renderer and source formats
 
 - [PlantUML syntax](https://docs.diagram.zip/create/types/plantuml/): Create a PlantUML diagram. [Style](https://docs.diagram.zip/style/types/plantuml/).
 - [Mermaid syntax](https://docs.diagram.zip/create/types/mermaid/): Create a Mermaid diagram. [Style](https://docs.diagram.zip/style/types/mermaid/).
@@ -40,8 +102,9 @@
 - [Password encryption](https://docs.diagram.zip/collaboration/encryption/)
 - [Working state and saved state](https://docs.diagram.zip/collaboration/working-and-saved-state/)
 
-## Structured catalog
+## Structured catalogs
 
+- [diagram-skills.json](https://docs.diagram.zip/diagram-skills.json)
 - [diagram-types.json](https://docs.diagram.zip/diagram-types.json)
-- [Full text reference](https://docs.diagram.zip/llms-full.txt)
+- [Full renderer text reference](https://docs.diagram.zip/llms-full.txt)
 - [Source repository](https://github.com/FelineStateMachine/diagramzip)

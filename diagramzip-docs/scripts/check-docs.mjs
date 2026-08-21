@@ -1,15 +1,18 @@
 import { readFile, readdir } from 'node:fs/promises'
-import { join, relative } from 'node:path'
+import { join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { diagramTypeIds, diagramTypes } from '../data/diagram-types.mjs'
+import { diagramSkillIds, diagramSkills, skillGroups, standardsSupport } from '../../skills/catalog.mjs'
 
 const site = join(fileURLToPath(new URL('..', import.meta.url)))
 const docs = join(site, 'docs')
-const publicFiles = [join(site, 'static', 'llms.txt'), join(site, 'static', 'llms-full.txt'), join(site, 'static', 'diagram-types.json')]
+const repo = join(site, '..')
+const publicFiles = [join(site, 'static', 'llms.txt'), join(site, 'static', 'llms-full.txt'), join(site, 'static', 'diagram-types.json'), join(site, 'static', 'diagram-skills.json')]
 const examples = join(site, 'static', 'examples')
+const skills = join(repo, 'skills')
+const publicSkills = join(site, 'static', 'skills')
 const errors = []
 const source = (path) => readFile(path, 'utf8')
-const repo = join(site, '..')
 
 function assert(condition, message) { if (!condition) errors.push(message) }
 function idsFromNames(names) { return names.filter((name) => name.endsWith('.md')).map((name) => name.slice(0, -3)).sort() }
@@ -20,6 +23,22 @@ async function filesBelow(directory) {
     return entry.isDirectory() ? filesBelow(path) : [path]
   }))
   return nested.flat()
+}
+
+function skillFrontmatter(content) {
+  const raw = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1]
+  if (!raw) return undefined
+  const value = (key) => {
+    const rawValue = raw.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))?.[1]?.trim()
+    return rawValue?.replace(/^(?:"([\s\S]*)"|'([\s\S]*)')$/, '$1$2')
+  }
+  return { raw, name: value('name'), description: value('description'), disableModelInvocation: value('disable-model-invocation') }
+}
+
+function relativeMarkdownLinks(content) {
+  return [...content.matchAll(/\[[^\]]*\]\(([^)]+\.md(?:#[^)]*)?)\)/g)]
+    .map((match) => match[1].split('#')[0])
+    .filter((target) => !/^[a-z]+:/i.test(target) && !target.startsWith('/'))
 }
 
 function proseBlocks(markdown) {
@@ -97,6 +116,63 @@ try { catalog = JSON.parse(catalogRaw) } catch { errors.push('static/diagram-typ
 assert(catalog?.diagramTypes?.length === expected.length, 'Machine catalog does not contain all diagram types.')
 assert(JSON.stringify((catalog?.diagramTypes ?? []).map(({ id }) => id).sort()) === JSON.stringify(expected), 'Machine catalog IDs do not match the diagram type catalog.')
 
+const expectedSkillIds = [...diagramSkillIds].sort()
+const skillEntries = await readdir(skills, { withFileTypes: true })
+const actualSkillIds = skillEntries.filter((entry) => entry.isDirectory()).map(({ name }) => name).sort()
+const publicSkillIds = (await readdir(publicSkills, { withFileTypes: true })).filter((entry) => entry.isDirectory()).map(({ name }) => name).sort()
+assert(diagramSkillIds.length === 39, `Expected 39 semantic skills, found ${diagramSkillIds.length} in the catalog.`)
+assert(new Set(diagramSkillIds).size === diagramSkillIds.length, 'Semantic skill catalog contains duplicate IDs.')
+assert(JSON.stringify(actualSkillIds) === JSON.stringify(expectedSkillIds), 'Source skill directories do not match the semantic skill catalog.')
+assert(JSON.stringify(publicSkillIds) === JSON.stringify(expectedSkillIds), 'Published skill directories do not match the semantic skill catalog.')
+
+const skillCatalogRaw = await source(join(site, 'static', 'diagram-skills.json'))
+let skillCatalog
+try { skillCatalog = JSON.parse(skillCatalogRaw) } catch { errors.push('static/diagram-skills.json is not valid JSON.') }
+assert(skillCatalog?.version === 1, 'Semantic skill catalog has the wrong version.')
+assert(JSON.stringify(skillCatalog?.groups ?? []) === JSON.stringify(skillGroups), 'Published semantic skill groups do not match the source catalog.')
+assert(JSON.stringify((skillCatalog?.skills ?? []).map(({ id }) => id).sort()) === JSON.stringify(expectedSkillIds), 'Published semantic skill IDs do not match the source catalog.')
+assert(JSON.stringify(skillCatalog?.standards ?? []) === JSON.stringify(standardsSupport), 'Published standards support data does not match the source catalog.')
+for (const standard of standardsSupport) {
+  assert(standard.relatedSkills.every((id) => diagramSkillIds.includes(id)), `Standard ${standard.id} references an unknown semantic skill.`)
+  assert(['source-supported', 'visual-subset', 'visual-conventions', 'unsupported'].includes(standard.status), `Standard ${standard.id} has an unknown support status.`)
+}
+
+for (const entry of diagramSkills) {
+  const skillFile = join(skills, entry.id, 'SKILL.md')
+  const content = await source(skillFile)
+  const metadata = skillFrontmatter(content)
+  assert(metadata, `Skill ${entry.id} has no valid frontmatter.`)
+  assert(metadata?.name === entry.id, `Skill ${entry.id} frontmatter name does not match its directory.`)
+  assert(Boolean(metadata?.description), `Skill ${entry.id} has no description.`)
+  assert((metadata?.description?.length ?? 0) <= 1024, `Skill ${entry.id} description exceeds 1024 characters.`)
+  assert(content.split('\n').length <= 500, `Skill ${entry.id} exceeds 500 lines.`)
+  assert(metadata?.disableModelInvocation !== 'false', `Skill ${entry.id} must omit disable-model-invocation instead of setting it false.`)
+  assert((metadata?.disableModelInvocation === 'true') === (entry.id === 'diagram-workshop'), `Skill ${entry.id} has the wrong invocation policy.`)
+  assert(!/kroki/i.test(content), `Forbidden project name found in skills/${entry.id}/SKILL.md.`)
+
+  const referenceDir = join(skills, entry.id, 'references')
+  const packageFiles = await filesBelow(join(skills, entry.id))
+  const referenceFiles = packageFiles.filter((path) => path.startsWith(`${referenceDir}/`) && path.endsWith('.md'))
+  for (const path of referenceFiles) {
+    assert(content.includes(relative(join(skills, entry.id), path)), `Skill ${entry.id} does not link reference ${relative(referenceDir, path)}.`)
+  }
+  for (const target of relativeMarkdownLinks(content)) {
+    const resolved = resolve(join(skills, entry.id), target)
+    assert(packageFiles.includes(resolved), `Skill ${entry.id} links missing file ${target}.`)
+  }
+  for (const path of packageFiles) {
+    const packageContent = await source(path)
+    assert(!/kroki/i.test(packageContent), `Forbidden project name found in ${relative(repo, path)}.`)
+  }
+
+  const publishedFiles = (await filesBelow(join(publicSkills, entry.id))).map((path) => relative(join(publicSkills, entry.id), path)).sort()
+  const sourceFiles = packageFiles.map((path) => relative(join(skills, entry.id), path)).sort()
+  assert(JSON.stringify(publishedFiles) === JSON.stringify(sourceFiles), `Published package ${entry.id} does not match its source files.`)
+}
+
+const workshopOpenAI = await source(join(skills, 'diagram-workshop', 'agents', 'openai.yaml'))
+assert(/allow_implicit_invocation:\s*false/.test(workshopOpenAI), 'Diagram workshop must disable implicit OpenAI invocation.')
+
 for (const id of expected) {
   const type = diagramTypes.find((item) => item.id === id)
   const create = await source(join(docs, 'create', 'types', `${id}.md`))
@@ -123,4 +199,4 @@ for (const path of [...documentationFiles, ...publicFiles]) {
   if (/\.mdx?$/.test(path)) checkProse(content, relative(docs, path))
 }
 
-if (errors.length) { console.error(errors.map((error) => `ERROR: ${error}`).join('\n')); process.exitCode = 1 } else console.log(`Documentation checks passed for ${expected.length} diagram types.`)
+if (errors.length) { console.error(errors.map((error) => `ERROR: ${error}`).join('\n')); process.exitCode = 1 } else console.log(`Documentation checks passed for ${expected.length} renderer types and ${expectedSkillIds.length} semantic skills.`)

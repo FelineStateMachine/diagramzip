@@ -1,0 +1,5 @@
+display_name: "Diagram workshop"
+short_description: "Discover the right diagram story with the user"
+default_prompt: "Help me decide what diagram to make, who it is for, and what it must communicate."
+policy:
+  allow_implicit_invocation: false
