@@ -11,14 +11,6 @@ primary_region = "dfw"
   KROKI_MAX_URI_LENGTH = "16384"
   KROKI_RENDER_CACHE_MAX_BYTES = "67108864"
   KROKI_RENDER_CACHE_TTL_SECONDS = "1800"
-  KROKI_MERMAID_HOST = "diagram-zip-mermaid.flycast"
-  KROKI_MERMAID_PORT = "80"
-  KROKI_BPMN_HOST = "diagram-zip-bpmn.flycast"
-  KROKI_BPMN_PORT = "80"
-  KROKI_EXCALIDRAW_HOST = "diagram-zip-excalidraw.flycast"
-  KROKI_EXCALIDRAW_PORT = "80"
-  KROKI_DIAGRAMSNET_HOST = "diagram-zip-diagramsnet.flycast"
-  KROKI_DIAGRAMSNET_PORT = "80"
 
 [http_service]
   internal_port = 8000
