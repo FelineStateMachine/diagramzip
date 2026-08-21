@@ -3,7 +3,6 @@
     .accent { stroke: #80ff80; }
     .ring { stroke: #000; }
     @media (prefers-color-scheme: dark) {
-      .accent { stroke: #213f21; }
       .ring { stroke: #fff; }
     }
   </style>

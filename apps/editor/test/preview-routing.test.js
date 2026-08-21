@@ -192,6 +192,15 @@ test('keeps one viewport identity across presentation-only changes', () => {
   )
 })
 
+test('returns canonical SVG only for the exact current editable state', () => {
+  const controller = {
+    latestRenderKey: JSON.stringify(request),
+    latestCanonicalSvg: '<svg data-dz-schema="1"></svg>',
+  }
+  assert.equal(PreviewController.prototype.canonicalSvgFor.call(controller, request), controller.latestCanonicalSvg)
+  assert.equal(PreviewController.prototype.canonicalSvgFor.call(controller, { ...request, source: 'changed' }), null)
+})
+
 test('preserves the current transform when a presentation-only image loads', () => {
   const calls = []
   const controller = {

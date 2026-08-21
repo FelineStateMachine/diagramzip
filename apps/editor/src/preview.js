@@ -287,6 +287,12 @@ export class PreviewController {
     return this.latestRenderKey === renderKey ? this.latestSvgBlob : null
   }
 
+  canonicalSvgFor(state) {
+    const { type, source, options = {}, meta = {}, presentation = {} } = state
+    const renderKey = JSON.stringify({ type, source, options, meta, presentation })
+    return this.latestRenderKey === renderKey ? this.latestCanonicalSvg : null
+  }
+
   rendererIdentityFor(state) {
     const { type, source, options = {}, meta = {}, presentation = {} } = state
     const renderKey = JSON.stringify({ type, source, options, meta, presentation })

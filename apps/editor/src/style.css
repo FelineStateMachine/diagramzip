@@ -222,6 +222,7 @@ button { cursor: pointer; }
 .primary-action,
 .secondary-action,
 .header-icon-action,
+.save-menu-toggle,
 .preview-toolbar button,
 .mobile-tabs button,
 .icon-button,
@@ -263,6 +264,59 @@ button { cursor: pointer; }
   align-items: center;
   gap: 6px;
 }
+
+.save-split {
+  display: flex;
+  align-items: stretch;
+}
+
+.save-split #save {
+  border-radius: 10px 0 0 10px;
+}
+
+.save-menu-toggle {
+  width: 20px;
+  min-width: 20px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.save-menu-toggle:hover { background: var(--soft); }
+.save-menu-toggle:disabled { cursor: default; opacity: .58; }
+
+.action-menu {
+  position: fixed;
+  inset: 58px 58px auto auto;
+  min-width: 178px;
+  margin: 0;
+  padding: 6px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+}
+
+.action-menu::backdrop { background: transparent; }
+.action-menu button {
+  display: block;
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+.action-menu button:hover,
+.action-menu button[data-selected="true"] { background: var(--soft); }
+.action-menu button[data-selected="true"]::after { content: "✓"; float: right; }
 
 .header-icon-action {
   display: inline-grid;
@@ -619,6 +673,15 @@ dialog::backdrop {
 }
 
 .share-options { display: grid; gap: 18px; }
+.share-action-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.share-action-list button { min-width: 0; }
+.share-action-list button:disabled { cursor: not-allowed; opacity: .42; }
+.share-action-list button:last-child { grid-column: 1 / -1; }
 .share-status,
 .dialog-copy {
   margin: -8px 0 20px;
@@ -655,6 +718,8 @@ dialog::backdrop {
 }
 .details-fields input { height: 42px; }
 .details-fields textarea { min-height: 108px; line-height: 1.5; }
+.open-file-action { width: 100%; margin-bottom: 18px; }
+.open-input-fields textarea { min-height: 150px; font: 12px/1.5 var(--font-mono); }
 
 .privacy-fields {
   display: flex;
@@ -722,6 +787,9 @@ dialog::backdrop {
   .header-actions { gap: 4px; }
   .header-icon-action { width: 36px; min-width: 36px; height: 36px; }
   .header-action-icon { width: 18px; height: 18px; }
+  .header-actions > a { display: none; }
+  .save-menu-toggle { height: 36px; min-height: 36px; }
+  .action-menu { inset: 58px 48px auto auto; }
   .draft-bar { align-items: stretch; flex-direction: column; gap: 7px; padding: 9px 14px; }
   .draft-bar div { display: grid; grid-template-columns: 1fr 1fr; }
   .draft-bar[data-anonymous="true"] div { display: flex; justify-content: flex-end; }
@@ -760,17 +828,26 @@ dialog::backdrop {
   .minimap { width: 132px; height: 88px; }
   .privacy-fields { align-items: stretch; flex-direction: column; }
   .privacy-actions { justify-content: flex-start; }
+  .share-action-list { grid-template-columns: 1fr; }
+  .share-action-list button:last-child { grid-column: auto; }
+}
+
+@media (max-width: 480px) {
+  .app-header { gap: 8px; }
+  .document-identity { flex: 0 0 auto; }
+  .document-title { display: none; }
+  .header-meta { flex: 1 1 auto; min-width: 0; }
+  .type-picker { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .type-picker select { display: block; width: 100%; min-width: 0; max-width: none; }
+  .header-actions { flex: 0 0 auto; position: relative; }
 }
 
 @media (max-width: 390px) {
-  .app-header { gap: 8px; }
   .type-picker { flex-basis: 108px; }
-  .type-picker select { max-width: 108px; }
   .type-picker { margin: 0 5px; }
-  .document-identity { flex-basis: 76px; }
-  .document-title { min-width: 40px; padding-inline: 4px; font-size: 16px; }
   .header-actions { gap: 3px; }
   .header-icon-action { width: 34px; min-width: 34px; height: 34px; }
+  .save-menu-toggle { width: 18px; min-width: 18px; height: 34px; min-height: 34px; }
   .primary-action, .secondary-action { padding-inline: 9px; }
   .preview-toolbar { bottom: 10px; left: 10px; }
   .minimap { right: 10px; bottom: 62px; }

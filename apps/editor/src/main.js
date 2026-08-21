@@ -33,6 +33,8 @@ import {
   wrapBundleKey,
 } from './encryption.js'
 import { PreviewController } from './preview.js'
+import { exportEditableSvg } from './editable-svg.js'
+import { importEditableSvgFile, importEditableSvgInput } from './editable-svg-input.js'
 import './style.css'
 
 const LOCAL_DRAFT_KEY = 'diagram.zip:draft:local:v2'
@@ -45,32 +47,18 @@ let renderTimer
 let detailsCommitTimer
 let activeType
 let saving = false
+let primarySaveAction = null
+let lastFileSnapshot = null
 let initialLoadError = ''
 let restoredDetailsSource = null
-let remote = {
-  aliasId: null,
-  contentId: null,
-  renderId: null,
-  revision: null,
-  mode: 'open',
-  savedMode: null,
-  writeCapability: null,
-  savedState: null,
-  savedSnapshot: null,
-  bundleKey: null,
-  keyEnvelope: null,
-  encryptedContent: null,
-  encryptedMetadata: null,
-  keyEnvelopeDirty: false,
-  dirty: true,
-}
+let remote = emptyRemoteState()
 const typeDrafts = new Map()
 
 document.querySelector('#app').innerHTML = `
   <main class="app-shell">
     <header class="app-header">
       <div class="document-identity">
-        <a class="brand" href="/" aria-label="New diagram" title="New diagram"><img class="brand-mark" src="/icon.svg?v=3" alt=""></a>
+        <a class="brand" href="/" aria-label="New diagram" title="New diagram"><img class="brand-mark" src="/icon.svg?v=4" alt=""></a>
         <span class="document-title" id="diagram-title">Untitled</span>
       </div>
       <div class="header-meta">
@@ -86,25 +74,41 @@ document.querySelector('#app').innerHTML = `
               <path d="M12 7.5v12"/>
             </svg>
           </a>
-          <button class="header-icon-action" id="save" type="button" data-save-state="save" data-dirty="true" aria-label="Save" title="Save">
-            <svg class="header-action-icon save-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <g data-save-icon="save">
-                <path d="M5 3.5h11.5L19 6v14.5H5v-17Z"/>
-                <path d="M8 3.5V9h8V3.5M8 20.5v-7h8v7"/>
-              </g>
-              <g data-save-icon="saving">
-                <path d="M19.5 8.5A8 8 0 1 0 20 14"/>
-                <path d="M19.5 4.5v4h-4"/>
-              </g>
-              <g data-save-icon="saved">
-                <path d="m5.5 12 4 4 9-9"/>
-              </g>
-              <g data-save-icon="copy">
-                <path d="M8 7.5h11v13H8v-13Z"/>
-                <path d="M5 16.5H4v-13h11v1M13.5 11v6M10.5 14h6"/>
-              </g>
+          <button class="header-icon-action" id="open" type="button" aria-label="Open editable SVG" title="Open editable SVG">
+            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3.5 7.5h6l2-2h9v13h-17v-11Z"/>
+              <path d="M8 13h8m-4-4v8"/>
             </svg>
           </button>
+          <div class="save-split">
+            <button class="header-icon-action" id="save" type="button" data-save-state="save" data-dirty="true" aria-label="Save as File" title="Save as File">
+              <svg class="header-action-icon save-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <g data-save-icon="save">
+                  <path d="M5 3.5h11.5L19 6v14.5H5v-17Z"/>
+                  <path d="M8 3.5V9h8V3.5M8 20.5v-7h8v7"/>
+                </g>
+                <g data-save-icon="saving">
+                  <path d="M19.5 8.5A8 8 0 1 0 20 14"/>
+                  <path d="M19.5 4.5v4h-4"/>
+                </g>
+                <g data-save-icon="saved">
+                  <path d="m5.5 12 4 4 9-9"/>
+                </g>
+                <g data-save-icon="copy">
+                  <path d="M8 7.5h11v13H8v-13Z"/>
+                  <path d="M5 16.5H4v-13h11v1M13.5 11v6M10.5 14h6"/>
+                </g>
+              </svg>
+            </button>
+            <button class="save-menu-toggle" id="save-menu-toggle" type="button" popovertarget="save-menu" aria-label="Choose save action" title="Choose save action">⌄</button>
+            <div class="action-menu save-action-menu" id="save-menu" popover>
+              <button type="button" data-primary-save="publish">Publish</button>
+              <button type="button" data-save-quick-action="encrypt-publish">Encrypt &amp; Publish</button>
+              <button type="button" data-primary-save="file">Save as File</button>
+              <button type="button" data-save-quick-action="svg-url">Copy SVG URL</button>
+              <button type="button" data-save-quick-action="markdown">Copy as Markdown</button>
+            </div>
+          </div>
           <button class="header-icon-action" id="share" type="button" aria-label="Share" title="Share">
             <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <circle cx="18" cy="5" r="2.5"/>
@@ -118,10 +122,10 @@ document.querySelector('#app').innerHTML = `
     </header>
 
     <aside class="draft-bar" id="draft-bar" aria-live="polite" hidden>
-      <p>This device has changes that are not part of the saved share link.</p>
+      <p>This device has changes that are not part of the published share link.</p>
       <div>
         <button class="secondary-action" id="restore-saved" type="button">
-          <span>Restore saved</span>
+          <span>Restore published</span>
           <svg class="draft-reset-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M4.5 9V4.5H9"/>
             <path d="M5.2 7.2A8 8 0 1 1 4.6 16"/>
@@ -203,6 +207,13 @@ document.querySelector('#app').innerHTML = `
         <button class="icon-button" value="cancel" aria-label="Close">×</button>
       </div>
       <p class="share-status" id="share-status"></p>
+      <div class="share-action-list">
+        <button class="primary-action" type="button" data-share-action="publish">Publish</button>
+        <button class="secondary-action" type="button" data-share-action="encrypt-publish">Encrypt &amp; Publish</button>
+        <button class="secondary-action" type="button" data-share-action="file">Save as File</button>
+        <button class="secondary-action" type="button" data-share-action="svg-url">Copy SVG URL</button>
+        <button class="secondary-action" type="button" data-share-action="markdown">Copy as Markdown</button>
+      </div>
       <fieldset class="privacy-fields share-privacy-fields">
         <legend>Privacy</legend>
         <div>
@@ -218,11 +229,25 @@ document.querySelector('#app').innerHTML = `
       <div class="share-options">
         <label><span>Read link</span><div><input id="viewer-link" readonly><button type="button" data-copy="viewer-link">Copy</button></div></label>
         <label><span>Edit link</span><div><input id="editor-link" readonly><button type="button" data-copy="editor-link">Copy</button></div><small id="editor-link-note">Anyone with this link can update the diagram.</small></label>
-        <label><span>SVG image</span><div><input id="image-link" readonly><button type="button" data-copy="image-link">Copy</button></div><small id="image-link-note"></small></label>
-        <label><span>Markdown</span><div><input id="markdown-link" readonly><button type="button" data-copy="markdown-link">Copy</button></div></label>
       </div>
-      <div class="dialog-actions share-actions">
-        <button class="primary-action" id="share-save" type="button">Save</button>
+    </form>
+  </dialog>
+
+  <dialog id="open-dialog" aria-labelledby="open-title">
+    <form class="dialog-card" id="open-form">
+      <div class="dialog-header">
+        <h1 id="open-title">Open editable SVG</h1>
+        <button class="icon-button" id="open-cancel" type="button" aria-label="Close">×</button>
+      </div>
+      <p class="dialog-copy">Choose a Diagram.zip SVG file, or paste its SVG markup or URL. Other SVG images are not treated as source.</p>
+      <input id="open-file-input" type="file" accept=".svg,image/svg+xml" hidden>
+      <button class="secondary-action open-file-action" id="open-file" type="button">Choose SVG File</button>
+      <div class="details-fields open-input-fields">
+        <label><span>SVG markup or URL</span><textarea id="open-svg-input" inputmode="url" placeholder="&lt;svg …&gt; or https://example.com/diagram.svg"></textarea></label>
+      </div>
+      <p class="form-error" id="open-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="primary-action" id="open-submit" type="submit">Open</button>
       </div>
     </form>
   </dialog>
@@ -230,13 +255,13 @@ document.querySelector('#app').innerHTML = `
   <dialog id="conflict-dialog" aria-labelledby="conflict-title">
     <form method="dialog" class="dialog-card">
       <div class="dialog-header">
-        <h1 id="conflict-title">Save conflict</h1>
+        <h1 id="conflict-title">Publish conflict</h1>
         <button class="icon-button" value="cancel" aria-label="Close">×</button>
       </div>
-      <p class="dialog-copy">Reload the saved version, or keep your work by saving it as a new diagram.</p>
+      <p class="dialog-copy">Reload the published version, or keep your work by publishing it as a new diagram.</p>
       <div class="dialog-actions conflict-actions">
-        <button class="secondary-action" value="reload">Reload saved</button>
-        <button class="primary-action" value="copy">Save as new</button>
+        <button class="secondary-action" value="reload">Reload published</button>
+        <button class="primary-action" value="copy">Publish as new</button>
       </div>
     </form>
   </dialog>
@@ -295,7 +320,7 @@ const sourceEditor = await createSourceEditor({
   source: initialState.source,
   diagramType: initialState.type,
   onChange: scheduleUpdate,
-  onSave: saveDiagram,
+  onSave: performPrimarySaveAction,
 })
 
 detailsEditor = await createSourceEditor({
@@ -306,7 +331,7 @@ detailsEditor = await createSourceEditor({
   modelUri: DETAILS_MODEL_URI,
   ariaLabel: 'Diagram details editor',
   onChange: scheduleDetailsUpdate,
-  onSave: saveDiagram,
+  onSave: performPrimarySaveAction,
 })
 validateDetailsDocument(false)
 applySystemTheme()
@@ -343,14 +368,32 @@ typePicker.addEventListener('change', () => {
 document.querySelector('#lock-diagram').addEventListener('click', lockDiagram)
 document.querySelector('#change-password').addEventListener('click', changeDiagramPassword)
 document.querySelector('#unlock-diagram').addEventListener('click', unlockDiagram)
-document.querySelector('#save').addEventListener('click', () => saveDiagram())
+document.querySelector('#open').addEventListener('click', openEditableSvgDialog)
+document.querySelector('#save').addEventListener('click', performPrimarySaveAction)
 document.querySelector('#restore-saved').addEventListener('click', restoreSavedDiagram)
 document.querySelector('#make-copy').addEventListener('click', makeDraftCopy)
 document.querySelector('#share').addEventListener('click', openShareDialog)
-document.querySelector('#share-save').addEventListener('click', async () => {
-  await saveDiagram()
-  populateShareDialog()
+document.querySelectorAll('[data-primary-save]').forEach(button => {
+  button.addEventListener('click', () => {
+    primarySaveAction = button.dataset.primarySave
+    document.querySelector('#save-menu').hidePopover?.()
+    updateSaveButton()
+  })
 })
+document.querySelectorAll('[data-save-quick-action]').forEach(button => {
+  button.addEventListener('click', async () => {
+    document.querySelector('#save-menu').hidePopover?.()
+    await performShareAction(button.dataset.saveQuickAction)
+    updateSaveButton()
+  })
+})
+document.querySelectorAll('[data-share-action]').forEach(button => {
+  button.addEventListener('click', () => performShareAction(button.dataset.shareAction))
+})
+document.querySelector('#open-form').addEventListener('submit', submitEditableSvgInput)
+document.querySelector('#open-cancel').addEventListener('click', () => document.querySelector('#open-dialog').close())
+document.querySelector('#open-file').addEventListener('click', () => document.querySelector('#open-file-input').click())
+document.querySelector('#open-file-input').addEventListener('change', openSelectedEditableSvgFile)
 document.querySelector('.brand').addEventListener('click', event => {
   event.preventDefault()
   if (remote.dirty && !confirm('Discard these local changes and start a new diagram?')) return
@@ -418,12 +461,21 @@ document.querySelectorAll('[data-copy]').forEach(button => {
 })
 
 window.addEventListener('popstate', () => location.reload())
+window.addEventListener('dragover', event => {
+  if ([...event.dataTransfer?.items ?? []].some(item => item.kind === 'file')) event.preventDefault()
+})
+window.addEventListener('drop', event => {
+  const file = event.dataTransfer?.files?.[0]
+  if (!file) return
+  event.preventDefault()
+  openEditableSvgFile(file)
+})
 
 window.addEventListener('keydown', event => {
   if (event.defaultPrevented) return
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
     event.preventDefault()
-    saveDiagram()
+    performPrimarySaveAction()
   }
 })
 
@@ -671,7 +723,7 @@ async function loadInitialState() {
     } catch (error) {
       initialLoadError = error instanceof PersistenceError
         ? error.message
-        : 'This saved diagram could not be loaded.'
+        : 'This published diagram could not be loaded.'
     }
   }
   if (location.hash) history.replaceState(null, '', `${location.pathname}${location.search}`)
@@ -679,6 +731,7 @@ async function loadInitialState() {
   const draft = loadDraft(LOCAL_DRAFT_KEY)
   if (requestedType) {
     if (draft?.state.type === requestedType) {
+      lastFileSnapshot = draft.fileSnapshot
       restoredDetailsSource = draft.detailsSource
       const state = refreshMatchingExampleMetadata(draft.state, exampleStateFor(requestedType))
       if (state !== draft.state) storeDraft(state)
@@ -687,6 +740,7 @@ async function loadInitialState() {
     return exampleStateFor(requestedType)
   }
   if (draft) {
+    lastFileSnapshot = draft.fileSnapshot
     restoredDetailsSource = draft.detailsSource
     return draft.state
   }
@@ -707,6 +761,115 @@ function applyState(state, commit = true) {
   else preview.render(currentState())
 }
 
+function selectedSaveAction() {
+  return primarySaveAction ?? (remote.aliasId ? 'publish' : 'file')
+}
+
+async function performPrimarySaveAction() {
+  return selectedSaveAction() === 'publish' ? saveDiagram() : saveEditableFile()
+}
+
+async function saveEditableFile() {
+  if (saving || !ensureValidDetails()) return false
+  if (remote.mode === 'locked' && !confirm('Save a decrypted editable SVG? The file will contain the diagram source without password protection.')) {
+    return false
+  }
+  commitState(false)
+  const state = currentState()
+  saving = true
+  updateSaveButton()
+  try {
+    await preview.render(state)
+    const canonical = preview.canonicalSvgFor(state)
+    if (!canonical) throw new Error('The current diagram has not finished rendering.')
+    const source = exportEditableSvg(canonical, state)
+    downloadEditableSvg(source, editableSvgFilename(state))
+    lastFileSnapshot = workingStateSnapshot(state)
+    if (!remote.aliasId) storeDraft(state)
+    showToast('Saved editable SVG')
+    return true
+  } catch (error) {
+    showToast(error instanceof Error ? error.message : 'Could not save this editable SVG.', 4000)
+    return false
+  } finally {
+    saving = false
+    updateSaveButton()
+  }
+}
+
+function editableSvgFilename(state) {
+  const requested = state.meta.title.trim() || `${state.type}-diagram`
+  const basename = requested
+    .replace(/[\u0000-\u001f<>:"/\\|?*]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120) || 'diagram'
+  return `${basename}.diagram.svg`
+}
+
+function downloadEditableSvg(source, filename) {
+  const url = URL.createObjectURL(new Blob([source], { type: 'image/svg+xml' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.hidden = true
+  document.body.append(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
+function openEditableSvgDialog() {
+  const dialog = document.querySelector('#open-dialog')
+  document.querySelector('#open-svg-input').value = ''
+  document.querySelector('#open-file-input').value = ''
+  document.querySelector('#open-error').textContent = ''
+  dialog.showModal()
+}
+
+async function submitEditableSvgInput(event) {
+  event.preventDefault()
+  const input = document.querySelector('#open-svg-input').value.trim()
+  if (!input) {
+    document.querySelector('#open-error').textContent = 'Paste SVG markup or a URL, or choose a file.'
+    return
+  }
+  await openEditableSvgValue(() => importEditableSvgInput(input))
+}
+
+async function openSelectedEditableSvgFile(event) {
+  const file = event.target.files?.[0]
+  if (file) await openEditableSvgFile(file)
+}
+
+async function openEditableSvgFile(file) {
+  await openEditableSvgValue(() => importEditableSvgFile(file))
+}
+
+async function openEditableSvgValue(load) {
+  const error = document.querySelector('#open-error')
+  error.textContent = ''
+  try {
+    const state = await load()
+    if (remote.dirty && !confirm('Replace the current working draft with this editable SVG? Unsaved changes will be discarded.')) return
+    clearTimeout(renderTimer)
+    clearTimeout(detailsCommitTimer)
+    primarySaveAction = null
+    lastFileSnapshot = workingStateSnapshot(state)
+    remote = emptyRemoteState()
+    typeDrafts.clear()
+    history.pushState(null, '', urlWithDiagramType('/', state.type))
+    applyState(state)
+    const dialog = document.querySelector('#open-dialog')
+    if (dialog.open) dialog.close()
+    showToast('Opened editable SVG')
+  } catch (caught) {
+    const message = caught instanceof Error ? caught.message : 'Could not open this editable SVG.'
+    error.textContent = message
+    if (!document.querySelector('#open-dialog').open) showToast(message, 4000)
+  }
+}
+
 function openShareDialog() {
   if (!ensureValidDetails()) return
   commitState()
@@ -724,41 +887,25 @@ function populateShareDialog() {
   const savedState = savedLocked ? null : remote.savedState
   const savedAppearance = savedState ? normalizePresentation(savedState.presentation).appearance : 'raw'
   const svgLink = savedState ? stableRenderUrl(location.origin, remote.aliasId, 'svg', savedAppearance) : ''
-  const imageLink = document.querySelector('#image-link')
-  const markdownLink = document.querySelector('#markdown-link')
-  const markdownTitle = savedState?.meta.title.trim().replace(/[\[\]\r\n]/g, ' ') || 'Diagram'
 
-  setShareField('viewer-link', viewerLink, 'Save to create a read link')
-  setShareField('editor-link', editorLink, hasAlias ? 'No write capability on this device' : 'Save to create an edit link')
-  const embedPlaceholder = savedLocked
-    ? 'Encrypted diagrams cannot be embedded'
-    : hasAlias ? 'Unavailable for this diagram' : 'Save to create an image link'
-  setShareField('image-link', svgLink, embedPlaceholder)
-  setShareField('markdown-link', !svgLink ? '' : `![${markdownTitle}](${svgLink})`, savedLocked ? 'Encrypted diagrams cannot be embedded' : hasAlias ? 'Unavailable for this diagram' : 'Save to create Markdown')
+  setShareField('viewer-link', viewerLink, 'Publish to create a read link')
+  setShareField('editor-link', editorLink, hasAlias ? 'No write capability on this device' : 'Publish to create an edit link')
 
   document.querySelector('#editor-link-note').textContent = editorLink
     ? 'Anyone with this link can update the diagram.'
     : hasAlias
-      ? 'This device has read-only access. Save a copy to create a new edit link.'
-      : 'The edit link is a bearer credential and appears after saving.'
-  document.querySelector('#image-link-note').textContent = savedLocked
-    ? 'This diagram is encrypted in your browser. Image embeds are disabled because they cannot ask for its password.'
-    : ''
-  imageLink.dataset.state = savedLocked ? 'unavailable' : 'ready'
-  markdownLink.dataset.state = savedLocked ? 'unavailable' : 'ready'
+      ? 'This device has read-only access. Publish a copy to create a new edit link.'
+      : 'The edit link is a bearer credential and appears after publishing.'
+  document.querySelector('[data-share-action="svg-url"]').disabled = !svgLink
+  document.querySelector('[data-share-action="markdown"]').disabled = !svgLink
 
   const shareStatus = document.querySelector('#share-status')
-  const shareSave = document.querySelector('#share-save')
-  shareSave.hidden = hasAlias && !remote.dirty
   if (!hasAlias) {
-    shareStatus.textContent = 'Save this diagram to create stable share links.'
-    shareSave.textContent = 'Save diagram'
+    shareStatus.textContent = 'Keep this draft in a file, or publish it when you want stable share links.'
   } else if (remote.dirty && remote.writeCapability) {
-    shareStatus.textContent = 'These links show the last saved version. Save your changes before sharing.'
-    shareSave.textContent = 'Save changes'
+    shareStatus.textContent = 'These links show the last published version. Publish your changes before sharing.'
   } else if (remote.dirty) {
-    shareStatus.textContent = 'You are editing a read-only diagram. Save a copy to share your changes.'
-    shareSave.textContent = 'Save as new'
+    shareStatus.textContent = 'You are editing a read-only diagram. Publish to create a new alias for your changes.'
   } else if (savedLocked) {
     shareStatus.textContent = remote.writeCapability
       ? 'The read link asks for the password. The edit link also grants permission to save changes.'
@@ -768,6 +915,39 @@ function populateShareDialog() {
       ? 'Copy a read link, or share the edit capability carefully.'
       : 'This diagram is read-only on this device.'
   }
+}
+
+async function performShareAction(action) {
+  let completed = false
+  if (action === 'publish') completed = await saveDiagram()
+  if (action === 'encrypt-publish') completed = await encryptAndPublish()
+  if (action === 'file') completed = await saveEditableFile()
+  if (action === 'svg-url' || action === 'markdown') {
+    const value = publishedEmbedValue(action)
+    if (!value) return
+    try {
+      await copy(value)
+      showToast(action === 'svg-url' ? 'SVG URL copied' : 'Markdown copied')
+      completed = true
+    } catch {
+      showToast('Could not copy to the clipboard.', 4000)
+    }
+  }
+  if (completed) populateShareDialog()
+}
+
+function publishedEmbedValue(action) {
+  if (!remote.aliasId || remote.savedMode === 'locked' || !remote.savedState) return ''
+  const appearance = normalizePresentation(remote.savedState.presentation).appearance
+  const svgLink = stableRenderUrl(location.origin, remote.aliasId, 'svg', appearance)
+  if (action === 'svg-url') return svgLink
+  const title = remote.savedState.meta.title.trim().replace(/[\[\]\r\n]/g, ' ') || 'Diagram'
+  return `![${title}](${svgLink})`
+}
+
+async function encryptAndPublish() {
+  if (remote.mode !== 'locked' && !(await lockDiagram())) return false
+  return saveDiagram()
 }
 
 function setShareField(id, value, placeholder) {
@@ -784,7 +964,7 @@ async function saveDiagram() {
   commitState(false)
   const state = currentState()
   if (remote.aliasId && !remote.dirty) {
-    showToast('Already saved')
+    showToast('Already published')
     return true
   }
 
@@ -808,18 +988,18 @@ async function saveDiagram() {
       setRemoteAlias(alias, remote.writeCapability, state, remote.mode === 'locked' ? remote.bundleKey : null)
       removeDraft(`${ALIAS_DRAFT_PREFIX}${remote.aliasId}`)
       await cacheSavedRenders(state)
-      showToast('Saved')
+      showToast('Published changes')
       return true
     }
     const savedAsCopy = Boolean(remote.aliasId)
     await createNewAlias(state)
-    showToast(savedAsCopy ? 'Saved as a new diagram' : 'Saved')
+    showToast(savedAsCopy ? 'Published as a new diagram' : 'Published')
     return true
   } catch (error) {
     if (error instanceof PersistenceError && error.status === 412 && remote.aliasId) {
       return await resolveConflict(state)
     }
-    showToast(error instanceof Error ? error.message : 'Could not save this diagram.')
+    showToast(error instanceof Error ? error.message : 'Could not publish this diagram.')
     return false
   } finally {
     saving = false
@@ -891,7 +1071,7 @@ async function cacheSavedRenders(state) {
   })
   const results = await Promise.allSettled(uploads)
   if (results.every(result => result.status === 'rejected')) {
-    showToast('Saved, but the render cache is unavailable.', 4000)
+    showToast('Published, but the render cache is unavailable.', 4000)
   }
 }
 
@@ -920,14 +1100,14 @@ async function svgToPngBlob(svg) {
 }
 
 async function lockDiagram() {
-  if (!ensureValidDetails()) return
+  if (!ensureValidDetails()) return false
   const password = await askPassword({
     title: 'Lock diagram',
-    copy: 'The source, metadata, and saved render will be encrypted in this browser. The password cannot be recovered.',
+    copy: 'The source, metadata, and published render will be encrypted in this browser. The password cannot be recovered.',
     submitLabel: 'Lock diagram',
     confirm: true,
   })
-  if (password === null) return
+  if (password === null) return false
   try {
     const { bundleKey, payload } = await createLockedState(currentState(), password)
     remote.mode = 'locked'
@@ -938,9 +1118,11 @@ async function lockDiagram() {
     remote.keyEnvelopeDirty = true
     removeDraft(remote.aliasId ? `${ALIAS_DRAFT_PREFIX}${remote.aliasId}` : LOCAL_DRAFT_KEY)
     commitState(false)
-    showToast('Locked in this browser — save to persist')
+    showToast('Encrypted in this browser — publish to persist')
+    return true
   } catch (error) {
     showToast(error instanceof Error ? error.message : 'Could not lock this diagram.')
+    return false
   }
 }
 
@@ -957,7 +1139,7 @@ async function changeDiagramPassword() {
     remote.keyEnvelope = await wrapBundleKey(remote.bundleKey, password)
     remote.keyEnvelopeDirty = true
     commitState(false)
-    showToast('Password changed — save to persist')
+    showToast('Password changed — publish to persist')
   } catch (error) {
     showToast(error instanceof Error ? error.message : 'Could not change the password.')
   }
@@ -965,11 +1147,11 @@ async function changeDiagramPassword() {
 
 function unlockDiagram() {
   if (remote.mode !== 'locked') return
-  if (!confirm('Remove password protection? The next save will store the diagram in plaintext.')) return
+  if (!confirm('Remove password protection? The next publish will store the diagram in plaintext.')) return
   remote.mode = 'open'
   remote.keyEnvelopeDirty = false
   commitState(false)
-  showToast('Password removed — save to persist')
+  showToast('Password removed — publish to persist')
 }
 
 async function promptToUnlock(alias) {
@@ -1066,7 +1248,7 @@ async function resolveConflict(localState) {
       removeDraft(`${ALIAS_DRAFT_PREFIX}${aliasId}`)
       applyState(state, false)
       updateSaveButton()
-      showToast('Reloaded saved diagram')
+      showToast('Reloaded published diagram')
       return true
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Could not reload this diagram.')
@@ -1116,6 +1298,7 @@ function loadDraft(key) {
       state,
       revision: draft.revision ?? null,
       detailsSource: typeof draft.detailsSource === 'string' ? draft.detailsSource : null,
+      fileSnapshot: typeof draft.fileSnapshot === 'string' ? draft.fileSnapshot : null,
     }
   } catch {
     return null
@@ -1129,7 +1312,12 @@ function storeDraft(state) {
     const detailsSource = !detailsValid && detailsEditor
       ? detailsEditor.getValue()
       : null
-    localStorage.setItem(key, JSON.stringify({ state, revision: remote.revision, detailsSource }))
+    localStorage.setItem(key, JSON.stringify({
+      state,
+      revision: remote.revision,
+      detailsSource,
+      fileSnapshot: remote.aliasId ? null : lastFileSnapshot,
+    }))
   } catch {
     // The editor remains usable when storage is unavailable.
   }
@@ -1191,26 +1379,44 @@ function setRemoteAlias(alias, writeCapability, state, bundleKey = null) {
 function updateSaveButton() {
   const button = document.querySelector('#save')
   updateDraftControls()
+  const action = selectedSaveAction()
+  const fileDirty = action === 'file'
+    && (lastFileSnapshot === null || lastFileSnapshot !== workingStateSnapshot(currentState()))
   let state = 'save'
-  let label = 'Save'
+  let label = action === 'file' ? 'Save as File' : 'Publish'
   let disabled = false
   if (saving) {
     state = 'saving'
-    label = 'Saving'
+    label = action === 'file' ? 'Saving File' : 'Publishing'
     disabled = true
-  } else if (remote.aliasId && !remote.dirty) {
+  } else if (action === 'file' && !fileDirty) {
     state = 'saved'
-    label = 'Saved'
+    label = 'Saved to File'
     disabled = true
-  } else if (remote.aliasId && !remote.writeCapability) {
+  } else if (action === 'publish' && remote.aliasId && !remote.dirty) {
+    state = 'saved'
+    label = 'Published'
+    disabled = true
+  } else if (action === 'publish' && remote.aliasId && !remote.writeCapability) {
     state = 'copy'
-    label = 'Save a copy'
+    label = 'Publish a Copy'
   }
   button.dataset.saveState = state
-  button.dataset.dirty = String(remote.dirty)
+  button.dataset.saveAction = action
+  button.dataset.dirty = String(action === 'file' ? fileDirty : remote.dirty)
   button.setAttribute('aria-label', label)
   button.title = label
   button.disabled = disabled
+  document.querySelector('#save-menu-toggle').disabled = saving
+  document.querySelectorAll('[data-primary-save]').forEach(option => {
+    const selected = option.dataset.primarySave === action
+    option.dataset.selected = String(selected)
+    option.setAttribute('aria-pressed', String(selected))
+  })
+  const publishedEmbedAvailable = Boolean(remote.aliasId && remote.savedMode !== 'locked' && remote.savedState)
+  document.querySelectorAll('[data-save-quick-action="svg-url"], [data-save-quick-action="markdown"]').forEach(option => {
+    option.disabled = !publishedEmbedAvailable
+  })
 }
 
 function updateDraftControls() {
@@ -1218,7 +1424,7 @@ function updateDraftControls() {
   const restore = document.querySelector('#restore-saved')
   const makeCopy = document.querySelector('#make-copy')
   const hasAliasOverlay = Boolean(remote.aliasId && remote.savedState && remote.dirty)
-  const hasAnonymousDraft = Boolean(!remote.aliasId && remote.dirty)
+  const hasAnonymousDraft = Boolean(!remote.aliasId && remote.dirty && lastFileSnapshot === null)
   bar.hidden = !hasAliasOverlay && !hasAnonymousDraft
   restore.disabled = saving
   makeCopy.disabled = saving
@@ -1231,8 +1437,8 @@ function updateDraftControls() {
     restore.setAttribute('aria-label', 'Reset')
     restore.title = 'Reset'
   } else {
-    bar.querySelector('p').textContent = 'This device has changes that are not part of the saved share link.'
-    restore.querySelector('span').textContent = 'Restore saved'
+    bar.querySelector('p').textContent = 'This device has changes that are not part of the published share link.'
+    restore.querySelector('span').textContent = 'Restore published'
     restore.removeAttribute('aria-label')
     restore.removeAttribute('title')
   }
@@ -1255,7 +1461,7 @@ function restoreSavedDiagram() {
   history.replaceState(null, '', urlWithDiagramType(location.href, remote.savedState.type))
   updatePrivacyControls()
   updateSaveButton()
-  showToast('Restored saved diagram')
+  showToast('Restored published diagram')
 }
 
 function resetAnonymousExample() {
@@ -1282,7 +1488,7 @@ async function makeDraftCopy() {
   updateSaveButton()
   try {
     await createNewAlias(state)
-    showToast('Saved as a new diagram')
+    showToast('Published as a new diagram')
   } catch (error) {
     showToast(error instanceof Error ? error.message : 'Could not make a copy.')
   } finally {
@@ -1295,7 +1501,7 @@ function updatePrivacyControls() {
   const locked = remote.mode === 'locked'
   document.querySelector('#privacy-label').textContent = locked ? 'Password locked' : 'Open'
   document.querySelector('#privacy-description').textContent = locked
-    ? 'Source, metadata, and saved renders are encrypted in your browser. Password-locked diagrams cannot be embedded.'
+    ? 'Source, metadata, and published renders are encrypted in your browser. Password-locked diagrams cannot be embedded.'
     : 'Anyone with the read link can open and embed this diagram.'
   document.querySelector('#lock-diagram').hidden = locked
   document.querySelector('#change-password').hidden = !locked
@@ -1304,7 +1510,16 @@ function updatePrivacyControls() {
 
 function startNewDiagram() {
   if (!remote.aliasId) removeDraft(LOCAL_DRAFT_KEY)
-  remote = {
+  remote = emptyRemoteState({ dirty: false })
+  primarySaveAction = null
+  lastFileSnapshot = null
+  typeDrafts.clear()
+  history.pushState(null, '', urlWithDiagramType('/', DEFAULT_DIAGRAM_TYPE))
+  applyState(exampleStateFor(DEFAULT_DIAGRAM_TYPE))
+}
+
+function emptyRemoteState(overrides = {}) {
+  return {
     aliasId: null,
     contentId: null,
     renderId: null,
@@ -1319,11 +1534,9 @@ function startNewDiagram() {
     encryptedContent: null,
     encryptedMetadata: null,
     keyEnvelopeDirty: false,
-    dirty: false,
+    dirty: true,
+    ...overrides,
   }
-  typeDrafts.clear()
-  history.pushState(null, '', urlWithDiagramType('/', DEFAULT_DIAGRAM_TYPE))
-  applyState(exampleStateFor(DEFAULT_DIAGRAM_TYPE))
 }
 
 function updateDocumentMetadata() {
