@@ -8,14 +8,15 @@
 | --- | --- |
 | `apps/editor/` | Browser editor and local development entry point |
 | `apps/docs/` | Docusaurus site published at [docs.diagram.zip](https://docs.diagram.zip) |
-| `workers/api/` | Cloudflare Worker for encrypted, accountless persistence |
-| `workers/shell/` | Cloudflare shell and routing layer |
-| `renderers/edge/` | Renderer catalog, shared contracts, and Worker-based renderer units |
+| `services/api/` | Cloudflare service for encrypted, accountless persistence |
+| `services/shell/` | Cloudflare application shell and routing service |
+| `renderers/catalog/` | Catalog service for renderer capabilities and health |
+| `renderers/edge/` | JavaScript and WebAssembly renderer units |
 | `renderers/client/` | Sandboxed browser renderers |
 | `renderers/python/` | Python renderer and translation units |
-| `packages/svg/` | Shared SVG normalization and presentation logic |
+| `renderers/shared/` | Contracts shared across renderer runtimes |
+| `shared/svg/` | Shared SVG normalization and presentation logic |
 | `examples/diagrams/` | Canonical diagram corpus shared by the editor and renderer tests |
-| `vendor/diagramsnet/` | Pinned diagrams.net browser runtime assets |
 | `skills/` | Diagram-specific agent skills and reference material |
 
 Top-level directories describe architectural roles. The production application and renderer plane run on Cloudflare; there is no JVM gateway or shared rendering server.
@@ -26,20 +27,38 @@ The JavaScript workspace uses npm with Node.js 24.
 
 ```sh
 npm install
-npm run dev:diagramzip
+npm run dev:editor
 ```
 
 Useful checks:
 
 ```sh
-npm run test:diagramzip
-npm run build:diagramzip
-npm run build:diagramzip-docs
-npm --prefix renderers/edge test
-npm --prefix workers/api test
+npm run test:editor
+npm run build:editor
+npm run build:docs
+npm run test:edge
+npm run test:api
 ```
 
-Individual services have their own README and package scripts. Run deployment commands from the service directory whose `wrangler.jsonc` you intend to use.
+## Release
+
+Production is released manually through one repository entry point:
+
+```sh
+./release.sh
+```
+
+The command requires a clean `main` worktree. Before asking for confirmation,
+it installs every locked dependency set and runs all tests and builds. It also
+verifies generated types and runtime license notices, then dry-runs every
+JavaScript and static-asset Worker. It deploys the renderer plane in
+service-binding order, applies D1 migrations, and deploys the API, editor shell,
+and documentation. Public smoke tests complete the release. Run
+`./release.sh --check` to execute the same local gate without authentication or
+deployment.
+
+Individual package deployment commands remain useful for development, but they
+are not the production release procedure.
 
 ## Architecture
 
@@ -51,7 +70,7 @@ Saved diagrams use encrypted client-side content, mutable aliases in D1, and imm
 
 DiagramZip began with an import of the MIT-licensed Kroki v0.32.1 source tree and has since replaced the application, documentation, persistence, and renderer delivery architecture. The Git repository is maintained as an independent project; Kroki and other retained dependencies remain credited in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and the nested license files.
 
-DiagramZip is distributed under the [MIT License](LICENSE). Some bundled renderers and vendored components use other licenses; review `licenses/`, nested `THIRD_PARTY_NOTICES.md` files, and vendor-license directories before redistribution.
+Except where otherwise noted, original DiagramZip code is distributed under the [MIT License](LICENSE). This repository is a multi-license distribution: bundled renderers, WebAssembly artifacts, vendored source, fonts, and visual assets retain their respective licenses and terms. Review [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), `licenses/`, and the notices beside each renderer before redistribution.
 
 ## Contributing and security
 
