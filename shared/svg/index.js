@@ -506,8 +506,18 @@ function applySvgbobProfile(root) {
     const nextMarker = name === 'marker' ? node.attributes.get('id') ?? '' : marker
     if (classes.has('backdrop')) node.attributes.set('data-dz-role', 'canvas')
     if (TEXT_ELEMENTS.has(name)) node.attributes.set('data-dz-fill', 'ink')
-    if (classes.has('solid')) node.attributes.set('data-dz-stroke', 'line')
-    if (classes.has('nofill') || classes.has('bg_filled')) node.attributes.set('data-dz-fill', 'surface-1')
+    if (SHAPE_ELEMENTS.has(name)
+      && !classes.has('backdrop')
+      && node.attributes.get('data-dz-owned') !== 'normalizer') {
+      node.attributes.set('data-dz-stroke', 'line')
+    }
+    const closedPath = name === 'path' && /(?:z|Z)\s*$/.test(node.attributes.get('d') ?? '')
+    const objectSurface = classes.has('bg_filled')
+      || (classes.has('nofill') && (['circle', 'ellipse', 'polygon', 'rect'].includes(name) || closedPath))
+    if (objectSurface) node.attributes.set('data-dz-fill', 'surface-1')
+    else if (classes.has('nofill') && node.attributes.get('data-dz-fill') === 'surface-1') {
+      node.attributes.delete('data-dz-fill')
+    }
     if (classes.has('filled') || ['arrow', 'diamond', 'circle'].includes(nextMarker)) node.attributes.set('data-dz-fill', 'line')
     if (classes.has('filled') || classes.has('bg_filled') || nextMarker !== '') node.attributes.set('data-dz-stroke', 'line')
     for (const child of node.children) visit(child, nextMarker)

@@ -179,6 +179,25 @@ test('applies D2, PlantUML, Svgbob, and neutral SVG family roles', () => {
   }
 })
 
+test('themes every Svgbob stroke without treating open curves as object surfaces', () => {
+  const canonical = canonicalizeSvg(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 20" class="svgbob"><path id="curve" d="M 8,2 A 8,8 0,0,0 8,18" class="nofill"></path><path id="closed" d="M20 2L30 2L30 18L20 18Z" class="nofill"></path><line id="plain" x1="2" y1="10" x2="6" y2="10"></line><rect id="box" x="32" y="2" width="6" height="16" class="solid nofill"></rect></svg>',
+    metadata, 'svgbob', 'svgbob@0.7.6/edge-wasm-1',
+  )
+
+  const curve = canonical.match(/<path id="curve"[^>]*>/)?.[0] ?? ''
+  const closed = canonical.match(/<path id="closed"[^>]*>/)?.[0] ?? ''
+  const plain = canonical.match(/<line id="plain"[^>]*>/)?.[0] ?? ''
+  const box = canonical.match(/<rect id="box"[^>]*>/)?.[0] ?? ''
+  assert.match(curve, /data-dz-stroke="line"/)
+  assert.doesNotMatch(curve, /data-dz-fill=/)
+  assert.match(closed, /data-dz-stroke="line"/)
+  assert.match(closed, /data-dz-fill="surface-1"/)
+  assert.match(plain, /data-dz-stroke="line"/)
+  assert.match(box, /data-dz-stroke="line"/)
+  assert.match(box, /data-dz-fill="surface-1"/)
+})
+
 test('adapts neutral authored paint while preserving non-neutral paint and transparent support', () => {
   const source = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10" fill="white"></rect><path d="M1 1L9 9" stroke="hotpink"></path><text x="2" y="6" fill="black">A</text></svg>'
   const canonical = canonicalizeSvg(source, metadata, 'tikz', '@planktimerr/tikzjax@1.0.63/client-unit-1')
