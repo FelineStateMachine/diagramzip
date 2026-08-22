@@ -1,6 +1,6 @@
 import { diagramTypeFromQuery, diagramTypes, isKnownDiagramType, urlWithDiagramType } from './diagram-types.js'
 import { exampleStateFor } from './examples.js'
-import { refreshMatchingExampleMetadata } from './example-variants.js'
+import { refreshMatchingExampleMetadata } from './example-defaults.js'
 import {
   DETAILS_MODEL_URI,
   detailsStateWithTitle,
