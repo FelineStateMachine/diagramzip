@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {fitView, zoomView} from '../src/components/DiagramExample/viewMath.mjs';
-import {clientFrameUrlFor, httpRendererUrlFor} from '../src/components/DiagramExample/rendererRouting.mjs';
+import {httpRendererUrlFor} from '../src/components/DiagramExample/rendererRouting.mjs';
 import {canonicalizeHttpRendererSvg, rendererVersionFromHeaders} from '../src/components/DiagramExample/httpSvg.mjs';
 import {materializeSvg} from '../../../shared/svg/index.js';
 
-test('routes client examples to their isolated renderer frame', () => {
-  assert.equal(clientFrameUrlFor('tikz'), 'https://tikz.render.diagram.zip/index.html?v=1');
-  assert.equal(clientFrameUrlFor('graphviz'), null);
-});
-
 test('routes HTTP examples to their dedicated renderer unit', () => {
   assert.equal(httpRendererUrlFor('graphviz'), 'https://graphviz.render.diagram.zip/v1/svg');
+  assert.equal(httpRendererUrlFor('mermaid'), 'https://mermaid.render.diagram.zip/v1/svg');
+  assert.equal(httpRendererUrlFor('bpmn'), 'https://bpmn.render.diagram.zip/v1/svg');
+  assert.equal(httpRendererUrlFor('excalidraw'), 'https://excalidraw.render.diagram.zip/v1/svg');
+  assert.equal(httpRendererUrlFor('diagramsnet'), 'https://diagramsnet.render.diagram.zip/v1/svg');
+  assert.equal(httpRendererUrlFor('tikz'), 'https://tikz.render.diagram.zip/v1/svg');
 });
 
 test('canonicalizes raw HTTP renderer SVG before docs appearance materialization', () => {

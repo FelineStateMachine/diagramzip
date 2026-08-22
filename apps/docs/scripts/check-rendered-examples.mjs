@@ -2,59 +2,14 @@ import { readFile, readdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { canonicalizeSvg, materializeSvg, supportedAppearances } from '../../../shared/svg/index.js'
-import { CLIENT_RENDERERS, httpRendererUrlFor } from '../src/components/DiagramExample/rendererRouting.mjs'
+import { httpRendererUrlFor } from '../src/components/DiagramExample/rendererRouting.mjs'
 
 const site = join(dirname(fileURLToPath(import.meta.url)), '..')
 const examplesDir = join(site, 'static', 'examples')
 const names = (await readdir(examplesDir)).filter((name) => name.endsWith('.json')).sort()
 
-function cspSource(document, headers) {
-  return headers.get('Content-Security-Policy')
-    ?? document.match(/http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i)?.[1]
-    ?? ''
-}
-
-function cspAllows(csp, directive, origin) {
-  const values = csp.split(';')
-    .map(value => value.trim().split(/\s+/))
-    .find(([name]) => name === directive)
-    ?.slice(1) ?? []
-  return values.includes('*') || values.includes(origin)
-}
-
 async function check(name) {
   const example = JSON.parse(await readFile(join(examplesDir, name), 'utf8'))
-  if (CLIENT_RENDERERS[example.engine]) {
-    const frameUrl = CLIENT_RENDERERS[example.engine]
-    const response = await fetch(frameUrl)
-    const body = await response.text()
-    const scriptUrls = [...body.matchAll(/<script[^>]+src="([^"]+)"/gi)]
-      .map((match) => new URL(match[1], frameUrl).href)
-    const scripts = await Promise.all(scriptUrls.map(async (scriptUrl) => {
-      const scriptResponse = await fetch(scriptUrl)
-      return {
-        ok: scriptResponse.ok,
-        body: await scriptResponse.text(),
-      }
-    }))
-    const hasProtocol = scripts.some((script) => script.ok && script.body.includes('diagram.zip:renderer:v1'))
-    if (!response.ok || !hasProtocol) {
-      throw new Error(`${example.engine}: client frame unavailable (HTTP ${response.status})`)
-    }
-    if (example.engine === 'excalidraw' && scripts.some((script) => script.body.includes('https://esm.sh'))) {
-      const fallbackOrigin = 'https://esm.sh'
-      if (!cspAllows(cspSource(body, response.headers), 'font-src', fallbackOrigin)) {
-        throw new Error(`${example.engine}: frame CSP font-src blocks ${fallbackOrigin}`)
-      }
-      const fallbackFont = await fetch(`${fallbackOrigin}/@excalidraw/excalidraw@0.18.1/dist/prod/fonts/Cascadia/CascadiaCode-Regular.woff2`)
-      const fallbackAvailable = fallbackFont.ok && fallbackFont.headers.get('Access-Control-Allow-Origin') === '*'
-      await fallbackFont.body?.cancel()
-      if (!fallbackAvailable) {
-        throw new Error(`${example.engine}: packaged font fallback is unavailable (HTTP ${fallbackFont.status})`)
-      }
-    }
-    return `${example.engine} client frame`
-  }
   const response = await fetch(httpRendererUrlFor(example.engine), {
     method: 'POST',
     headers: { Accept: 'image/svg+xml', 'Content-Type': 'application/json' },

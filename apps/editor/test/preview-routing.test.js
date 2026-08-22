@@ -6,6 +6,7 @@ import {
   previewThemeForAppearance,
   previewViewKey,
 } from '../src/preview.js'
+import { httpRendererUnitFor } from '../src/renderer-units.js'
 
 const request = {
   source: 'blockdiag { A -> B; }',
@@ -66,62 +67,10 @@ test('surfaces a GraphViz-family renderer failure', async () => {
   assert.deepEqual(endpoints, ['https://erd.render.diagram.zip/v1/svg'])
 })
 
-test('does not send a failed client renderer to an HTTP unit', async () => {
-  let unitCalls = 0
-  const statuses = []
-  const errors = []
-  const controller = {
-    abortController: null,
-    stage: { style: { setProperty() {} } },
-    setStatus(message, state) { statuses.push({ message, state }) },
-    handleRenderError: PreviewController.prototype.handleRenderError,
-    onError(message) { errors.push(message) },
-    async renderThroughUnit() { unitCalls += 1 },
+test('routes formerly client-rendered engines through HTTP units', () => {
+  for (const type of ['mermaid', 'bpmn', 'excalidraw', 'diagramsnet', 'tikz']) {
+    assert.equal(httpRendererUnitFor(type), `https://${type}.render.diagram.zip/v1/svg`)
   }
-
-  await PreviewController.prototype.performRender.call(controller, {
-    type: 'mermaid',
-    source: 'flowchart LR; A --> B',
-    options: {},
-    meta: {},
-    presentation: {},
-    renderKey: 'client-failure',
-    requestNumber: 1,
-  })
-
-  assert.equal(unitCalls, 0)
-  assert.equal(statuses.at(-1).state, 'idle')
-  assert.equal(errors.length, 1)
-  assert.equal(typeof errors[0], 'string')
-})
-
-test('does not send a failed diagrams.net renderer to an HTTP unit', async () => {
-  let unitCalls = 0
-  const statuses = []
-  const errors = []
-  const controller = {
-    abortController: null,
-    stage: { style: { setProperty() {} } },
-    setStatus(message, state) { statuses.push({ message, state }) },
-    handleRenderError: PreviewController.prototype.handleRenderError,
-    onError(message) { errors.push(message) },
-    async renderThroughUnit() { unitCalls += 1 },
-  }
-
-  await PreviewController.prototype.performRender.call(controller, {
-    type: 'diagramsnet',
-    source: '<mxGraphModel/>',
-    options: {},
-    meta: {},
-    presentation: {},
-    renderKey: 'diagramsnet-client-failure',
-    requestNumber: 1,
-  })
-
-  assert.equal(unitCalls, 0)
-  assert.equal(statuses.at(-1).state, 'idle')
-  assert.equal(errors.length, 1)
-  assert.equal(typeof errors[0], 'string')
 })
 
 test('keeps render details out of the status hint', () => {

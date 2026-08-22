@@ -1,4 +1,3 @@
-import { clientAdapterFor } from './client-renderers.js'
 import { canonicalizeSvg, materializeSvg, supportedAppearances } from './client-svg.js'
 import { httpRendererUnitFor } from './renderer-units.js'
 
@@ -6,7 +5,6 @@ const MAX_CONCURRENT_RENDERS = 4
 
 export function createLauncherPreviewRenderer({
   fetchImpl = fetch,
-  clientAdapterForImpl = clientAdapterFor,
   endpointFor = httpRendererUnitFor,
   createObjectURL = value => URL.createObjectURL(value),
   revokeObjectURL = value => URL.revokeObjectURL(value),
@@ -64,12 +62,6 @@ export function createLauncherPreviewRenderer({
 
   async function renderState({ type, source, options = {}, meta = {}, presentation = {} }) {
     if (!type || typeof source !== 'string' || !source.trim()) throw new Error('A diagram source is required for its preview.')
-    const clientAdapter = clientAdapterForImpl(type)
-    if (clientAdapter) {
-      const result = await clientAdapter.render({ type, source, options }, new AbortController().signal)
-      return { body: validateSvg(result.body), version: result.version ?? result.build ?? '' }
-    }
-
     const endpoint = endpointFor(type)
     if (!endpoint) throw new Error(`No renderer is registered for ${type}.`)
     const response = await fetchImpl(endpoint, {

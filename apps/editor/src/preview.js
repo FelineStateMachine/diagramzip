@@ -1,4 +1,3 @@
-import { clientAdapterFor } from './client-renderers.js'
 import { canonicalizeSvg, materializePresentation, materializeSvg, supportedAppearances } from './client-svg.js'
 import { httpRendererUnitFor } from './renderer-units.js'
 
@@ -147,24 +146,7 @@ export class PreviewController {
     this.stage.style.setProperty('--render-background', 'var(--preview-bg)')
 
     try {
-      const clientAdapter = clientAdapterFor(type)
-      let rendered
-      if (clientAdapter) {
-        const clientRender = await clientAdapter.render({ type, source, options }, abortController.signal)
-        rendered = {
-          body: clientRender.body,
-          identity: {
-            unit: type,
-            build: clientRender.build || clientRender.version,
-            version: clientRender.version || clientRender.build || '',
-            pipeline: Array.isArray(clientRender.pipeline) ? clientRender.pipeline : [type],
-          },
-        }
-        this.status.dataset.cache = 'browser'
-        this.status.dataset.renderer = type
-      } else {
-        rendered = await this.renderThroughUnit({ type, source, options, meta, presentation }, abortController.signal)
-      }
+      const rendered = await this.renderThroughUnit({ type, source, options, meta, presentation }, abortController.signal)
       if (requestNumber !== this.requestNumber) return
       const canonicalSvg = canonicalizeSvg(rendered.body, meta, type, rendered.identity.version)
       const canonical = this.normalizedSvgBlob(canonicalSvg)

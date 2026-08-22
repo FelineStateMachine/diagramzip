@@ -207,7 +207,8 @@ materializes its own palette and, for framed appearances, its own canvas.
 
 An anonymous draft instead exports the current deterministic editable SVG and
 packs those bytes into `/svg/{compressed_editable_svg}`. This path does not
-proxy a render request and supports both HTTP and client renderer outputs.
+proxy a render request and works with the canonical output from every HTTP
+renderer unit.
 
 ## Editor and share UX
 

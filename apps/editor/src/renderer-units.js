@@ -24,6 +24,11 @@ export const HTTP_RENDERER_UNITS = Object.freeze({
   vegalite: 'https://vegalite.render.diagram.zip/v1/svg',
   wavedrom: 'https://wavedrom.render.diagram.zip/v1/svg',
   wireviz: 'https://wireviz.render.diagram.zip/v1/svg',
+  mermaid: 'https://mermaid.render.diagram.zip/v1/svg',
+  bpmn: 'https://bpmn.render.diagram.zip/v1/svg',
+  excalidraw: 'https://excalidraw.render.diagram.zip/v1/svg',
+  diagramsnet: 'https://diagramsnet.render.diagram.zip/v1/svg',
+  tikz: 'https://tikz.render.diagram.zip/v1/svg',
 })
 
 export function httpRendererUnitFor(engine) {
