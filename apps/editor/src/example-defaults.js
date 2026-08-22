@@ -46,6 +46,20 @@ export function namedExample(type) {
   }
 }
 
+export function exampleStateForTheme(state, theme) {
+  if (!['light', 'dark'].includes(theme)) throw new Error('Example theme must be light or dark.')
+  return {
+    ...state,
+    presentation: {
+      ...state.presentation,
+      background: '',
+      padding: 0,
+      frame: false,
+      appearance: `${theme}-transparent`,
+    },
+  }
+}
+
 export function refreshMatchingExampleMetadata(state, exampleState) {
   if (state?.source !== exampleState?.source || state?.meta?.title?.trim()) return state
 

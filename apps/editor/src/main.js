@@ -1,6 +1,6 @@
 import { diagramTypeFromQuery, diagramTypes, isKnownDiagramType, urlWithDiagramType } from './diagram-types.js'
 import { exampleStateFor } from './examples.js'
-import { refreshMatchingExampleMetadata } from './example-defaults.js'
+import { exampleStateForTheme } from './example-defaults.js'
 import {
   DETAILS_MODEL_URI,
   detailsStateWithTitle,
@@ -37,90 +37,57 @@ import {
 import { PreviewController } from './preview.js'
 import { exportEditableSvg } from './editable-svg.js'
 import { importEditableSvgFile, importEditableSvgInput } from './editable-svg-input.js'
+import { createCommandPaletteModel } from './command-palette.js'
+import { launcherCatalogGroups } from './launcher-catalog.js'
+import { createLocalDocuments } from './local-documents.js'
+import { mobilePanelSwitchState } from './mobile-panel.js'
 import './style.css'
 
-const LOCAL_DRAFT_KEY = 'diagram.zip:draft:local:v2'
 const ALIAS_DRAFT_PREFIX = 'diagram.zip:draft:alias:v1:'
 const WRITE_CAPABILITY_PREFIX = 'diagram.zip:write:v1:'
 const persistence = new PersistenceClient()
+const localDocuments = createLocalDocuments()
 const systemColorScheme = matchMedia('(prefers-color-scheme: dark)')
+const initialTemplateTheme = systemColorScheme.matches ? 'dark' : 'light'
 document.documentElement.dataset.theme = systemColorScheme.matches ? 'dark' : 'light'
 let renderTimer
 let detailsCommitTimer
 let activeType
 let saving = false
-let primarySaveAction = null
 let lastFileSnapshot = null
+let localDocumentId = new URLSearchParams(location.search).get('doc')
 let initialLoadError = ''
 let restoredDetailsSource = null
 let remote = emptyRemoteState()
-const typeDrafts = new Map()
+
+function templateStateFor(type) {
+  return exampleStateForTheme(exampleStateFor(type), initialTemplateTheme)
+}
 
 document.querySelector('#app').innerHTML = `
   <main class="app-shell">
     <header class="app-header">
+      <a class="brand" href="/" aria-label="Open launcher" title="Open launcher"><img class="brand-mark" src="/icon.svg?v=4" alt=""></a>
       <div class="document-identity">
-        <a class="brand" href="/" aria-label="New diagram" title="New diagram"><img class="brand-mark" src="/icon.svg?v=4" alt=""></a>
         <input class="document-title" id="diagram-title" type="text" maxlength="200" placeholder="Untitled" aria-label="Diagram title" autocomplete="off" spellcheck="false">
+        <button class="document-reset" id="quick-reset" type="button" data-visible="false" aria-hidden="true" tabindex="-1">
+          <span class="unsaved-indicator" id="unsaved-indicator" aria-hidden="true"></span>
+          <svg class="document-reset-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 9a8 8 0 1 1-.1 6M4 9V4m0 5h5"/>
+          </svg>
+        </button>
       </div>
-      <div class="header-meta">
-        <span class="render-status" data-state="idle" role="status">Ready</span>
-        <label class="type-picker">
-          <span class="sr-only">Diagram type</span>
-          <select id="diagram-type"></select>
-        </label>
-        <div class="header-actions" role="group" aria-label="Diagram actions">
-          <a class="header-icon-action" href="https://docs.diagram.zip/" aria-label="Documentation" title="Documentation">
-            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M3.5 5.5c3.25-.75 6-.1 8.5 2v12c-2.5-2.1-5.25-2.75-8.5-2V5.5Zm17 0c-3.25-.75-6-.1-8.5 2v12c2.5-2.1 5.25-2.75 8.5-2V5.5Z"/>
-              <path d="M12 7.5v12"/>
-            </svg>
-          </a>
-          <button class="header-icon-action" id="open" type="button" aria-label="Open editable SVG" title="Open editable SVG">
-            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M3.5 7.5h6l2-2h9v13h-17v-11Z"/>
-              <path d="M8 13h8m-4-4v8"/>
-            </svg>
-          </button>
-          <div class="save-split">
-            <button class="header-icon-action" id="save" type="button" data-save-state="save" data-dirty="true" aria-label="Save as File" title="Save as File">
-              <svg class="header-action-icon save-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <g data-save-icon="save">
-                  <path d="M5 3.5h11.5L19 6v14.5H5v-17Z"/>
-                  <path d="M8 3.5V9h8V3.5M8 20.5v-7h8v7"/>
-                </g>
-                <g data-save-icon="saving">
-                  <path d="M19.5 8.5A8 8 0 1 0 20 14"/>
-                  <path d="M19.5 4.5v4h-4"/>
-                </g>
-                <g data-save-icon="saved">
-                  <path d="m5.5 12 4 4 9-9"/>
-                </g>
-                <g data-save-icon="copy">
-                  <path d="M8 7.5h11v13H8v-13Z"/>
-                  <path d="M5 16.5H4v-13h11v1M13.5 11v6M10.5 14h6"/>
-                </g>
-              </svg>
-            </button>
-            <button class="save-menu-toggle" id="save-menu-toggle" type="button" popovertarget="save-menu" aria-label="Choose save action" title="Choose save action">⌄</button>
-            <div class="action-menu save-action-menu" id="save-menu" popover>
-              <button type="button" data-primary-save="publish">Publish</button>
-              <button type="button" data-primary-save="encrypt-publish">Encrypt &amp; Publish</button>
-              <button type="button" data-primary-save="file">Save as File</button>
-              <button type="button" data-save-quick-action="svg-url">Copy SVG URL</button>
-              <button type="button" data-save-quick-action="markdown">Copy as Markdown</button>
-            </div>
-          </div>
-          <button class="header-icon-action" id="share" type="button" aria-label="Share" title="Share">
-            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <circle cx="18" cy="5" r="2.5"/>
-              <circle cx="6" cy="12" r="2.5"/>
-              <circle cx="18" cy="19" r="2.5"/>
-              <path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/>
-            </svg>
-          </button>
-        </div>
-      </div>
+      <span class="header-spacer"></span>
+      <span class="render-status" data-state="idle" role="status">Ready</span>
+      <select id="diagram-type" hidden aria-hidden="true"></select>
+      <button class="type-command" id="command-type" type="button" aria-haspopup="dialog" aria-controls="command-dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8h13m-3-3 3 3-3 3M20 16H7m3-3-3 3 3 3"/></svg>
+        <span id="command-type-label">Diagram</span>
+      </button>
+      <button class="command-trigger" id="command-trigger" type="button" aria-haspopup="dialog" aria-controls="command-dialog" aria-label="Open command palette">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+        <kbd>⌘K</kbd>
+      </button>
     </header>
 
     <aside class="draft-bar" id="draft-bar" aria-live="polite" hidden>
@@ -136,11 +103,6 @@ document.querySelector('#app').innerHTML = `
         <button class="primary-action" id="make-copy" type="button">Make a copy</button>
       </div>
     </aside>
-
-    <div class="mobile-tabs" role="tablist" aria-label="Workspace panel">
-      <button type="button" role="tab" aria-selected="true" aria-controls="editor-panel" data-panel="editor" tabindex="0">Edit</button>
-      <button type="button" role="tab" aria-selected="false" aria-controls="preview-panel" data-panel="preview" tabindex="-1">Preview</button>
-    </div>
 
     <div class="workspace" data-mobile-panel="editor">
       <section class="editor-panel" id="editor-panel" aria-label="Diagram input">
@@ -200,6 +162,15 @@ document.querySelector('#app').innerHTML = `
         </div>
       </section>
     </div>
+    <button class="mobile-panel-switch" type="button" data-target-panel="preview" aria-controls="preview-panel" aria-label="Show preview" title="Show preview">
+      <svg data-panel-icon="preview" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 12s3.3-6 9-6 9 6 9 6-3.3 6-9 6-9-6-9-6Z"/>
+        <circle cx="12" cy="12" r="2.6"/>
+      </svg>
+      <svg data-panel-icon="editor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="m9 7-5 5 5 5M15 7l5 5-5 5"/>
+      </svg>
+    </button>
   </main>
 
   <dialog id="share-dialog" aria-labelledby="share-title">
@@ -286,6 +257,24 @@ document.querySelector('#app').innerHTML = `
     </form>
   </dialog>
 
+  <dialog class="command-dialog" id="command-dialog" aria-label="Command palette">
+    <div class="command-card">
+      <label class="command-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+        <span class="command-scope" id="command-scope" hidden>Change format</span>
+        <span class="sr-only">Filter commands</span>
+        <input id="command-input" type="search" placeholder="Type a command" autocomplete="off" spellcheck="false" aria-controls="command-results" aria-autocomplete="list">
+        <kbd>esc</kbd>
+      </label>
+      <div class="command-results" id="command-results" role="listbox" aria-label="Commands"></div>
+      <footer class="command-footer">
+        <span><kbd>↑↓</kbd> navigate</span>
+        <span><kbd>↵</kbd> run</span>
+        <span id="command-footer-note"><kbd>⌘K</kbd> anywhere</span>
+      </footer>
+    </div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite" popover="manual"></div>
 `
 
@@ -301,6 +290,7 @@ let detailsValid = true
 let detailsError = ''
 let detailsState
 let detailsEditor = null
+let sourceEditor = null
 let previewHasBeenRevealed = false
 for (const { id, label } of diagramTypes) {
   typePicker.add(new Option(label, id))
@@ -312,12 +302,12 @@ detailsState = {
   presentation: normalizePresentation(initialState.presentation),
 }
 typePicker.value = initialState.type
+updateTypeCommand()
 syncPreviewAppearanceControls()
 updateDocumentMetadata()
 activeType = initialState.type
-typeDrafts.set(initialState.type, initialState)
 
-const sourceEditor = await createSourceEditor({
+sourceEditor = await createSourceEditor({
   element: document.querySelector('#editor'),
   source: initialState.source,
   diagramType: initialState.type,
@@ -358,41 +348,21 @@ systemColorScheme.addEventListener('change', () => {
 })
 
 typePicker.addEventListener('change', () => {
-  if (!ensureValidDetails()) {
-    typePicker.value = activeType
-    return
-  }
-  const type = typePicker.value
-  history.replaceState(null, '', urlWithDiagramType(location.href, type))
-  applyState(stateForTypeChange(typeDrafts, activeType, type, currentState(), exampleStateFor))
+  changeDiagramType(typePicker.value)
 })
 
 document.querySelector('#lock-diagram').addEventListener('click', lockDiagram)
 document.querySelector('#change-password').addEventListener('click', changeDiagramPassword)
 document.querySelector('#unlock-diagram').addEventListener('click', unlockDiagram)
-document.querySelector('#open').addEventListener('click', openEditableSvgDialog)
-document.querySelector('#save').addEventListener('click', performPrimarySaveAction)
 document.querySelector('#restore-saved').addEventListener('click', restoreSavedDiagram)
+document.querySelector('#quick-reset').addEventListener('click', quickResetDocument)
 document.querySelector('#make-copy').addEventListener('click', makeDraftCopy)
-document.querySelector('#share').addEventListener('click', openShareDialog)
+document.querySelector('#command-trigger').addEventListener('click', () => openCommandPalette())
+document.querySelector('#command-type').addEventListener('click', () => openCommandPalette('format'))
 titleInput.addEventListener('focus', beginTitleEdit)
 titleInput.addEventListener('input', updateTitleFromHeader)
 titleInput.addEventListener('blur', finishTitleEdit)
 titleInput.addEventListener('keydown', handleTitleKeydown)
-document.querySelectorAll('[data-primary-save]').forEach(button => {
-  button.addEventListener('click', () => {
-    primarySaveAction = button.dataset.primarySave
-    document.querySelector('#save-menu').hidePopover?.()
-    updateSaveButton()
-  })
-})
-document.querySelectorAll('[data-save-quick-action]').forEach(button => {
-  button.addEventListener('click', async () => {
-    document.querySelector('#save-menu').hidePopover?.()
-    await performShareAction(button.dataset.saveQuickAction)
-    updateSaveButton()
-  })
-})
 document.querySelectorAll('[data-share-action]').forEach(button => {
   button.addEventListener('click', () => performShareAction(button.dataset.shareAction))
 })
@@ -402,8 +372,7 @@ document.querySelector('#open-file').addEventListener('click', () => document.qu
 document.querySelector('#open-file-input').addEventListener('change', openSelectedEditableSvgFile)
 document.querySelector('.brand').addEventListener('click', event => {
   event.preventDefault()
-  if (remote.dirty && !confirm('Discard these local changes and start a new diagram?')) return
-  startNewDiagram()
+  requestNewDiagram()
 })
 
 previewRawButton.addEventListener('click', () => {
@@ -441,9 +410,19 @@ wireTabs(document.querySelector('.editor-tabs'), button => {
   else sourceEditor.layout()
 })
 
-wireTabs(document.querySelector('.mobile-tabs'), button => {
-  document.querySelector('.workspace').dataset.mobilePanel = button.dataset.panel
-  if (button.dataset.panel === 'preview') {
+document.querySelector('.mobile-panel-switch').addEventListener('click', () => {
+  setMobilePanel(document.querySelector('.mobile-panel-switch').dataset.targetPanel)
+})
+
+function setMobilePanel(panel) {
+  const state = mobilePanelSwitchState(panel)
+  const switchButton = document.querySelector('.mobile-panel-switch')
+  document.querySelector('.workspace').dataset.mobilePanel = state.panel
+  switchButton.dataset.targetPanel = state.targetPanel
+  switchButton.setAttribute('aria-controls', state.controls)
+  switchButton.setAttribute('aria-label', state.label)
+  switchButton.title = state.label
+  if (state.panel === 'preview') {
     if (!previewHasBeenRevealed) {
       previewHasBeenRevealed = true
       requestAnimationFrame(() => preview.fit())
@@ -451,7 +430,7 @@ wireTabs(document.querySelector('.mobile-tabs'), button => {
   } else {
     activeInputEditor().layout()
   }
-})
+}
 
 document.querySelectorAll('[data-copy]').forEach(button => {
   button.addEventListener('click', async () => {
@@ -479,10 +458,61 @@ window.addEventListener('drop', event => {
 
 window.addEventListener('keydown', event => {
   if (event.defaultPrevented) return
-  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+  const primary = event.metaKey || event.ctrlKey
+  const key = event.key.toLowerCase()
+  if (primary && key === 'k') {
     event.preventDefault()
-    performPrimarySaveAction()
+    const dialog = document.querySelector('#command-dialog')
+    if (dialog.open) dialog.close()
+    else openCommandPalette()
+  } else if (primary && event.shiftKey && key === 'f') {
+    event.preventDefault()
+    openCommandPalette('format')
+  } else if (primary && event.shiftKey && key === 'p') {
+    event.preventDefault()
+    saveDiagram()
+  } else if (primary && event.shiftKey && key === 's') {
+    event.preventDefault()
+    openShareDialog()
+  } else if (primary && key === 's') {
+    event.preventDefault()
+    saveEditableFile()
+  } else if (primary && key === 'o') {
+    event.preventDefault()
+    openEditableSvgDialog()
+  } else if (primary && key === 'n') {
+    event.preventDefault()
+    requestNewDiagram()
+  } else if (!primary && event.shiftKey && key === '0') {
+    event.preventDefault()
+    preview.fit()
   }
+})
+
+document.querySelector('#command-input').addEventListener('input', renderCommandPalette)
+document.querySelector('#command-input').addEventListener('keydown', event => {
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault()
+    if (event.key === 'ArrowDown') commandPaletteModel?.next()
+    else commandPaletteModel?.previous()
+    renderCommandPalette(false)
+  } else if (event.key === 'Enter') {
+    event.preventDefault()
+    runSelectedCommand()
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    document.querySelector('#command-dialog').close()
+  }
+})
+document.querySelector('#command-dialog').addEventListener('click', event => {
+  if (event.target === event.currentTarget) event.currentTarget.close()
+})
+document.querySelector('#command-dialog').addEventListener('close', () => commandPaletteInvoker?.focus())
+document.querySelector('#command-results').addEventListener('click', event => {
+  const option = event.target.closest('[data-command-id]')
+  if (!option || option.disabled) return
+  commandPaletteModel?.selectById(option.dataset.commandId)
+  runSelectedCommand()
 })
 
 function wireTabs(tablist, onSelect) {
@@ -520,6 +550,200 @@ function activeInputEditor() {
   return document.querySelector('#details-tab').getAttribute('aria-selected') === 'true'
     ? detailsEditor
     : sourceEditor
+}
+
+let commandPaletteMode = 'root'
+let commandPaletteModel = null
+let commandPaletteInvoker = null
+
+function commandGroups(mode = 'root') {
+  if (mode === 'format') {
+    return launcherCatalogGroups.map(group => ({
+      id: group.id,
+      label: group.label,
+      commands: group.items.map(entry => ({
+        id: `format:${entry.id}`,
+        label: entry.label,
+        description: `${entry.description} - ${entry.extensions.join(', ')}`,
+        keywords: [entry.id, ...entry.extensions],
+        disabled: entry.id === typePicker.value,
+        run: () => changeDiagramType(entry.id),
+      })),
+    }))
+  }
+
+  const recents = localDocuments.loadRecents().slice(0, 6).map(entry => ({
+    id: entry.kind === 'local' ? `recent:local:${entry.localId}` : `recent:alias:${entry.aliasId}`,
+    label: entry.title || 'Locked diagram',
+    description: `${entry.type ? diagramTypeLabel(entry.type) : 'Encrypted'} · ${relativeTime(entry.updatedAt)}${entry.kind === 'alias' ? ' - published' : ''}`,
+    keywords: [entry.type, entry.kind],
+    run: () => openRecent(entry),
+  }))
+  const publishedEmbedAvailable = remote.aliasId
+    ? Boolean(remote.savedMode !== 'locked' && remote.savedState)
+    : remote.mode !== 'locked'
+  return [
+    ...(recents.length ? [{ id: 'recent', label: 'Recent', commands: recents }] : []),
+    {
+      id: 'format',
+      label: 'Format',
+      commands: [{
+        id: 'change-format',
+        label: 'Change format…',
+        description: `${diagramTypeLabel(typePicker.value)} → 29 others`,
+        keywords: ['renderer', 'syntax', 'language'],
+        shortcut: '⌘⇧F',
+        run: () => openCommandPalette('format'),
+      }],
+    },
+    {
+      id: 'save-share',
+      label: 'Save & share',
+      commands: [
+        { id: 'save-file', label: 'Save as file', description: 'Editable .svg', keywords: ['download', 'export'], shortcut: '⌘S', disabled: saving, run: saveEditableFile },
+        { id: 'publish', label: 'Publish', description: 'Create or update a short link', shortcut: '⌘⇧P', disabled: saving, run: saveDiagram },
+        { id: 'encrypt-publish', label: 'Encrypt & publish', description: 'Password protected, client-side', keywords: ['lock', 'private'], disabled: saving, run: encryptAndPublish },
+        { id: 'copy-svg', label: 'Copy SVG URL', keywords: ['embed', 'link'], disabled: !publishedEmbedAvailable, run: () => performShareAction('svg-url') },
+        { id: 'copy-markdown', label: 'Copy as Markdown', keywords: ['embed', 'image'], disabled: !publishedEmbedAvailable, run: () => performShareAction('markdown') },
+        { id: 'share', label: 'Share…', description: 'Links, privacy, and publishing', shortcut: '⌘⇧S', run: openShareDialog },
+      ],
+    },
+    {
+      id: 'view',
+      label: 'View',
+      commands: [
+        { id: 'fit', label: 'Fit to window', shortcut: '⇧0', run: () => preview.fit() },
+        { id: 'one-to-one', label: 'Actual size', description: 'Show at 1:1', keywords: ['zoom'], run: () => preview.oneToOne() },
+        { id: 'raw', label: detailsState.presentation.appearance === 'raw' ? 'Use themed renderer output' : 'Use raw renderer output', keywords: ['appearance', 'theme'], run: () => previewRawButton.click() },
+      ],
+    },
+    {
+      id: 'document',
+      label: 'Document',
+      commands: [
+        { id: 'new', label: 'Create new…', description: 'Choose a template in the launcher', shortcut: '⌘N', run: requestNewDiagram },
+        { id: 'open', label: 'Open editable SVG…', shortcut: '⌘O', run: openEditableSvgDialog },
+        { id: 'docs', label: 'Documentation', description: 'Open docs.diagram.zip', keywords: ['help', 'reference'], run: () => location.assign('https://docs.diagram.zip/') },
+      ],
+    },
+  ]
+}
+
+function openCommandPalette(mode = 'root') {
+  const dialog = document.querySelector('#command-dialog')
+  if (dialog.open) dialog.close()
+  commandPaletteInvoker = document.activeElement
+  commandPaletteMode = mode
+  commandPaletteModel = createCommandPaletteModel(commandGroups(mode))
+  const input = document.querySelector('#command-input')
+  input.value = ''
+  input.placeholder = mode === 'format' ? 'Filter formats' : 'Type a command'
+  document.querySelector('#command-scope').hidden = mode !== 'format'
+  document.querySelector('#command-footer-note').textContent = mode === 'format'
+    ? 'Source and document details stay unchanged'
+    : '⌘K anywhere'
+  if (mode === 'root') commandPaletteModel.selectById('change-format')
+  else commandPaletteModel.selectFirst()
+  renderCommandPalette(false)
+  dialog.showModal()
+  input.focus()
+}
+
+function renderCommandPalette(resetSelection = true) {
+  if (!commandPaletteModel) return
+  const input = document.querySelector('#command-input')
+  if (resetSelection) commandPaletteModel.selectFirst(input.value)
+  const results = commandPaletteModel.results()
+  const resultSet = new Set(results.map(command => command.id))
+  const container = document.querySelector('#command-results')
+  container.replaceChildren()
+  for (const group of commandPaletteModel.groups) {
+    const commands = group.commands.filter(command => resultSet.has(command.id))
+    if (!commands.length) continue
+    const heading = document.createElement('div')
+    heading.className = 'command-section'
+    heading.textContent = group.label
+    container.append(heading)
+    for (const command of commands) {
+      const option = document.createElement('button')
+      option.type = 'button'
+      option.className = 'command-option'
+      option.id = `command-option-${command.id.replace(/[^a-z0-9_-]/gi, '-')}`
+      option.dataset.commandId = command.id
+      option.disabled = command.disabled === true
+      option.setAttribute('role', 'option')
+      const selected = command.id === commandPaletteModel.selectedId
+      option.setAttribute('aria-selected', String(selected))
+      option.innerHTML = `<span class="command-option-copy"><strong></strong>${command.description ? '<small></small>' : ''}</span><span class="command-option-spacer"></span>${command.shortcut ? '<kbd></kbd>' : ''}`
+      option.querySelector('strong').textContent = command.label
+      if (command.description) option.querySelector('small').textContent = command.description
+      if (command.shortcut) option.querySelector('kbd').textContent = command.shortcut
+      container.append(option)
+    }
+  }
+  if (!results.length) {
+    const empty = document.createElement('p')
+    empty.className = 'command-empty'
+    empty.textContent = commandPaletteMode === 'format' ? 'No matching formats.' : 'No matching commands.'
+    container.append(empty)
+  }
+  const selected = container.querySelector('[aria-selected="true"]')
+  input.setAttribute('aria-activedescendant', selected?.id ?? '')
+  selected?.scrollIntoView({ block: 'nearest' })
+}
+
+function runSelectedCommand() {
+  const command = commandPaletteModel?.selected
+  if (!command || command.disabled) return
+  const dialog = document.querySelector('#command-dialog')
+  dialog.close()
+  queueMicrotask(() => command.run())
+}
+
+function changeDiagramType(type) {
+  if (!isKnownDiagramType(type)) return
+  if (!ensureValidDetails()) {
+    typePicker.value = activeType
+    updateTypeCommand()
+    return
+  }
+  history.replaceState(null, '', urlWithDiagramType(location.href, type))
+  applyState(stateForTypeChange(currentState(), type))
+}
+
+function updateTypeCommand() {
+  const label = diagramTypeLabel(typePicker.value)
+  const button = document.querySelector('#command-type')
+  document.querySelector('#command-type-label').textContent = label
+  button.setAttribute('aria-label', `Change format. Current format: ${label}`)
+  button.title = `Change format - Current: ${label}`
+}
+
+function diagramTypeLabel(type) {
+  return diagramTypes.find(item => item.id === type)?.label ?? type ?? 'Diagram'
+}
+
+function relativeTime(timestamp) {
+  const elapsed = Math.max(0, Date.now() - Number(timestamp || 0))
+  const minute = 60_000
+  const hour = 60 * minute
+  const day = 24 * hour
+  if (elapsed < minute) return 'just now'
+  if (elapsed < hour) return `${Math.floor(elapsed / minute)}m ago`
+  if (elapsed < day) return `${Math.floor(elapsed / hour)}h ago`
+  if (elapsed < 7 * day) return `${Math.floor(elapsed / day)}d ago`
+  return new Date(timestamp).toLocaleDateString()
+}
+
+function openRecent(entry) {
+  if (entry.kind === 'local') location.assign(`/?doc=${encodeURIComponent(entry.localId)}`)
+  else if (entry.mode === 'locked') location.assign(`/d/${entry.aliasId}`)
+  else location.assign(urlWithDiagramType(`/d/${entry.aliasId}`, entry.type || DEFAULT_DIAGRAM_TYPE))
+}
+
+function requestNewDiagram() {
+  if (remote.dirty && !confirm('Leave these local changes and open the launcher? They remain on this device.')) return
+  location.assign('/')
 }
 
 function currentState() {
@@ -620,7 +844,7 @@ function commitState(render = true) {
     mode: remote.mode,
     keyEnvelopeDirty: remote.keyEnvelopeDirty,
     savedSnapshot: remote.savedSnapshot,
-    defaultStateFor: exampleStateFor,
+    defaultStateFor: templateStateFor,
   })
   syncStoredDraft(state)
   updateSaveButton()
@@ -750,13 +974,13 @@ async function loadInitialState() {
         const unlocked = await promptToUnlock(alias)
         if (!unlocked) {
           initialLoadError = 'A password is required to open this diagram.'
-          return exampleStateFor(DEFAULT_DIAGRAM_TYPE)
+          return templateStateFor(DEFAULT_DIAGRAM_TYPE)
         }
         setRemoteAlias(alias, writeCapability, unlocked.state, unlocked.bundleKey)
         return unlocked.state
       }
       setRemoteAlias(alias, writeCapability, alias.state)
-      const draft = loadDraft(`${ALIAS_DRAFT_PREFIX}${aliasId}`)
+      const draft = loadAliasDraft(`${ALIAS_DRAFT_PREFIX}${aliasId}`)
       if (draft?.revision === alias.revision) {
         restoredDetailsSource = draft.detailsSource
         return draft.state
@@ -769,24 +993,24 @@ async function loadInitialState() {
     }
   }
   if (location.hash) history.replaceState(null, '', `${location.pathname}${location.search}`)
-  const requestedType = diagramTypeFromQuery(location.search)
-  const draft = loadDraft(LOCAL_DRAFT_KEY)
-  if (requestedType) {
-    if (draft?.state.type === requestedType) {
-      lastFileSnapshot = draft.fileSnapshot
-      restoredDetailsSource = draft.detailsSource
-      const state = refreshMatchingExampleMetadata(draft.state, exampleStateFor(requestedType))
-      if (state !== draft.state) storeDraft(state)
+  if (localDocumentId) {
+    const document = localDocuments.loadLocalDocument(localDocumentId)
+    const state = normalizeStoredState(document?.state)
+    if (state) {
+      lastFileSnapshot = document.fileSnapshot
+      restoredDetailsSource = document.detailsSource
+      localDocuments.touchRecent({ localId: localDocumentId })
       return state
     }
-    return exampleStateFor(requestedType)
+    initialLoadError = 'This local diagram is no longer stored on this device.'
+    localDocumentId = null
   }
-  if (draft) {
-    lastFileSnapshot = draft.fileSnapshot
-    restoredDetailsSource = draft.detailsSource
-    return draft.state
+  const requestedType = diagramTypeFromQuery(location.search)
+  if (requestedType) {
+    const state = templateStateFor(requestedType)
+    return state
   }
-  return exampleStateFor(DEFAULT_DIAGRAM_TYPE)
+  return templateStateFor(DEFAULT_DIAGRAM_TYPE)
 }
 
 function applyState(state, commit = true) {
@@ -794,8 +1018,8 @@ function applyState(state, commit = true) {
   const meta = normalizeMetadata(state.meta)
   const presentation = normalizePresentation(state.presentation)
   activeType = state.type
-  typeDrafts.set(state.type, { ...state, meta, presentation })
   typePicker.value = state.type
+  updateTypeCommand()
   setDetailsState({ meta, presentation })
   syncPreviewAppearanceControls()
   sourceEditor.setDocument({ source: state.source, diagramType: state.type })
@@ -803,14 +1027,7 @@ function applyState(state, commit = true) {
   else preview.render(currentState())
 }
 
-function selectedSaveAction() {
-  return primarySaveAction ?? (remote.aliasId ? 'publish' : 'file')
-}
-
 async function performPrimarySaveAction() {
-  const action = selectedSaveAction()
-  if (action === 'publish') return saveDiagram()
-  if (action === 'encrypt-publish') return encryptAndPublish()
   return saveEditableFile()
 }
 
@@ -899,10 +1116,9 @@ async function openEditableSvgValue(load) {
     if (remote.dirty && !confirm('Replace the current working draft with this editable SVG? Unsaved changes will be discarded.')) return
     clearTimeout(renderTimer)
     clearTimeout(detailsCommitTimer)
-    primarySaveAction = null
     lastFileSnapshot = workingStateSnapshot(state)
+    localDocumentId = null
     remote = emptyRemoteState()
-    typeDrafts.clear()
     history.pushState(null, '', urlWithDiagramType('/', state.type))
     applyState(state)
     const dialog = document.querySelector('#open-dialog')
@@ -1069,14 +1285,19 @@ async function saveDiagram() {
 
 async function createNewAlias(state) {
   const previousAliasId = remote.aliasId
-  const previousDraftKey = previousAliasId ? `${ALIAS_DRAFT_PREFIX}${previousAliasId}` : LOCAL_DRAFT_KEY
+  const previousDraftKey = previousAliasId ? `${ALIAS_DRAFT_PREFIX}${previousAliasId}` : null
+  const previousLocalDocumentId = localDocumentId
   const bundleKey = remote.bundleKey
   const alias = remote.mode === 'locked'
     ? await persistence.createLockedAlias(await lockedPayloadForState(state))
     : await persistence.createAlias(state)
   setRemoteAlias(alias, alias.writeCapability, state, remote.mode === 'locked' ? bundleKey : null)
   storeWriteCapability(alias.aliasId, alias.writeCapability)
-  removeDraft(previousDraftKey)
+  if (previousDraftKey) removeDraft(previousDraftKey)
+  if (previousLocalDocumentId) {
+    localDocuments.deleteLocalDocument(previousLocalDocumentId)
+    localDocumentId = null
+  }
   history.pushState(null, '', urlWithDiagramType(`/d/${alias.aliasId}`, state.type))
   await cacheSavedRenders(state)
 }
@@ -1176,7 +1397,12 @@ async function lockDiagram() {
     remote.encryptedContent = payload.encryptedContent
     remote.encryptedMetadata = payload.encryptedMetadata
     remote.keyEnvelopeDirty = true
-    removeDraft(remote.aliasId ? `${ALIAS_DRAFT_PREFIX}${remote.aliasId}` : LOCAL_DRAFT_KEY)
+    if (remote.aliasId) removeDraft(`${ALIAS_DRAFT_PREFIX}${remote.aliasId}`)
+    else if (localDocumentId) {
+      localDocuments.deleteLocalDocument(localDocumentId)
+      localDocumentId = null
+      history.replaceState(null, '', urlWithDiagramType('/', typePicker.value))
+    }
     commitState(false)
     showToast('Encrypted in this browser — publish to persist')
     return true
@@ -1349,7 +1575,7 @@ function normalizeStoredState(value) {
   }
 }
 
-function loadDraft(key) {
+function loadAliasDraft(key) {
   try {
     const draft = JSON.parse(localStorage.getItem(key))
     const state = normalizeStoredState(draft?.state)
@@ -1367,7 +1593,25 @@ function loadDraft(key) {
 
 function storeDraft(state) {
   if (remote.mode === 'locked') return
-  const key = remote.aliasId ? `${ALIAS_DRAFT_PREFIX}${remote.aliasId}` : LOCAL_DRAFT_KEY
+  if (!remote.aliasId) {
+    const savedId = localDocuments.saveLocalDocument({
+      state,
+      detailsSource: !detailsValid && detailsEditor ? detailsEditor.getValue() : null,
+      fileSnapshot: lastFileSnapshot,
+      drafts: {},
+      dirty: remote.dirty,
+    }, localDocumentId ? { localId: localDocumentId, currentLocalId: localDocumentId } : {})
+    if (!savedId) {
+      showToast('This diagram could not be saved on this device.', 4000)
+      return
+    }
+    if (!localDocumentId) {
+      localDocumentId = savedId
+      history.replaceState(null, '', `/?doc=${encodeURIComponent(localDocumentId)}`)
+    }
+    return
+  }
+  const key = `${ALIAS_DRAFT_PREFIX}${remote.aliasId}`
   try {
     const detailsSource = !detailsValid && detailsEditor
       ? detailsEditor.getValue()
@@ -1385,7 +1629,11 @@ function storeDraft(state) {
 
 function syncStoredDraft(state) {
   if (remote.mode === 'locked') return
-  const key = remote.aliasId ? `${ALIAS_DRAFT_PREFIX}${remote.aliasId}` : LOCAL_DRAFT_KEY
+  if (!remote.aliasId) {
+    if (remote.dirty || localDocumentId) storeDraft(state)
+    return
+  }
+  const key = `${ALIAS_DRAFT_PREFIX}${remote.aliasId}`
   if (remote.dirty) storeDraft(state)
   else removeDraft(key)
 }
@@ -1432,57 +1680,46 @@ function setRemoteAlias(alias, writeCapability, state, bundleKey = null) {
     keyEnvelopeDirty: false,
     dirty: false,
   }
+  localDocuments.upsertRecent({
+    kind: 'alias',
+    aliasId: alias.aliasId,
+    title: alias.mode === 'locked' ? null : normalizeMetadata(state.meta).title,
+    type: alias.mode === 'locked' ? '' : state.type,
+    mode: alias.mode,
+  })
   updatePrivacyControls()
   updateSaveButton()
 }
 
 function updateSaveButton() {
-  const button = document.querySelector('#save')
   updateDraftControls()
-  const action = selectedSaveAction()
-  const fileDirty = action === 'file'
-    && (lastFileSnapshot === null || lastFileSnapshot !== workingStateSnapshot(currentState()))
-  let state = 'save'
-  let label = action === 'file' ? 'Save as File' : action === 'encrypt-publish' ? 'Encrypt & Publish' : 'Publish'
-  let disabled = false
-  if (saving) {
-    state = 'saving'
-    label = action === 'file' ? 'Saving File' : action === 'encrypt-publish' ? 'Encrypting & Publishing' : 'Publishing'
-    disabled = true
-  } else if (action === 'file' && !fileDirty) {
-    state = 'saved'
-    label = 'Saved to File'
-    disabled = true
-  } else if (action === 'publish' && remote.aliasId && !remote.dirty) {
-    state = 'saved'
-    label = 'Published'
-    disabled = true
-  } else if (action === 'publish' && remote.aliasId && !remote.writeCapability) {
-    state = 'copy'
-    label = 'Publish a Copy'
-  } else if (action === 'encrypt-publish' && remote.aliasId && remote.mode === 'locked' && !remote.dirty) {
-    state = 'saved'
-    label = 'Published'
-    disabled = true
+  const indicator = document.querySelector('#unsaved-indicator')
+  const reset = document.querySelector('#quick-reset')
+  const dirty = remote.dirty || remote.keyEnvelopeDirty
+  indicator.dataset.dirty = String(dirty)
+  reset.dataset.visible = String(dirty)
+  reset.setAttribute('aria-hidden', String(!dirty))
+  reset.tabIndex = dirty ? 0 : -1
+  reset.disabled = saving
+  const resetTarget = remote.aliasId && remote.savedState
+    ? 'last cloud save'
+    : `${diagramTypeLabel(typePicker.value)} template default`
+  reset.setAttribute('aria-label', `Reset to ${resetTarget}`)
+  reset.title = `Reset to ${resetTarget}`
+  if (document.querySelector('#command-dialog').open && commandPaletteMode === 'root') {
+    const query = document.querySelector('#command-input').value
+    commandPaletteModel = createCommandPaletteModel(commandGroups())
+    commandPaletteModel.selectFirst(query)
+    renderCommandPalette(false)
   }
-  button.dataset.saveState = state
-  button.dataset.saveAction = action
-  button.dataset.dirty = String(action === 'file' ? fileDirty : remote.dirty)
-  button.setAttribute('aria-label', label)
-  button.title = label
-  button.disabled = disabled
-  document.querySelector('#save-menu-toggle').disabled = saving
-  document.querySelectorAll('[data-primary-save]').forEach(option => {
-    const selected = option.dataset.primarySave === action
-    option.dataset.selected = String(selected)
-    option.setAttribute('aria-pressed', String(selected))
-  })
-  const publishedEmbedAvailable = remote.aliasId
-    ? Boolean(remote.savedMode !== 'locked' && remote.savedState)
-    : remote.mode !== 'locked'
-  document.querySelectorAll('[data-save-quick-action="svg-url"], [data-save-quick-action="markdown"]').forEach(option => {
-    option.disabled = !publishedEmbedAvailable
-  })
+}
+
+function quickResetDocument() {
+  if (!(remote.dirty || remote.keyEnvelopeDirty) || saving) return
+  const cloudSaved = Boolean(remote.aliasId && remote.savedState)
+  const target = cloudSaved ? 'the last cloud save' : `the ${diagramTypeLabel(typePicker.value)} template default`
+  if (!confirm(`Reset to ${target}? Local changes will be discarded.`)) return
+  restoreSavedDiagram({ confirmed: true })
 }
 
 function updateDraftControls() {
@@ -1490,7 +1727,7 @@ function updateDraftControls() {
   const restore = document.querySelector('#restore-saved')
   const makeCopy = document.querySelector('#make-copy')
   const hasAliasOverlay = Boolean(remote.aliasId && remote.savedState && remote.dirty)
-  const hasAnonymousDraft = Boolean(!remote.aliasId && remote.dirty && lastFileSnapshot === null)
+  const hasAnonymousDraft = Boolean(!remote.aliasId && !localDocumentId && remote.dirty && lastFileSnapshot === null)
   bar.hidden = !hasAliasOverlay && !hasAnonymousDraft
   restore.disabled = saving
   makeCopy.disabled = saving
@@ -1510,19 +1747,18 @@ function updateDraftControls() {
   }
 }
 
-function restoreSavedDiagram() {
+function restoreSavedDiagram({ confirmed = false } = {}) {
   if (!remote.aliasId) {
-    resetAnonymousExample()
+    resetAnonymousExample({ confirmed })
     return
   }
-  if (!remote.aliasId || !remote.savedState || !remote.dirty) return
+  if (!remote.aliasId || !remote.savedState || !(remote.dirty || remote.keyEnvelopeDirty)) return
   clearTimeout(renderTimer)
   clearTimeout(detailsCommitTimer)
   remote.mode = remote.savedMode
   remote.keyEnvelopeDirty = false
   remote.dirty = false
   removeDraft(`${ALIAS_DRAFT_PREFIX}${remote.aliasId}`)
-  typeDrafts.clear()
   applyState(remote.savedState, false)
   history.replaceState(null, '', urlWithDiagramType(location.href, remote.savedState.type))
   updatePrivacyControls()
@@ -1530,14 +1766,14 @@ function restoreSavedDiagram() {
   showToast('Restored published diagram')
 }
 
-function resetAnonymousExample() {
+function resetAnonymousExample({ confirmed = false } = {}) {
   if (remote.aliasId || !remote.dirty) return
-  if (!confirm('Discard local changes and reset this example?')) return
+  if (!confirmed && !confirm('Discard local changes and reset this example?')) return
   clearTimeout(renderTimer)
   clearTimeout(detailsCommitTimer)
-  removeDraft(LOCAL_DRAFT_KEY)
-  typeDrafts.clear()
-  const state = exampleStateFor(typePicker.value)
+  if (localDocumentId) localDocuments.deleteLocalDocument(localDocumentId)
+  localDocumentId = null
+  const state = templateStateFor(typePicker.value)
   applyState(state, false)
   remote.dirty = false
   history.replaceState(null, '', urlWithDiagramType(location.href, state.type))
@@ -1572,16 +1808,6 @@ function updatePrivacyControls() {
   document.querySelector('#lock-diagram').hidden = locked
   document.querySelector('#change-password').hidden = !locked
   document.querySelector('#unlock-diagram').hidden = !locked
-}
-
-function startNewDiagram() {
-  if (!remote.aliasId) removeDraft(LOCAL_DRAFT_KEY)
-  remote = emptyRemoteState({ dirty: false })
-  primarySaveAction = null
-  lastFileSnapshot = null
-  typeDrafts.clear()
-  history.pushState(null, '', urlWithDiagramType('/', DEFAULT_DIAGRAM_TYPE))
-  applyState(exampleStateFor(DEFAULT_DIAGRAM_TYPE))
 }
 
 function emptyRemoteState(overrides = {}) {
