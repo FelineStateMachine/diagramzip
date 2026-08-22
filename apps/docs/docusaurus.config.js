@@ -87,7 +87,7 @@ const config = {
           ],
         },
       ],
-      copyright: `diagram.zip documentation · ${new Date().getFullYear()}`,
+      copyright: `diagram.zip documentation - ${new Date().getFullYear()}`,
     },
     prism: {
       theme: prismThemes.github,

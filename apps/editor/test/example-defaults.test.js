@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { diagramTypes } from '../src/diagram-types.js'
 import {
+  exampleStateForTheme,
   namedExample,
   refreshMatchingExampleMetadata,
 } from '../src/example-defaults.js'
@@ -19,6 +20,27 @@ test('names every example without adding description or presentation styling', (
       appearance: 'raw',
     })
   }
+})
+
+test('applies the app theme as transparent presentation without changing template source', () => {
+  const template = {
+    type: 'ditaa',
+    source: '+---+',
+    meta: { title: 'ASCII', description: '' },
+    presentation: { appearance: 'raw', background: '#ffffff', padding: 24, frame: true },
+  }
+
+  const dark = exampleStateForTheme(template, 'dark')
+  assert.equal(dark.source, template.source)
+  assert.equal(dark.meta, template.meta)
+  assert.deepEqual(dark.presentation, {
+    appearance: 'dark-transparent',
+    background: '',
+    padding: 0,
+    frame: false,
+  })
+  assert.equal(exampleStateForTheme(template, 'light').presentation.appearance, 'light-transparent')
+  assert.throws(() => exampleStateForTheme(template, 'auto'), /light or dark/)
 })
 
 test('names an untitled draft matching its bundled example', () => {
