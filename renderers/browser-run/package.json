@@ -1,0 +1,28 @@
+{
+  "name": "@diagramzip/browser-run",
+  "version": "1.0.0",
+  "description": "Private Browser Run execution bridge for diagram.zip renderer units.",
+  "scripts": {
+    "test": "vitest run",
+    "check": "tsc --noEmit",
+    "types": "wrangler types",
+    "deploy": "wrangler deploy --config wrangler.jsonc",
+    "dev": "wrangler dev --config wrangler.jsonc --remote"
+  },
+  "license": "UNLICENSED",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@cloudflare/puppeteer": "^1.4.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260822.1",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.125.0"
+  }
+}

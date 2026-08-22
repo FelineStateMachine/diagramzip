@@ -118,7 +118,7 @@ NPM_DIRECTORIES=("$ROOT")
 while IFS= read -r lockfile; do
   directory="$(cd "$(dirname "$lockfile")" && pwd -P)"
   [[ "$directory" == "$ROOT" ]] || NPM_DIRECTORIES+=("$directory")
-done < <(find apps/docs services renderers/client renderers/edge -name package-lock.json -not -path '*/node_modules/*' -print | sort)
+done < <(find apps/docs services renderers/browser-run renderers/client renderers/edge -name package-lock.json -not -path '*/node_modules/*' -print | sort)
 
 PYTHON_DIRECTORIES=()
 while IFS= read -r config; do
@@ -130,8 +130,10 @@ while IFS= read -r config; do
   CLIENT_DIRECTORIES+=("$(cd "$(dirname "$config")" && pwd -P)")
 done < <(find renderers/client -mindepth 2 -maxdepth 2 -name wrangler.jsonc -print | sort)
 
+BROWSER_RUN_DIRECTORY="$ROOT/renderers/browser-run"
+
 EDGE_CONFIG_COUNT="$(find renderers/edge/config/units -maxdepth 1 -name '*.jsonc' | wc -l | tr -d ' ')"
-DEPLOYMENT_COUNT=$((EDGE_CONFIG_COUNT + ${#PYTHON_DIRECTORIES[@]} + ${#CLIENT_DIRECTORIES[@]} + 4))
+DEPLOYMENT_COUNT=$((EDGE_CONFIG_COUNT + ${#PYTHON_DIRECTORIES[@]} + ${#CLIENT_DIRECTORIES[@]} + 5))
 WRANGLER_CONFIG_COUNT="$(find apps services renderers \
   -path '*/node_modules' -prune -o \
   -path 'renderers/edge/config' -prune -o \
@@ -140,7 +142,7 @@ PRODUCTION_CONFIG_COUNT=$((WRANGLER_CONFIG_COUNT + EDGE_CONFIG_COUNT))
 [[ "$PRODUCTION_CONFIG_COUNT" == "$DEPLOYMENT_COUNT" ]] || \
   die "release ownership covers ${DEPLOYMENT_COUNT} deployments, but ${PRODUCTION_CONFIG_COUNT} production Wrangler configs exist."
 printf '  Commit: %s (%s)\n' "$RELEASE_SHORT_SHA" "$RELEASE_SUBJECT"
-printf '  Discovered: %s edge + %s Python + %s client + catalog/API/shell/docs = %s deployments\n' \
+printf '  Discovered: %s edge + %s Python + %s client + Browser Run/catalog/API/shell/docs = %s deployments\n' \
   "$EDGE_CONFIG_COUNT" "${#PYTHON_DIRECTORIES[@]}" "${#CLIENT_DIRECTORIES[@]}" "$DEPLOYMENT_COUNT"
 
 section 'locked dependency installation'
@@ -163,11 +165,13 @@ run_in "$ROOT/renderers/edge" "$WRANGLER" types ../catalog/worker-configuration.
 run_in "$ROOT/services/api" npm run check
 run_in "$ROOT/services/shell" npm run check
 run_in "$ROOT/renderers/edge" npm run check
+run_in "$BROWSER_RUN_DIRECTORY" npm run check
 
 section 'tests and production builds'
 run_in "$ROOT" npm test
 run_in "$ROOT" npm run build:editor
 run_in "$ROOT" npm run build:docs
+run_in "$BROWSER_RUN_DIRECTORY" npm test
 for directory in "${PYTHON_DIRECTORIES[@]}"; do
   run_in "$directory" uv run pytest -q
   run_in "$directory" uv run pywrangler sync --force
@@ -185,6 +189,7 @@ run_in "$ROOT/renderers/edge" npm run check:licenses
 run_in "$ROOT/renderers/catalog" "$WRANGLER" deploy --dry-run --strict --config wrangler.jsonc
 run_in "$ROOT/services/api" "$ROOT/services/api/node_modules/.bin/wrangler" deploy --dry-run --strict --config wrangler.jsonc
 run_in "$ROOT/services/shell" "$ROOT/services/shell/node_modules/.bin/wrangler" deploy --dry-run --strict --config wrangler.jsonc
+run_in "$BROWSER_RUN_DIRECTORY" "$BROWSER_RUN_DIRECTORY/node_modules/.bin/wrangler" deploy --dry-run --strict --config wrangler.jsonc
 for directory in "${CLIENT_DIRECTORIES[@]}"; do
   run_in "$directory" "$WRANGLER" deploy --dry-run --strict --config wrangler.jsonc
 done
@@ -217,6 +222,9 @@ run_in "$ROOT/renderers/edge" npm run deploy:edge
 
 section 'Python renderer deployment'
 run_in "$ROOT/renderers/edge" npm run deploy:python
+
+section 'private Browser Run deployment'
+run_in "$BROWSER_RUN_DIRECTORY" "$BROWSER_RUN_DIRECTORY/node_modules/.bin/wrangler" deploy --strict --message "$RELEASE_MESSAGE" --config wrangler.jsonc
 
 section 'client renderer deployment'
 for directory in "${CLIENT_DIRECTORIES[@]}"; do

@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-browser-run",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "browser": { "binding": "BROWSER" },
+  "durable_objects": {
+    "bindings": [{ "name": "BROWSER_SESSIONS", "class_name": "BrowserSession" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["BrowserSession"] }],
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 }
+}
