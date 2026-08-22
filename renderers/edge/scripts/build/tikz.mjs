@@ -49,7 +49,7 @@ if (!core.includes('await Un(B.instance.exports)')) throw new Error('TikZJax Was
 core = core.replace('await Un(B.instance.exports)', 'await Un(B.exports)')
 const inflate = 'const Xn=async A=>{const t=await fetch(`${zn}/${A}`);if(t.ok){const A=t.body.getReader(),e=new zr.Inflate;for(;;){const{done:t,value:r}=await A.read();if(t)break;e.push(r)}if(A.releaseLock(),e.err)throw new Error(e.err);return e.result}throw new Error(`Unable to load ${A}. File not available.`)}'
 if (!core.includes(inflate)) throw new Error('TikZJax inflate hook did not match the pinned source.')
-const streamingInflate = 'const Xn=async(A,t)=>{const e=await fetch(`${zn}/${A}`);if(e.ok){const A=e.body.getReader(),r=new zr.Inflate;let n=0;t&&(r.onData=A=>{if(n+A.length>t.length)throw new Error(`Inflated ${A} exceeds its destination.`);t.set(A,n),n+=A.length});for(;;){const{done:e,value:t}=await A.read();if(e)break;r.push(t)}if(A.releaseLock(),r.err)throw new Error(r.err);if(t&&n!==t.length)throw new Error(`Inflated ${A} has an unexpected size.`);return t?t.subarray(0,n):r.result}throw new Error(`Unable to load ${A}. File not available.`)}'
+const streamingInflate = 'const Xn=async(A,t)=>{const e=await zn(A);if(e.ok){const A=e.body.getReader(),r=new zr.Inflate;let n=0;t&&(r.onData=A=>{if(n+A.length>t.length)throw new Error(`Inflated ${A} exceeds its destination.`);t.set(A,n),n+=A.length});for(;;){const{done:e,value:t}=await A.read();if(e)break;r.push(t)}if(A.releaseLock(),r.err)throw new Error(r.err);if(t&&n!==t.length)throw new Error(`Inflated ${A} has an unexpected size.`);return t?t.subarray(0,n):r.result}throw new Error(`Unable to load ${A}. File not available.`)}'
 core = core.replace(inflate, streamingInflate)
 const loadAssets = 'async load(A){zn=A,Zn=await Xn("tex.wasm.gz"),Wn=new Uint8Array(await Xn("core.dump.gz"),0,65536*wn)}'
 if (!core.includes(loadAssets)) throw new Error('TikZJax asset-load hook did not match the pinned source.')
@@ -64,7 +64,7 @@ if (!core.endsWith('})();')) throw new Error('TikZJax wrapper terminator did not
 core = `${core.slice(0, -5)}
 })();export const tikzCore=globalThis.__tikzCaptured;`
 writeFileSync(resolve(output, 'tikz-core.js'), core)
-writeFileSync(resolve(output, 'tikz-core.d.ts'), 'export interface TikzCore {\n  load(baseUrl: string): Promise<void>\n  texify(source: string, options: Record<string, string>): Promise<string>\n}\nexport const tikzCore: TikzCore\n')
+writeFileSync(resolve(output, 'tikz-core.d.ts'), 'export interface TikzCore {\n  load(fetchAsset: (assetPath: string) => Promise<Response>): Promise<void>\n  texify(source: string, options: Record<string, string>): Promise<string>\n}\nexport const tikzCore: TikzCore\n')
 writeFileSync(resolve(output, 'tex.wasm.d.ts'), 'declare const module: WebAssembly.Module\nexport default module\n')
 writeFileSync(resolve(output, 'provenance.md'), [
   '# TikZJax edge artifact',
@@ -74,7 +74,8 @@ writeFileSync(resolve(output, 'provenance.md'), [
   'tikz-core.js is the distributed run-tex.js with the threads worker export',
   'replaced by a direct load/texify capture, the compressed core dump stream-',
   'inflated directly into fresh Wasm memory, and arbitrary external TeX file',
-  'fallbacks removed. The compressed tex.wasm.gz fetch is unused by the edge',
+  'fallbacks removed. Asset reads use the Worker static-assets binding. The',
+  'compressed tex.wasm.gz fetch is unused by the edge',
   'path; tex.wasm is statically compiled into the Worker with the CompiledWasm',
   'rule. It is used only with the bundled tex_files/ package set.',
   '',

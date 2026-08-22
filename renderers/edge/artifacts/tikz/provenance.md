@@ -5,7 +5,8 @@ upstream revision e4bb417fe574f58f6db611cefc6be4855ab9d345. The generated
 tikz-core.js is the distributed run-tex.js with the threads worker export
 replaced by a direct load/texify capture, the compressed core dump stream-
 inflated directly into fresh Wasm memory, and arbitrary external TeX file
-fallbacks removed. The compressed tex.wasm.gz fetch is unused by the edge
+fallbacks removed. Asset reads use the Worker static-assets binding. The
+compressed tex.wasm.gz fetch is unused by the edge
 path; tex.wasm is statically compiled into the Worker with the CompiledWasm
 rule. It is used only with the bundled tex_files/ package set.
 

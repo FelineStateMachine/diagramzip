@@ -1,5 +1,5 @@
 export interface TikzCore {
-  load(baseUrl: string): Promise<void>
+  load(fetchAsset: (assetPath: string) => Promise<Response>): Promise<void>
   texify(source: string, options: Record<string, string>): Promise<string>
 }
 export const tikzCore: TikzCore
