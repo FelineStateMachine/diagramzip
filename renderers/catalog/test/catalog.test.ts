@@ -119,6 +119,12 @@ describe('engine catalog', () => {
     expect(diagramsnet.version).toContain('diagrams.net@29.6.1')
   })
 
+  it('marks BPMN as a direct edge renderer', () => {
+    const bpmn = ENGINE_CATALOG.find(engine => engine.id === 'bpmn')!
+    expect(bpmn.activeRuntime).toBe('edge-js')
+    expect(bpmn.version).toBe('diagramzip-bpmn-svg@1')
+  })
+
   it('marks TikZ as a bundled browser renderer and UMLet as a direct edge translation', () => {
     const tikz = ENGINE_CATALOG.find(engine => engine.id === 'tikz')!
     const umlet = ENGINE_CATALOG.find(engine => engine.id === 'umlet')!

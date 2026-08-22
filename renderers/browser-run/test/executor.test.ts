@@ -7,11 +7,11 @@ describe('browser page executor', () => {
     const fakeWindow = {
       addEventListener: (_type: string, listener: (event: MessageEvent) => void) => listeners.add(listener),
       removeEventListener: (_type: string, listener: (event: MessageEvent) => void) => listeners.delete(listener),
-      postMessage: (data: unknown) => queueMicrotask(() => listeners.forEach(listener => listener({ source: globalThis, data: { channel: 'diagram.zip:renderer:v1', type: 'result', requestId: (data as any).requestId, ok: true, svg: '<svg/>', version: 'v', build: 'b', pipeline: ['bpmn'] } } as unknown as MessageEvent))),
+      postMessage: (data: unknown) => queueMicrotask(() => listeners.forEach(listener => listener({ source: globalThis, data: { channel: 'diagram.zip:renderer:v1', type: 'result', requestId: (data as any).requestId, ok: true, svg: '<svg/>', version: 'v', build: 'b', pipeline: ['mermaid'] } } as unknown as MessageEvent))),
     }
     const oldMethods = { addEventListener: (globalThis as any).addEventListener, removeEventListener: (globalThis as any).removeEventListener, postMessage: (globalThis as any).postMessage }
     Object.assign(globalThis, fakeWindow)
-    await expect(browserHarness({ engine: 'bpmn', requestId: 'r', source: '<xml/>' })).resolves.toMatchObject({ ok: true, svg: '<svg/>' })
+    await expect(browserHarness({ engine: 'mermaid', requestId: 'r', source: 'graph TD' })).resolves.toMatchObject({ ok: true, svg: '<svg/>' })
     Object.assign(globalThis, oldMethods)
   })
 
@@ -33,6 +33,6 @@ describe('browser page executor', () => {
       async goto() {},
       async evaluate<T>(): Promise<T> { return { ok: true, svg: 'x'.repeat(4_194_305), version: 'v', build: 'b', pipeline: [] } as T },
     }
-    await expect(createPageExecutor(page).render({ engine: 'bpmn', requestId: 'r', source: '' })).rejects.toThrow(/output is too large/)
+    await expect(createPageExecutor(page).render({ engine: 'mermaid', requestId: 'r', source: '' })).rejects.toThrow(/output is too large/)
   })
 })

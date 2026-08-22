@@ -140,7 +140,7 @@ const VERSION_PATTERNS = Object.freeze({
   rackdiag: /(?:rackdiag@)?3\.0\.0/,
   bytefield: /bytefield-svg@1\.11\.0/,
   mermaid: /mermaid@11\.17\.0/,
-  bpmn: /bpmn-js@18\.25\.1/,
+  bpmn: /(?:bpmn-js@18\.25\.1|diagramzip-bpmn-svg@1)/,
   nomnoml: /nomnoml@1\.7\.0/,
   pikchr: /pikchr@85e65b9686/,
   symbolator: /(?:symbolator@)?1\.2\.2/,

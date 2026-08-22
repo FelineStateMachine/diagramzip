@@ -260,6 +260,7 @@ test('normalizes CSS-driven Mermaid and BPMN neutral structures', () => {
   assert.match(bpmn, /data-dz-stroke="line"/)
   assert.equal((bpmn.match(/data-dz-fill="ink"/g) ?? []).length, 2)
   assert.doesNotMatch(bpmn.match(/<rect class="djs-hit"[^>]*>/)?.[0] ?? '', /data-dz-/)
+  assert.equal(normalizationFor('bpmn', 'diagramzip-bpmn-svg@1').profile, 'neutral-svg-semantic-2')
 })
 
 test('creates addressable surfaces for closed Pikchr and line-built Svgbob boxes', () => {

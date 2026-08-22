@@ -3,9 +3,9 @@ import { FRAME_URLS, RenderInputError, validateRenderRequest } from '../src/cont
 
 describe('browser-run render contract', () => {
   it('accepts only the five pinned engines and validates the source', () => {
-    const request = validateRenderRequest({ engine: 'bpmn', requestId: 'r-1', source: '<definitions />' })
-    expect(request.engine).toBe('bpmn')
-    expect(FRAME_URLS.bpmn).toBe('https://bpmn.render.diagram.zip/index.html?v=1')
+    const request = validateRenderRequest({ engine: 'mermaid', requestId: 'r-1', source: 'graph TD' })
+    expect(request.engine).toBe('mermaid')
+    expect(FRAME_URLS.mermaid).toBe('https://mermaid.render.diagram.zip/index.html?v=1')
   })
 
   it('rejects unknown engines, malformed ids, and oversized input', () => {
