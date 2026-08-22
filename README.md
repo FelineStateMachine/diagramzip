@@ -11,9 +11,8 @@
 | `services/api/` | Cloudflare service for encrypted, accountless persistence |
 | `services/shell/` | Cloudflare application shell and routing service |
 | `renderers/catalog/` | Catalog service for renderer capabilities and health |
-| `renderers/browser-run/` | Private Browser Run execution bridge for browser-only engines |
+| `renderers/browser-run/` | Private Browser Run bridge and its pinned browser frames |
 | `renderers/edge/` | JavaScript and WebAssembly renderer units |
-| `renderers/client/` | Pinned browser frames used only by the Browser Run bridge |
 | `renderers/python/` | Python renderer and translation units |
 | `renderers/shared/` | Contracts shared across renderer runtimes |
 | `shared/svg/` | Shared SVG normalization and presentation logic |

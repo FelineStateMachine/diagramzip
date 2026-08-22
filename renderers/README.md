@@ -5,8 +5,7 @@ This directory contains the complete Cloudflare renderer plane for diagram.zip.
 | Path | Purpose |
 | --- | --- |
 | `catalog/` | Health and capability catalog service; it does not render diagrams |
-| `browser-run/` | Private Browser Run service and per-engine Durable Object sessions |
-| `client/` | Pinned frames executed only by the Browser Run service |
+| `browser-run/` | Private Browser Run service, per-engine Durable Object sessions, and pinned frames under `frames/` |
 | `edge/` | JavaScript and WebAssembly renderer Workers |
 | `python/` | Python renderer and translation Workers |
 | `shared/` | Engine identities shared by the catalog and runtime units |

@@ -1,5 +1,5 @@
 {
-  "$schema": "../../edge/node_modules/wrangler/config-schema.json",
+  "$schema": "../../../edge/node_modules/wrangler/config-schema.json",
   "name": "diagramzip-render-mermaid",
   "main": "./unit/worker.js",
   "compatibility_date": "2026-08-20",

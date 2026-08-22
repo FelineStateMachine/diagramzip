@@ -6,7 +6,7 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "deploy": "../../edge/node_modules/.bin/wrangler deploy --config wrangler.jsonc"
+    "deploy": "../../../edge/node_modules/.bin/wrangler deploy --config wrangler.jsonc"
   },
   "dependencies": {
     "mermaid": "11.17.0"

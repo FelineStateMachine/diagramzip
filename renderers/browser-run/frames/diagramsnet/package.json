@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "npm run build && node scripts/check.mjs",
-    "deploy": "../../edge/node_modules/.bin/wrangler deploy --config wrangler.jsonc"
+    "deploy": "../../../edge/node_modules/.bin/wrangler deploy --config wrangler.jsonc"
   },
   "devDependencies": { "esbuild": "0.28.1" }
 }

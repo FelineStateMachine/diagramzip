@@ -1,6 +1,6 @@
 {
-  "$schema": "../../edge/node_modules/wrangler/config-schema.json",
-  "name": "diagramzip-render-diagramsnet-client",
+  "$schema": "../../../edge/node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-diagramsnet",
   "main": "./unit/worker.js",
   "compatibility_date": "2026-08-20",
   "services": [{ "binding": "BROWSER_RENDERER", "service": "diagramzip-browser-run" }],

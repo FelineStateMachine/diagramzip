@@ -35,4 +35,4 @@ const frame = await readFile(new URL('../src/frame.js', import.meta.url), 'utf8'
 for (const required of ['diagram.zip:renderer:v1', 'LoadingComplete', 'MAX_SOURCE_LENGTH', 'MAX_OUTPUT_LENGTH', 'event.source !== parent']) {
   if (!frame.includes(required)) throw new Error(`Browser Run frame contract is missing ${required}.`)
 }
-console.log('diagrams.net client asset and protocol checks passed')
+console.log('diagrams.net Browser Run frame asset and protocol checks passed')
