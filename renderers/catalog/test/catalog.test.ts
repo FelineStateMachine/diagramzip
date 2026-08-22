@@ -125,6 +125,12 @@ describe('engine catalog', () => {
     expect(bpmn.version).toBe('diagramzip-bpmn-svg@1')
   })
 
+  it('marks Excalidraw as a native edge renderer', () => {
+    const excalidraw = ENGINE_CATALOG.find(engine => engine.id === 'excalidraw')!
+    expect(excalidraw.activeRuntime).toBe('edge-js')
+    expect(excalidraw.version).toBe('@excalidraw/excalidraw@0.18.1')
+  })
+
   it('marks TikZ as a bundled browser renderer and UMLet as a direct edge translation', () => {
     const tikz = ENGINE_CATALOG.find(engine => engine.id === 'tikz')!
     const umlet = ENGINE_CATALOG.find(engine => engine.id === 'umlet')!

@@ -22,6 +22,7 @@
     "test": "vitest run --dir .. edge/test catalog/test"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "0.18.1",
     "@softwaretechnik/dbml-renderer": "1.0.31",
     "@viz-js/viz": "3.29.0",
     "bytefield-svg": "1.11.0",

@@ -20,9 +20,9 @@ const THEMES = new Set([
   'superhero-outline', 'superhero', 'united',
 ])
 
-const DOM = parseHTML('<html><head></head><body></body></html>')
+const DOM = parseHTML('<html><head></head><body></body></html>') as any
 const document = DOM.document
-const window = DOM.window
+const window = DOM.window as any
 const globals = globalThis as typeof globalThis & Record<string, unknown>
 globals.document = document
 globals.window = window

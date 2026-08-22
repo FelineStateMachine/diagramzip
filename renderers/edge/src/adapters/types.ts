@@ -10,7 +10,7 @@ export function edgeResult(id: EngineId, version: string, body: string, runtime:
   return { body, contentType: 'image/svg+xml', engineVersion: version, runtime }
 }
 
-export function edgeFailure(id: EdgeEngineId, error: unknown): never {
+export function edgeFailure(id: EngineId, error: unknown): never {
   if (error instanceof RenderError) throw error
   const message = error instanceof Error ? error.message : String(error)
   throw new RenderError(422, 'render_failed', message.slice(0, 500) || `The ${id} renderer could not render this source.`)

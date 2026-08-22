@@ -66,8 +66,9 @@ const structurizrEngines = new Set(['structurizr'])
 const d2Engines = new Set(['d2'])
 const symbolatorEngines = new Set(['symbolator'])
 const umletEngines = new Set(['umlet'])
-const browserRunEngines = new Set(['mermaid', 'excalidraw', 'diagramsnet', 'tikz'])
+const browserRunEngines = new Set(['mermaid', 'diagramsnet', 'tikz'])
 const bpmnEngines = new Set(['bpmn'])
+const excalidrawEngines = new Set(['excalidraw'])
 
 async function smoke([engine, filename]) {
   const source = await readFile(resolve(diagramDirectory, filename), 'utf8')
@@ -115,6 +116,10 @@ async function smoke([engine, filename]) {
   if (bpmnEngines.has(engine)) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-js') throw new Error(`${engine}: expected edge-js renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
     if (!response.headers.get('X-Renderer-Build')?.startsWith('bpmn-direct-svg-')) throw new Error(`${engine}: unexpected BPMN Worker build ${response.headers.get('X-Renderer-Build')}`)
+  }
+  if (excalidrawEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-js') throw new Error(`${engine}: expected edge-js renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('excalidraw-0.18.1-edge-dom-')) throw new Error(`${engine}: unexpected Excalidraw Worker build ${response.headers.get('X-Renderer-Build')}`)
   }
   if (pythonEngines.has(engine)) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-python') {

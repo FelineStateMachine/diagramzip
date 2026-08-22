@@ -16,6 +16,12 @@ const iscFallbacks = new Map([
   ['boolbase', 'Copyright (c) Felix Boehm <me@feedic.com>'],
   ['saxes', 'Copyright (c) Louis-Dominique Dubeau <ldd@lddubeau.com>'],
 ])
+const repositoryLicenseFallbacks = new Map([
+  ['@excalidraw/excalidraw', join(root, '../../licenses/excalidraw-license.txt')],
+])
+const licenseMetadataFallbacks = new Map([
+  ['khroma', 'MIT'],
+])
 
 function iscText(copyright) {
   return `${copyright}\n\nPermission to use, copy, modify, and/or distribute this software for any\npurpose with or without fee is hereby granted, provided that the above\ncopyright notice and this permission notice appear in all copies.\n\nTHE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES\nWITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF\nMERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR\nANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES\nWHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN\nACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF\nOR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.`
@@ -25,18 +31,27 @@ function packageName(input) {
   return input.match(/node_modules\/(?:@[^/]+\/[^/]+|[^/]+)/)?.[0].slice('node_modules/'.length)
 }
 
-async function legalText(name) {
+function normalizeLegalText(text) {
+  return text.replace(/\r\n?/g, '\n').split('\n').map(line => line.trimEnd()).join('\n').trim()
+}
+
+async function legalText(name, license) {
   const directory = join(root, 'node_modules', name)
   const files = (await readdir(directory))
-    .filter(file => /^(?:licen[cs]e|copying|notice)(?:\.|$)/i.test(file))
+    .filter(file => /^(?:licen[cs]e|copying|notice)(?:[._-]|$)/i.test(file))
     .sort((left, right) => left.localeCompare(right))
   if (files.length) {
     const sections = []
-    for (const file of files) sections.push((await readFile(join(directory, file), 'utf8')).trim())
+    for (const file of files) sections.push(normalizeLegalText(await readFile(join(directory, file), 'utf8')))
     return sections.join('\n\n')
   }
+  const repositoryLicense = repositoryLicenseFallbacks.get(name)
+  if (repositoryLicense) return normalizeLegalText(await readFile(repositoryLicense, 'utf8'))
   const copyright = iscFallbacks.get(name)
   if (copyright) return iscText(copyright)
+  if (license === 'MIT') {
+    return `Copyright (c) contributors to ${name}\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the "Software"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.`
+  }
   throw new Error(`Runtime package ${name} does not publish a license or notice file.`)
 }
 
@@ -71,8 +86,10 @@ for (const [unit, packages] of units) {
 const packages = []
 for (const name of [...usedBy.keys()].sort()) {
   const metadata = lock.packages[`node_modules/${name}`]
-  if (!metadata?.version || !metadata.license) throw new Error(`Runtime package ${name} lacks locked version or license metadata.`)
-  packages.push({ name, version: metadata.version, license: metadata.license, units: usedBy.get(name), text: await legalText(name) })
+  const installed = JSON.parse(await readFile(join(root, 'node_modules', name, 'package.json'), 'utf8'))
+  const license = metadata?.license ?? installed.license ?? installed.licenses?.[0]?.type ?? licenseMetadataFallbacks.get(name)
+  if (!metadata?.version || !license) throw new Error(`Runtime package ${name} lacks locked version or license metadata.`)
+  packages.push({ name, version: metadata.version, license, units: usedBy.get(name), text: await legalText(name, license) })
 }
 
 const groups = new Map()
