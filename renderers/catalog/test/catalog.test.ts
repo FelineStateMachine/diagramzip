@@ -115,14 +115,14 @@ describe('engine catalog', () => {
 
   it('marks diagrams.net as an official browser renderer', () => {
     const diagramsnet = ENGINE_CATALOG.find(engine => engine.id === 'diagramsnet')!
-    expect(diagramsnet.activeRuntime).toBe('client')
+    expect(diagramsnet.activeRuntime).toBe('browser-run')
     expect(diagramsnet.version).toContain('diagrams.net@29.6.1')
   })
 
   it('marks TikZ as a bundled browser renderer and UMLet as a direct edge translation', () => {
     const tikz = ENGINE_CATALOG.find(engine => engine.id === 'tikz')!
     const umlet = ENGINE_CATALOG.find(engine => engine.id === 'umlet')!
-    expect(tikz.activeRuntime).toBe('client')
+    expect(tikz.activeRuntime).toBe('browser-run')
     expect(tikz.version).toContain('tikzjax@1.0.63')
     expect(umlet.activeRuntime).toBe('edge-js')
     expect(umlet.version).toContain('diagramzip-umlet-svg')

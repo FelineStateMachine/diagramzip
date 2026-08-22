@@ -66,25 +66,9 @@ const structurizrEngines = new Set(['structurizr'])
 const d2Engines = new Set(['d2'])
 const symbolatorEngines = new Set(['symbolator'])
 const umletEngines = new Set(['umlet'])
-const clientEngines = new Set(['mermaid', 'bpmn', 'excalidraw', 'diagramsnet', 'tikz'])
-
-async function smokeClientUnit(engine) {
-  const base = `https://${engine}.render.diagram.zip`
-  const [capabilitiesResponse, frameResponse] = await Promise.all([
-    fetch(`${base}/v1/capabilities`),
-    fetch(`${base}/index.html`),
-  ])
-  if (!capabilitiesResponse.ok) throw new Error(`${engine}: capabilities HTTP ${capabilitiesResponse.status}`)
-  if (!frameResponse.ok) throw new Error(`${engine}: frame HTTP ${frameResponse.status}`)
-  const capabilities = await capabilitiesResponse.json()
-  if (capabilities.id !== engine || capabilities.runtime !== 'client' || capabilities.format !== 'svg') {
-    throw new Error(`${engine}: unexpected client capabilities ${JSON.stringify(capabilities)}`)
-  }
-  return `${engine.padEnd(10)} client ${capabilities.build}`
-}
+const browserRunEngines = new Set(['mermaid', 'bpmn', 'excalidraw', 'diagramsnet', 'tikz'])
 
 async function smoke([engine, filename]) {
-  if (clientEngines.has(engine)) return smokeClientUnit(engine)
   const source = await readFile(resolve(diagramDirectory, filename), 'utf8')
   const endpoint = `https://${engine}.render.diagram.zip/v1/svg`
   const response = await fetch(endpoint, {
@@ -123,6 +107,9 @@ async function smoke([engine, filename]) {
         : expectedUnit
   if (pipeline !== expectedPipeline) {
     throw new Error(`${engine}: unexpected pipeline ${pipeline}`)
+  }
+  if (browserRunEngines.has(engine) && response.headers.get('X-Diagram-Renderer') !== 'browser-run') {
+    throw new Error(`${engine}: expected browser-run renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
   }
   if (pythonEngines.has(engine)) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-python') {

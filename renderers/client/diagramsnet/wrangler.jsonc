@@ -3,6 +3,7 @@
   "name": "diagramzip-render-diagramsnet-client",
   "main": "./unit/worker.js",
   "compatibility_date": "2026-08-20",
+  "services": [{ "binding": "BROWSER_RENDERER", "service": "diagramzip-browser-run" }],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

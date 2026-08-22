@@ -1,4 +1,4 @@
-export type EngineRuntime = 'edge-js' | 'edge-wasm' | 'edge-python' | 'client'
+export type EngineRuntime = 'edge-js' | 'edge-wasm' | 'edge-python' | 'browser-run'
 
 export const ENGINE_IDS = [
   'plantuml',
