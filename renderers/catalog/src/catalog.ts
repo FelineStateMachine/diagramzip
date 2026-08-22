@@ -121,7 +121,11 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'People, systems, containers, components, boundaries, core relationships, technology labels, tags, and the default C4 palette are retained semantically, but output is not pixel-compatible with native C4-PlantUML 2.7.0.',
   ],
   mermaid: ['External links and resource-loading elements are removed; XHTML labels retain only safe text formatting.'],
-  bpmn: ['External links and resource-loading elements are removed from exported SVG.'],
+  bpmn: [
+    'The bounded SVG renderer uses BPMN DI coordinates and a deliberately finite core symbol vocabulary; vendor-specific rendering extensions are ignored.',
+    'Text uses deterministic browser-independent metrics and is not pixel-identical to bpmn-js.',
+    'External resources, scripts, hyperlinks, and interactive overlays are not rendered.',
+  ],
   graphviz: [
     'Only SVG is in the rendering contract.',
     'Resource-loading attributes such as image, imagepath, shapefile, fontpath, and stylesheet are rejected because the edge unit has no filesystem or network asset loader.',
@@ -155,8 +159,9 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'External resources are blocked; embedded data images remain supported.',
   ],
   excalidraw: [
+    'Only SVG is supported.',
     'External resources are blocked; image data must be embedded in the scene.',
-    'Font subsetting is disabled by the sandbox policy, so exports embed the complete self-hosted font.',
+    'The Worker uses browser-independent canvas and font metrics, so text wrapping and typography may differ from browser Excalidraw.',
   ],
   nomnoml: ['Only SVG is in the v2 rendering contract.'],
   symbolator: [
@@ -201,10 +206,9 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'Shadows, rounded corners, anti-aliasing, and edge separation flags are accepted for compatibility but have no effect in the Svgbob pipeline.',
   ],
   tikz: [
-    'Only SVG is supported.',
-    'The browser unit uses the bundled TeX/PGF package set, not a full TeX Live installation.',
-    'Layout, fonts, and SVG details can differ from the native dvisvgm renderer.',
-    'External files, shell escape, external links, and resource loads are unavailable.',
+    'The edge unit uses the pinned TikZJax TeX/PGF package set, not a full TeX Live installation.',
+    'External files, package downloads, shell escape, hyperlinks, and external resources are unavailable.',
+    'Typography and SVG details may differ from the browser TikZJax unit.',
   ],
   umlet: [
     'Only SVG is supported.',

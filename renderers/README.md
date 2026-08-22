@@ -5,7 +5,8 @@ This directory contains the complete Cloudflare renderer plane for diagram.zip.
 | Path | Purpose |
 | --- | --- |
 | `catalog/` | Health and capability catalog service; it does not render diagrams |
-| `client/` | Renderer bundles executed in sandboxed browser frames |
+| `browser-run/` | Private Browser Run service and per-engine Durable Object sessions |
+| `client/` | Pinned frames executed only by the Browser Run service |
 | `edge/` | JavaScript and WebAssembly renderer Workers |
 | `python/` | Python renderer and translation Workers |
 | `shared/` | Engine identities shared by the catalog and runtime units |
@@ -55,13 +56,13 @@ The response headers identify the unit, build, and pipeline:
 - `X-Renderer-Build`
 - `X-Diagram-Pipeline`
 
-## Client unit contract
+## Browser Run contract
 
-A client renderer provides the health route, the capabilities route, and a sandboxed frame. The frame uses the `diagram.zip:renderer:v1` message protocol. The frame accepts only its assigned engine.
+Mermaid and diagrams.net expose the same public HTTP unit contract as every other engine. Their public Workers validate the hostname-selected request and call the private `browser-run/` Worker through a service binding. The private Worker has no public route.
 
-The application loads each frame with `sandbox="allow-scripts"`. The frame does not receive same-origin access. A failed client render does not switch to an HTTP renderer.
+Browser Run keeps one serialized Durable Object session per engine, launches the pinned frame, and uses the `diagram.zip:renderer:v1` message protocol internally. Idle sessions close after 60 seconds. A failed browser render does not select another renderer.
 
-The client engines are Mermaid, BPMN, Excalidraw, diagrams.net, and TikZ.
+The Browser Run engines are Mermaid and diagrams.net. BPMN and Excalidraw use JavaScript Workers; TikZ uses a WebAssembly Worker.
 
 ## Dependency groups
 
@@ -79,15 +80,15 @@ Some units translate source into another engine. The pipeline header lists each 
 
 | Runtime | Count | Engines |
 | --- | ---: | --- |
-| Worker JavaScript | 7 | Bytefield, Nomnoml, Structurizr, UMLet, Vega, Vega-Lite, WaveDrom |
+| Worker JavaScript | 9 | BPMN, Bytefield, Excalidraw, Nomnoml, Structurizr, UMLet, Vega, Vega-Lite, WaveDrom |
 | Worker Python | 8 | BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag, Symbolator, WireViz |
-| Worker WebAssembly | 10 | PlantUML, C4 PlantUML, GraphViz, DBML, ERD, D2, Ditaa, GoAT, Pikchr, Svgbob |
-| Sandboxed client | 5 | Mermaid, BPMN, Excalidraw, diagrams.net, TikZ |
+| Worker WebAssembly | 11 | PlantUML, C4 PlantUML, GraphViz, DBML, ERD, D2, Ditaa, GoAT, Pikchr, Svgbob, TikZ |
+| Browser Run | 2 | Mermaid, diagrams.net |
 
 The total is 30 of 30 engines. The Fly.io Java rendering image is not part of this renderer plane.
 
 ## Output policy
 
-Every renderer returns SVG. Each HTTP unit sanitizes and decorates its output. Each client unit sanitizes its output before it sends the result to the application.
+Every renderer returns SVG through its public HTTP unit. The unit sanitizes and canonicalizes the result before it reaches the application, which applies presentation without rerunning the renderer.
 
 Scripts, event handlers, active embedded HTML, and external resources are not allowed. Renderer-specific losses are listed in the catalog and in each unit's capabilities response.

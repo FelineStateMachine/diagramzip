@@ -97,7 +97,7 @@ HTTP renderers identify their output with these response headers:
 | `X-Diagram-Engine-Version` | Identifies the underlying engine release. |
 | `X-Renderer-Build` | Identifies the Diagram.zip renderer build. |
 
-Browser renderers provide the same version identity from their catalog entry. Diagram.zip uses this identity before it assigns semantic roles.
+Every renderer provides the same version identity through its catalog entry and HTTP response. Diagram.zip uses this identity before it assigns semantic roles.
 
 An unknown or upgraded renderer build does not inherit an older profile automatically. It falls back to `safe-raw-1`, which supports only `raw`.
 

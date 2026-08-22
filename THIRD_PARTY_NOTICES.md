@@ -73,9 +73,9 @@ implementation:
   implementation and does not vendor UMLet GPL source.
 - `licenses/erd-unlicense.txt`: the ERD parser/lowerer is an original
   TypeScript implementation; the text records the compatibility target.
-- `licenses/excalidraw-license.txt`: the catalog references a separately
-  deployed Excalidraw client renderer whose source is not present in this
-  repository. Its deployment must retain its own source and notice record.
+- `licenses/excalidraw-license.txt`: Excalidraw is bundled into the dedicated
+  edge Worker. Its emitted npm dependencies and license texts are recorded in
+  `renderers/edge/artifacts/licenses/npm-runtime-NOTICE.md`.
 
 The Symbolator relationship is documented beside that Worker rather than in
 the root license directory.
@@ -97,8 +97,9 @@ npm run check:licenses
 ```
 
 Python units maintain deployment-specific notices beside their source.
-TikZ and diagrams.net publish source and license material directly in their
-built static asset directories.
+TikZ keeps corresponding source, transformation provenance, and license texts
+in `renderers/edge/artifacts/tikz/`. Diagrams.net publishes source and license
+material directly in its built static asset directory.
 
 The editor and documentation builds do not yet generate bundle-derived legal
 notices. Their lockfiles are useful inputs to a future artifact-specific check,

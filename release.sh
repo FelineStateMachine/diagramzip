@@ -226,7 +226,7 @@ run_in "$ROOT/renderers/edge" npm run deploy:python
 section 'private Browser Run deployment'
 run_in "$BROWSER_RUN_DIRECTORY" "$BROWSER_RUN_DIRECTORY/node_modules/.bin/wrangler" deploy --strict --message "$RELEASE_MESSAGE" --config wrangler.jsonc
 
-section 'client renderer deployment'
+section 'browser-backed renderer deployment'
 for directory in "${CLIENT_DIRECTORIES[@]}"; do
   run_in "$directory" "$WRANGLER" deploy --strict --message "$RELEASE_MESSAGE" --config wrangler.jsonc
 done

@@ -1,8 +1,10 @@
-# diagrams.net client renderer
+# diagrams.net Browser Run renderer
 
-This sandboxed client unit uses the headless export runtime from diagrams.net
-29.6.1. The application code is Apache-2.0. Icon sets, stencil libraries, and
-diagram templates retain the additional upstream asset terms reproduced in
+The public diagrams.net HTTP unit calls a private Browser Run service, which
+uses this pinned headless export runtime from diagrams.net 29.6.1. The
+application never loads the frame directly. The application code is
+Apache-2.0. Icon sets, stencil libraries, and diagram templates retain the
+additional upstream asset terms reproduced in
 `vendor/assets/img/LICENSE`, `vendor/assets/shapes/LICENSE`, and
 `vendor/assets/stencils/LICENSE`.
 
@@ -23,6 +25,6 @@ images and the unused mxGraph source distribution are excluded.
 ## Distributed notices
 
 `npm run build` publishes `SOURCE.md`, the Apache-2.0 text, and the upstream
-asset terms beside the client bundle. The asset terms restrict using the
+asset terms beside the Browser Run frame. The asset terms restrict using the
 included icon and stencil libraries as software assets in Atlassian products
 or its marketplace ecosystem. They expressly exempt end-user diagram output.

@@ -33,6 +33,6 @@ for (const path of ['../dist/images/', '../dist/mxgraph/src/', '../dist/mxgraph/
 }
 const frame = await readFile(new URL('../src/frame.js', import.meta.url), 'utf8')
 for (const required of ['diagram.zip:renderer:v1', 'LoadingComplete', 'MAX_SOURCE_LENGTH', 'MAX_OUTPUT_LENGTH', 'event.source !== parent']) {
-  if (!frame.includes(required)) throw new Error(`Client renderer contract is missing ${required}.`)
+  if (!frame.includes(required)) throw new Error(`Browser Run frame contract is missing ${required}.`)
 }
 console.log('diagrams.net client asset and protocol checks passed')

@@ -11,8 +11,9 @@
 | `services/api/` | Cloudflare service for encrypted, accountless persistence |
 | `services/shell/` | Cloudflare application shell and routing service |
 | `renderers/catalog/` | Catalog service for renderer capabilities and health |
+| `renderers/browser-run/` | Private Browser Run execution bridge for browser-only engines |
 | `renderers/edge/` | JavaScript and WebAssembly renderer units |
-| `renderers/client/` | Sandboxed browser renderers |
+| `renderers/client/` | Pinned browser frames used only by the Browser Run bridge |
 | `renderers/python/` | Python renderer and translation units |
 | `renderers/shared/` | Contracts shared across renderer runtimes |
 | `shared/svg/` | Shared SVG normalization and presentation logic |
@@ -62,7 +63,7 @@ are not the production release procedure.
 
 ## Architecture
 
-The editor runs at `diagram.zip`. Rendering is split into isolated units selected by hostname at `{engine}.render.diagram.zip`; the renderer catalog documents the contract and capabilities for all supported engines. Five renderers run in sandboxed browser frames, while the remaining renderers run in JavaScript, Python, or WebAssembly Workers.
+The editor runs at `diagram.zip`. Rendering is split into isolated HTTP units selected by hostname at `{engine}.render.diagram.zip`; the renderer catalog documents the contract and capabilities for all supported engines. Mermaid and diagrams.net execute behind a private Browser Run bridge. The other 28 renderers run in JavaScript, Python, or WebAssembly Workers. The application never executes renderer code directly.
 
 Server persistence is opt-in. **Publish** creates an open alias, while
 **Encrypt & Publish** creates an encrypted alias. Anonymous drafts can use

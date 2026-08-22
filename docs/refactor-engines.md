@@ -4,13 +4,12 @@
 
 The repository assigns a final renderer path to all 30 catalog engines. The application does not contain a Fly.io render fallback. The catalog Worker does not contain a render proxy.
 
-Production completion requires these final checks:
+Production rollout requires these final checks:
 
-1. Deploy the UMLet Worker.
-2. Deploy the TikZ client unit.
-3. Deploy the catalog Worker without the render route.
-4. Deploy the application and documentation.
-5. Run the 30-engine production smoke test.
+1. Deploy the native BPMN, Excalidraw, and TikZ Workers.
+2. Deploy the private Browser Run bridge and the Mermaid and diagrams.net public units.
+3. Deploy the catalog Worker, application, and documentation.
+4. Run the 30-engine production smoke test.
 
 Pixel comparison is not a completion gate. Structural coverage is the completion gate. Each known loss must be visible in the catalog.
 
@@ -20,7 +19,7 @@ Pixel comparison is not a completion gate. Structural coverage is the completion
 - Each diagram type remains available.
 - Each engine has one selected renderer path.
 - A renderer failure must not select another renderer.
-- A client renderer must run in a script-only sandbox.
+- A browser-only renderer must execute behind the private Browser Run service.
 - An HTTP renderer must accept only its assigned engine hostname.
 - A render result must use the standard SVG viewer contract.
 - A renderer must not add engine-specific application UI.
@@ -43,10 +42,13 @@ Do not keep a compatibility service after an engine has a final path.
 
 ```text
 diagram.zip application
-  |- client renderer frame at {engine}.render.diagram.zip
   |- HTTP renderer at {engine}.render.diagram.zip/v1/svg
   |- persistence Worker at diagram.zip/api/v1/*
   `- catalog Worker at diagram.zip/render/v1/{health|catalog}
+
+Mermaid/diagrams.net HTTP unit
+  `- private Browser Run service binding
+       `- pinned renderer frame
 ```
 
 The catalog Worker does not render diagrams. `POST /render/v1/svg` returns `404`.
@@ -58,7 +60,7 @@ Each engine has a public renderer hostname. Engines can share one Worker deploym
 | Engine | Runtime | Unit or pipeline |
 | --- | --- | --- |
 | PlantUML | Worker WebAssembly | `plantuml-family` |
-| Mermaid | Client | `mermaid` |
+| Mermaid | Browser Run | `mermaid` through the private Browser Run bridge |
 | GraphViz | Worker WebAssembly | `graphviz-family` |
 | D2 | Worker WebAssembly | `d2` with the bounded grid layout |
 | C4 PlantUML | Worker WebAssembly | `plantuml-family` through the C4 lowerer |
@@ -68,20 +70,20 @@ Each engine has a public renderer hostname. Engines can share one Worker deploym
 | NwDiag | Worker Python | `blockdiag-family` |
 | PacketDiag | Worker Python | `blockdiag-family` |
 | RackDiag | Worker Python | `blockdiag-family` |
-| BPMN | Client | `bpmn` |
+| BPMN | Worker JavaScript | `bpmn` bounded BPMN DI-to-SVG renderer |
 | Bytefield | Worker JavaScript | `bytefield` |
 | DBML | Worker WebAssembly | `graphviz-family,dbml,graphviz` |
-| diagrams.net | Client | `diagramsnet` |
+| diagrams.net | Browser Run | `diagramsnet` through the private Browser Run bridge |
 | Ditaa | Worker WebAssembly | `svgbob-family,svgbob` |
 | ERD | Worker WebAssembly | `graphviz-family,erd,graphviz` |
-| Excalidraw | Client | `excalidraw` |
+| Excalidraw | Worker JavaScript | `excalidraw` with a Worker DOM/canvas shim |
 | GoAT | Worker WebAssembly | `goat` |
 | Nomnoml | Worker JavaScript | `nomnoml` |
 | Pikchr | Worker WebAssembly | `pikchr` |
 | Structurizr | Worker JavaScript and WebAssembly | `structurizr,plantuml-family,plantuml` |
 | Svgbob | Worker WebAssembly | `svgbob-family` |
 | Symbolator | Worker Python | `symbolator` |
-| TikZ | Client | `tikz` with the bundled TikZJax runtime |
+| TikZ | Worker WebAssembly | `tikz` with the bundled TikZJax TeX core |
 | UMLet | Worker JavaScript | `umlet` UXF-to-SVG translator |
 | Vega | Worker JavaScript | `vega-family` |
 | Vega-Lite | Worker JavaScript | `vega-family,vega` |
@@ -139,13 +141,13 @@ The response contains these identity headers:
 - `X-Diagram-Renderer`
 - `X-Renderer-Build`
 
-## Client unit contract
+## Browser Run contract
 
-A client unit provides the health route, the capabilities route, and `index.html`. The frame uses the `diagram.zip:renderer:v1` message protocol.
+A browser-backed public unit provides the standard HTTP routes and calls the private Browser Run Worker through a service binding. The private service keeps a serialized Durable Object session for each engine and has no public route.
 
-The application sets `sandbox="allow-scripts"`. It does not set `allow-same-origin`. The frame is hidden and cannot navigate the application. The frame returns an SVG result through `postMessage`.
+The Browser Run page loads the pinned engine frame and uses the `diagram.zip:renderer:v1` message protocol internally. The frame returns an SVG result to the private service; the public unit canonicalizes it before responding.
 
-The standard diagram.zip viewer displays the returned SVG. A client unit does not provide editor controls or a separate viewer.
+The application sees only the public HTTP contract. It does not create renderer iframes or execute renderer packages.
 
 ## Presentation and SVG policy
 
@@ -163,8 +165,8 @@ The sanitizer removes scripts, event handlers, active embedded HTML, and externa
 
 The migration uses structural checks. Each engine must meet these requirements:
 
-- The final route or frame is available.
-- The repository fixture returns SVG or a valid client capability response.
+- The final HTTP route is available.
+- The repository fixture returns SVG.
 - The SVG has usable dimensions.
 - The response identifies the expected unit and pipeline.
 - The output does not contain prohibited active content.
@@ -204,9 +206,9 @@ The translator handles all five elements directly. An unknown custom Java class 
 
 ## TikZ boundary
 
-TikZ runs in a dedicated client unit. The unit bundles the official TikZJax assets. The unit accepts source through the standard client protocol and returns ordinary SVG.
+TikZ runs in a dedicated WebAssembly Worker with the pinned TikZJax TeX/PGF package set. Wrangler imports the TeX module through its `CompiledWasm` rule. Each serialized request streams the compressed format dump directly into fresh Wasm memory.
 
-The unit does not add a TikZ editor or viewer. The diagram.zip viewer displays the result.
+The unit cannot load arbitrary packages or external files. Its deterministic extraction script, unmodified corresponding TikZJax source, provenance, and GPL/LPPL terms are stored with the artifact.
 
 ## Fly.io removal boundary
 
@@ -235,9 +237,9 @@ Run these checks before completion:
 2. Run all application tests.
 3. Run all documentation tests and the production build.
 4. Run Wrangler dry-runs for every Worker unit.
-5. Run build and protocol checks for every client unit.
+5. Run build and protocol checks for the Browser Run bridge and both browser-backed units.
 6. Search the application and renderer code for origin and compatibility paths.
 7. Deploy the final units.
 8. Run the 30-engine production smoke test.
 9. Confirm that `POST https://diagram.zip/render/v1/svg` returns `404`.
-10. Confirm that the documentation examples use direct units or client frames.
+10. Confirm that the application and documentation examples use direct HTTP units only.
