@@ -29,6 +29,11 @@ For an open diagram, diagram.zip stores the working state as a local browser
 draft. This draft supports recovery on the same browser. It is not a published
 diagram and other people cannot read it.
 
+The launcher stores a small metadata-only recent index. Local document source,
+Details text, file-save state, and parked per-format drafts live in separate
+device-only bodies. Published aliases have no body in the recent index and are
+refetched when opened.
+
 Anonymous drafts default to local work. **Save as File** exports the working
 state as an editable enriched SVG. The file remains useful as a visible SVG
 image and contains a versioned Diagram.zip document for later import.
@@ -38,8 +43,8 @@ file, drag and drop, pasted SVG text, or an HTTP(S) or data URL. The importer
 rejects ordinary, ambiguous, unsupported, or lossy SVG instead of guessing.
 Imported input has a 5 MiB limit.
 
-An edited anonymous example shows a reset icon. Reset removes its local draft
-and restores the bundled example after confirmation.
+The launcher can reopen and duplicate local documents. Removing a local-only
+document requires confirmation because it cannot be recovered from a server.
 
 When a published link opens with a different local draft, the editor marks
 that draft as a device-only overlay. Choose **Restore published** to discard

@@ -35,11 +35,15 @@ being guessed or silently converted. Imported input is limited to 5 MiB.
 
 ## Choose a type
 
-Use the filter on the [diagram type list](/) to search by name, format, or purpose. The list has one syntax page and one style page for every supported type.
+Use the launcher at [diagram.zip](https://diagram.zip/) to filter by name,
+extension, or purpose. Choose **Create** to start a new document from that
+format's worked example.
 
-When you choose a type in the editor, diagram.zip records it in the page URL as
-`?type={type}`. Reloading or copying that working URL keeps the same active type.
-Saved read and edit links remain alias-based and do not depend on this query.
+When you change format in the editor, diagram.zip preserves the current source,
+title, description, and presentation while choosing a different renderer.
+Renderer-specific options reset because they may not apply to the new format.
+The active type is recorded in the page URL as `?type={type}`. Saved read and
+edit links remain alias-based and do not depend on this query.
 
 ## Source, Details, and preview
 
@@ -61,7 +65,9 @@ Read [General presentation settings](/style/presentation/) for the Details docum
 
 ## Local drafts
 
-Open diagrams keep unsaved changes in local browser storage. An edited example shows a reset icon that restores its bundled source and details.
+Open diagrams keep unsaved changes in local browser storage. The launcher lists
+recent local documents and published links on this device. Local documents can
+be reopened, duplicated, or explicitly removed.
 
 Anonymous drafts default to local work. **Save as File** downloads an editable
 SVG without creating a server alias. The downloaded file can be reopened on
@@ -83,6 +89,7 @@ a self-contained packed SVG URL; published diagrams use their stable alias
 render. Read [Share a diagram](/collaboration/sharing/) before you send an edit
 link.
 
-The save dropdown selects **Publish**, **Encrypt & Publish**, or **Save as File**
-as the main button action. Selecting an action does not run it. Copy actions in
-the dropdown run immediately.
+Open the command palette with **Command-K** on macOS or **Control-K** elsewhere.
+It includes file export, publishing, copy/share actions, format changes, preview
+commands, opening an editable SVG, and documentation. **Command-S / Control-S**
+saves an editable SVG file.

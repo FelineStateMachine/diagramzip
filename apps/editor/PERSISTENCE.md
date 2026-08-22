@@ -216,6 +216,12 @@ They do not write to D1 or R2. Locked drafts are deliberately not written to
 local storage as plaintext; they persist only when the user explicitly
 publishes.
 
+The root route is a local-first launcher. Its recent index stores metadata only;
+local document bodies use separate keys and published aliases are refetched.
+Changing format preserves the parked per-format drafts inside the local document
+body. The legacy single anonymous draft is migrated into this model on first
+boot.
+
 The left pane separates diagram Source from schema-validated Details JSON.
 Details owns title, description, and presentation values. Invalid Details text
 remains recoverable while file export, publishing, sharing, privacy, and type
@@ -226,7 +232,7 @@ changes stay blocked.
   URL and create no alias.
 - New draft: **Publish** creates an alias and changes the browser to its read URL.
 - Writable alias: **Publish** updates with the last revision.
-- Anonymous example: the reset icon discards its local draft after confirmation.
+- Local document: the launcher can reopen, duplicate, or explicitly delete it.
 - Read-only alias: edits form a local fork; **Publish a Copy** creates a new alias.
 - Conflict: offer **Reload published** or **Publish as new**. Never overwrite silently.
 - Share, open: copy read link, copy edit link, SVG link, or Markdown.
@@ -234,10 +240,11 @@ changes stay blocked.
   link. SVG and Markdown embeds are visibly disabled with the explanation that
   encrypted diagrams cannot be embedded.
 
-The header dropdown selects Publish, Encrypt & Publish, or Save as File as the
-main button action without executing it. Encrypt & Publish opens the password
-dialog only when the user clicks the selected main action. Copy actions remain
-immediate commands.
+The compact header keeps title, local-change state, render status, and a format
+button. The format button or **Command-K / Control-K** opens the command palette.
+The palette owns format changes, file export, publishing, copy/share actions,
+view commands, open, new, and documentation. **Command-S / Control-S** always
+means Save as File; publishing remains an explicit command.
 
 The password and edit capability should be sent through separate channels when
 practical. The edit link itself is a bearer credential and the UI must label it
