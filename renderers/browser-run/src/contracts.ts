@@ -1,12 +1,11 @@
 export const CHANNEL = 'diagram.zip:renderer:v1' as const
 
-export const ENGINES = ['mermaid', 'diagramsnet', 'tikz'] as const
+export const ENGINES = ['mermaid', 'diagramsnet'] as const
 export type Engine = (typeof ENGINES)[number]
 
 export const FRAME_URLS: Readonly<Record<Engine, string>> = Object.freeze({
   mermaid: 'https://mermaid.render.diagram.zip/index.html?v=1',
   diagramsnet: 'https://diagramsnet.render.diagram.zip/index.html?v=1',
-  tikz: 'https://tikz.render.diagram.zip/index.html?v=2',
 })
 
 export const LIMITS = Object.freeze({

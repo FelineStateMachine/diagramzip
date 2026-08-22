@@ -1,0 +1,15 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-tikz",
+  "main": "../../src/units/tikz.ts",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "rules": [{ "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": false }],
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
+  "vars": { "RENDERER_BUILD": "tikzjax-1.0.63-edge-core-1" },
+  "assets": {
+    "directory": "../../artifacts/tikz",
+    "binding": "ASSETS"
+  },
+  "routes": [{ "pattern": "tikz.render.diagram.zip", "custom_domain": true }]
+}

@@ -66,9 +66,10 @@ const structurizrEngines = new Set(['structurizr'])
 const d2Engines = new Set(['d2'])
 const symbolatorEngines = new Set(['symbolator'])
 const umletEngines = new Set(['umlet'])
-const browserRunEngines = new Set(['mermaid', 'diagramsnet', 'tikz'])
+const browserRunEngines = new Set(['mermaid', 'diagramsnet'])
 const bpmnEngines = new Set(['bpmn'])
 const excalidrawEngines = new Set(['excalidraw'])
+const tikzEngines = new Set(['tikz'])
 
 async function smoke([engine, filename]) {
   const source = await readFile(resolve(diagramDirectory, filename), 'utf8')
@@ -120,6 +121,10 @@ async function smoke([engine, filename]) {
   if (excalidrawEngines.has(engine)) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-js') throw new Error(`${engine}: expected edge-js renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
     if (!response.headers.get('X-Renderer-Build')?.startsWith('excalidraw-0.18.1-edge-dom-')) throw new Error(`${engine}: unexpected Excalidraw Worker build ${response.headers.get('X-Renderer-Build')}`)
+  }
+  if (tikzEngines.has(engine)) {
+    if (response.headers.get('X-Diagram-Renderer') !== 'edge-wasm') throw new Error(`${engine}: expected edge-wasm renderer, received ${response.headers.get('X-Diagram-Renderer')}`)
+    if (!response.headers.get('X-Renderer-Build')?.startsWith('tikzjax-1.0.63-edge-core-')) throw new Error(`${engine}: unexpected TikZ Worker build ${response.headers.get('X-Renderer-Build')}`)
   }
   if (pythonEngines.has(engine)) {
     if (response.headers.get('X-Diagram-Renderer') !== 'edge-python') {

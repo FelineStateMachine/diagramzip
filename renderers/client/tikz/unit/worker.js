@@ -1,3 +1,0 @@
-import { createBrowserRendererUnit } from '../../../shared/browser-unit.ts'
-
-export default createBrowserRendererUnit({ id: 'tikz', kind: 'render', version: '@planktimerr/tikzjax@1.0.63', build: 'tikzjax-1.0.63-browser-run-unit-4', pipeline: ['tikz'], frame: '/index.html?v=2', license: 'GPL-3.0-or-later', licenses: '/licenses/', source: '/SOURCE.md', knownLosses: ['The browser unit uses the bundled TeX/PGF package set, not the full TeX Live installation.', 'Layout, fonts, and SVG details can differ from the native dvisvgm renderer.', 'External files, shell escape, external links, and resource loads are unavailable.'] })

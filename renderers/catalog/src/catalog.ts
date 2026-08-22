@@ -35,7 +35,7 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
   structurizr: 'edge-js',
   svgbob: 'edge-wasm',
   symbolator: 'edge-python',
-  tikz: 'browser-run',
+  tikz: 'edge-wasm',
   umlet: 'edge-js',
   vega: 'edge-js',
   vegalite: 'edge-js',
@@ -72,7 +72,7 @@ const activeRuntime: Record<EngineId, EngineRuntime> = {
   d2: 'edge-wasm',
   ditaa: 'edge-wasm',
   symbolator: 'edge-python',
-  tikz: 'browser-run',
+  tikz: 'edge-wasm',
   umlet: 'edge-js',
 }
 

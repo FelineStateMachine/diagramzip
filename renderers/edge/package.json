@@ -11,6 +11,7 @@
     "generate:licenses": "node scripts/check-runtime-licenses.mjs --write",
     "build:dbml": "node scripts/build/dbml.mjs",
     "build:d2": "node scripts/build/d2.mjs",
+    "build:tikz": "node scripts/build/tikz.mjs",
     "check": "tsc --noEmit",
     "check:licenses": "node scripts/check-runtime-licenses.mjs",
     "deploy:dry-run": "wrangler deploy --dry-run --config ../catalog/wrangler.jsonc",

@@ -86,7 +86,7 @@ export class PuppeteerExecutor implements BrowserExecutor {
       this.browser = await puppeteer.launch(this.endpoint, {
         keep_alive: 60_000,
         guardrails: {
-          allowedDomains: ['mermaid.render.diagram.zip', 'diagramsnet.render.diagram.zip', 'tikz.render.diagram.zip'],
+          allowedDomains: ['mermaid.render.diagram.zip', 'diagramsnet.render.diagram.zip'],
         },
       })
       this.page = undefined

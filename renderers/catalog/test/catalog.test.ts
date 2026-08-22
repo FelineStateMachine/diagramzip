@@ -131,10 +131,10 @@ describe('engine catalog', () => {
     expect(excalidraw.version).toBe('@excalidraw/excalidraw@0.18.1')
   })
 
-  it('marks TikZ as a bundled browser renderer and UMLet as a direct edge translation', () => {
+  it('marks TikZ and UMLet as direct edge renderers', () => {
     const tikz = ENGINE_CATALOG.find(engine => engine.id === 'tikz')!
     const umlet = ENGINE_CATALOG.find(engine => engine.id === 'umlet')!
-    expect(tikz.activeRuntime).toBe('browser-run')
+    expect(tikz.activeRuntime).toBe('edge-wasm')
     expect(tikz.version).toContain('tikzjax@1.0.63')
     expect(umlet.activeRuntime).toBe('edge-js')
     expect(umlet.version).toContain('diagramzip-umlet-svg')
