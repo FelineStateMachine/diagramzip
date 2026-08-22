@@ -244,3 +244,80 @@ test('fits once when a different diagram identity loads', () => {
   assert.deepEqual(calls, ['fit'])
   assert.equal(controller.fitOnNextLoad, false)
 })
+
+test('keeps the current image until its decoded replacement can be committed', async () => {
+  let finishDecode
+  const revoked = []
+  const originalRevokeObjectUrl = URL.revokeObjectURL
+  URL.revokeObjectURL = url => revoked.push(url)
+  const image = { src: 'blob:current', hidden: false, naturalWidth: 120, naturalHeight: 80 }
+  const minimapImage = { src: 'blob:current' }
+  const backgrounds = []
+  const controller = {
+    imageSwapNumber: 2,
+    objectUrl: 'blob:current',
+    activeImageUrl: 'blob:current',
+    imageFallbackUrl: null,
+    image,
+    minimapImage,
+    fitOnNextLoad: false,
+    stage: {
+      dataset: { previewTheme: 'light' },
+      style: { setProperty(name, value) { backgrounds.push([name, value]) } },
+    },
+    decodeImage() { return new Promise(resolve => { finishDecode = resolve }) },
+  }
+
+  try {
+    const swap = PreviewController.prototype.swapDecodedImage.call(controller, {
+      objectUrl: 'blob:next',
+      fallbackUrl: 'data:next',
+      background: 'var(--preview-dark-bg)',
+      theme: 'dark',
+    }, 2)
+
+    await Promise.resolve()
+    assert.equal(image.src, 'blob:current')
+    assert.equal(minimapImage.src, 'blob:current')
+    assert.deepEqual(revoked, [])
+
+    finishDecode()
+    await swap
+
+    assert.equal(image.src, 'blob:next')
+    assert.equal(minimapImage.src, 'blob:next')
+    assert.equal(controller.stage.dataset.previewTheme, 'dark')
+    assert.deepEqual(backgrounds, [['--render-background', 'var(--preview-dark-bg)']])
+    assert.deepEqual(revoked, ['blob:current'])
+  } finally {
+    URL.revokeObjectURL = originalRevokeObjectUrl
+  }
+})
+
+test('discards a decoded image when a newer render has superseded it', async () => {
+  const revoked = []
+  const originalRevokeObjectUrl = URL.revokeObjectURL
+  URL.revokeObjectURL = url => revoked.push(url)
+  const controller = {
+    imageSwapNumber: 4,
+    objectUrl: 'blob:current',
+    image: { src: 'blob:current' },
+    minimapImage: { src: 'blob:current' },
+    async decodeImage() {},
+  }
+
+  try {
+    await PreviewController.prototype.swapDecodedImage.call(controller, {
+      objectUrl: 'blob:stale',
+      fallbackUrl: 'data:stale',
+      background: '#000000',
+      theme: 'dark',
+    }, 3)
+
+    assert.equal(controller.image.src, 'blob:current')
+    assert.equal(controller.minimapImage.src, 'blob:current')
+    assert.deepEqual(revoked, ['blob:stale'])
+  } finally {
+    URL.revokeObjectURL = originalRevokeObjectUrl
+  }
+})

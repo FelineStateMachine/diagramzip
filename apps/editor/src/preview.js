@@ -54,6 +54,7 @@ export class PreviewController {
     this.x = 0
     this.y = 0
     this.objectUrl = null
+    this.imageSwapNumber = 0
     this.abortController = null
     this.requestNumber = 0
     this.pendingRender = null
@@ -103,6 +104,7 @@ export class PreviewController {
   render({ type, source, options = {}, meta = {}, presentation = {} }) {
     if (!source.trim()) {
       this.requestNumber++
+      this.imageSwapNumber++
       this.pendingRender = null
       this.abortController?.abort()
       this.setStatus('Write something to render.', 'idle')
@@ -118,6 +120,7 @@ export class PreviewController {
     const renderKey = JSON.stringify({ type, source, options, meta, presentation })
     if (this.latestRenderKey === renderKey && this.latestSvgBlob) return Promise.resolve()
 
+    this.imageSwapNumber++
     this.pendingRender = { type, source, options, meta, presentation, renderKey, requestNumber: ++this.requestNumber }
     this.abortController?.abort()
     if (!this.renderLoop) this.renderLoop = this.drainRenderQueue()
@@ -200,23 +203,66 @@ export class PreviewController {
       ? materializePresentation(canonicalSvg, presentation)
       : materializeSvg(canonicalSvg, displayAppearance)
     const displayed = this.normalizedSvgBlob(displayedSvg)
+    const nextObjectUrl = URL.createObjectURL(displayed.blob)
+    const swapNumber = ++this.imageSwapNumber
+    this.setStatus('Loading image…', 'loading')
+    void this.swapDecodedImage({
+      objectUrl: nextObjectUrl,
+      fallbackUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(displayedSvg)}`,
+      background: previewBackgroundForAppearance(displayAppearance, displayed.background),
+      theme: previewThemeForAppearance(displayAppearance),
+    }, swapNumber)
+  }
+
+  async decodeImage(url) {
+    const image = new Image()
+    image.decoding = 'async'
+    if (typeof image.decode === 'function') {
+      image.src = url
+      await image.decode()
+      return
+    }
+    await new Promise((resolve, reject) => {
+      image.addEventListener('load', resolve, { once: true })
+      image.addEventListener('error', () => reject(new Error('The rendered image was blocked or invalid.')), { once: true })
+      image.src = url
+    })
+  }
+
+  async swapDecodedImage(next, swapNumber) {
+    let activeUrl = next.objectUrl
+    try {
+      await this.decodeImage(activeUrl)
+    } catch {
+      activeUrl = next.fallbackUrl
+      try {
+        await this.decodeImage(activeUrl)
+      } catch (error) {
+        URL.revokeObjectURL(next.objectUrl)
+        if (swapNumber === this.imageSwapNumber) this.handleRenderError(error.message)
+        return
+      }
+    }
+
+    if (swapNumber !== this.imageSwapNumber) {
+      URL.revokeObjectURL(next.objectUrl)
+      return
+    }
+
     this.previousImageSize = !this.fitOnNextLoad && this.image.naturalWidth && this.image.naturalHeight
       ? { width: this.image.naturalWidth, height: this.image.naturalHeight }
       : null
-    this.imageFallbackUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(displayedSvg)}`
-    this.stage.dataset.previewTheme = previewThemeForAppearance(displayAppearance)
-    this.stage.style.setProperty(
-      '--render-background',
-      previewBackgroundForAppearance(displayAppearance, displayed.background),
-    )
-    const nextObjectUrl = URL.createObjectURL(displayed.blob)
+    this.stage.dataset.previewTheme = next.theme
+    this.stage.style.setProperty('--render-background', next.background)
+
     const previousObjectUrl = this.objectUrl
-    this.objectUrl = nextObjectUrl
-    this.activeImageUrl = nextObjectUrl
-    this.image.src = nextObjectUrl
-    this.minimapImage.src = nextObjectUrl
+    this.objectUrl = activeUrl === next.objectUrl ? next.objectUrl : null
+    this.imageFallbackUrl = activeUrl === next.objectUrl ? next.fallbackUrl : null
+    this.activeImageUrl = activeUrl
+    this.image.src = activeUrl
+    this.minimapImage.src = activeUrl
     this.image.hidden = false
-    this.setStatus('Loading image…', 'loading')
+    if (activeUrl !== next.objectUrl) URL.revokeObjectURL(next.objectUrl)
     if (previousObjectUrl) URL.revokeObjectURL(previousObjectUrl)
   }
 
