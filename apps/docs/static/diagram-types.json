@@ -302,6 +302,25 @@
       "example": "/examples/tikz.json"
     },
     {
+      "id": "trn",
+      "label": "TRN",
+      "fullName": "Tabular Recipe Notation",
+      "category": "Processes and recipes",
+      "format": "Tabular Recipe Notation text",
+      "language": "text",
+      "upstream": "https://www.cookingforengineers.com/2004/08/recipe-summaries-standards-and.html",
+      "create": "/create/types/trn",
+      "style": "/style/types/trn",
+      "editor": "https://diagram.zip/?type=trn",
+      "example": "/examples/trn.json",
+      "origin": {
+        "creator": "Michael Chu",
+        "site": "Cooking for Engineers",
+        "siteUrl": "https://www.cookingforengineers.com/",
+        "note": "Diagram.zip implements a text DSL and SVG renderer for Chu’s tabular recipe concept."
+      }
+    },
+    {
       "id": "umlet",
       "label": "UMLet",
       "category": "UML and architecture",

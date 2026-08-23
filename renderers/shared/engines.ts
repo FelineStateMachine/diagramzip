@@ -26,6 +26,7 @@ export const ENGINE_IDS = [
   'svgbob',
   'symbolator',
   'tikz',
+  'trn',
   'umlet',
   'vega',
   'vegalite',

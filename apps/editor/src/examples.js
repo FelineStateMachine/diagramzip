@@ -14,6 +14,7 @@ import rackdiag from '../../../examples/diagrams/rack.diag?raw'
 import svgbob from '../../../examples/diagrams/cloud.bob?raw'
 import symbolator from '../../../examples/diagrams/component.sv?raw'
 import tikz from '../../../examples/diagrams/tikz.tex?raw'
+import trn from '../../../examples/diagrams/zenith.trn?raw'
 import umlet from '../../../examples/diagrams/umlet.xml?raw'
 import vega from '../../../examples/diagrams/bar-chart.vega?raw'
 import vegalite from '../../../examples/diagrams/discretizing-scale.vlite?raw'
@@ -178,6 +179,7 @@ Rel(bob, tandem, "Completes tasks")
   svgbob,
   symbolator,
   tikz,
+  trn,
   umlet,
   vega,
   vegalite,

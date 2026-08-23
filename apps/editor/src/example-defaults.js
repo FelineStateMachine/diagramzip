@@ -24,6 +24,7 @@ const EXAMPLE_NAMES = {
   svgbob: 'Cloud network',
   symbolator: 'Hardware component',
   tikz: 'Periodic table',
+  trn: 'Zenith',
   umlet: 'UML example',
   vega: 'Bar chart',
   vegalite: 'Discretizing scale',

@@ -4,8 +4,8 @@ import { ENGINE_IDS } from '../../shared/engines'
 
 describe('engine catalog', () => {
   it('covers every catalog engine exactly once', () => {
-    expect(ENGINE_CATALOG).toHaveLength(30)
-    expect(new Set(ENGINE_CATALOG.map(engine => engine.id)).size).toBe(30)
+    expect(ENGINE_CATALOG).toHaveLength(31)
+    expect(new Set(ENGINE_CATALOG.map(engine => engine.id)).size).toBe(31)
     expect(ENGINE_CATALOG.map(engine => engine.id)).toEqual(ENGINE_IDS)
   })
 

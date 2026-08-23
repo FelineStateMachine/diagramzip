@@ -1,0 +1,38 @@
+# Marshmallows example transcribed from a canonical Tabular Recipe Notation layout.
+
+instruction "Grease 9x13-in. pan and powder with powdered sugar"
+
+ingredient gelatin "gelatin"
+ingredient water "water"
+ingredient sugar "sugar"
+ingredient corn_syrup "corn syrup"
+ingredient salt "salt"
+ingredient vanilla_extract "vanilla extract"
+ingredient powdered_sugar "Powdered sugar"
+
+outcome bloomed_gelatin {
+  + gelatin 3 Tbs. (21 g)
+  + water 1/2 cup (120 mL)
+  -> soak 10 min.
+}
+
+outcome cooked_syrup {
+  + sugar 2 cups (400 g)
+  + corn_syrup 2/3 cup (160 mL)
+  + water 1/4 cup (60 mL)
+  -> boil until 250°F (120°C)
+}
+
+outcome marshmallows portion about 40 large marshmallows {
+  + bloomed_gelatin
+  + cooked_syrup
+  -> drizzle while mixing
+  + salt 1/4 tsp. (1.5 g)
+  -> mix until marshmallow has fluffed up
+  + vanilla_extract 1 Tbs. (15 mL)
+  -> mix
+  -> cool in pan for 3 hours
+  -> cut
+  + powdered_sugar
+  -> powder
+}

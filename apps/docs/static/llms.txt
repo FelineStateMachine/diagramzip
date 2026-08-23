@@ -89,6 +89,7 @@
 - [Svgbob syntax](https://docs.diagram.zip/create/types/svgbob/): Create a Svgbob diagram. [Style](https://docs.diagram.zip/style/types/svgbob/).
 - [Symbolator syntax](https://docs.diagram.zip/create/types/symbolator/): Create a Symbolator diagram. [Style](https://docs.diagram.zip/style/types/symbolator/).
 - [TikZ syntax](https://docs.diagram.zip/create/types/tikz/): Create a TikZ diagram. [Style](https://docs.diagram.zip/style/types/tikz/).
+- [TRN syntax](https://docs.diagram.zip/create/types/trn/): TRN stands for Tabular Recipe Notation. Create a TRN diagram. [Style](https://docs.diagram.zip/style/types/trn/). Origin: [Michael Chu at Cooking for Engineers](https://www.cookingforengineers.com/).
 - [UMLet syntax](https://docs.diagram.zip/create/types/umlet/): Create an UMLet diagram. [Style](https://docs.diagram.zip/style/types/umlet/).
 - [Vega syntax](https://docs.diagram.zip/create/types/vega/): Create a Vega diagram. [Style](https://docs.diagram.zip/style/types/vega/).
 - [Vega-Lite syntax](https://docs.diagram.zip/create/types/vegalite/): Create a Vega-Lite diagram. [Style](https://docs.diagram.zip/style/types/vegalite/).

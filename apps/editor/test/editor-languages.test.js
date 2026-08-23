@@ -29,7 +29,7 @@ test('routes every remaining known type to the generic diagram language', () => 
     .map(({ id }) => id)
     .filter(type => !specialized.has(type))
 
-  assert.equal(diagramTypes.length, 30)
+  assert.equal(diagramTypes.length, 31)
   assert.ok(genericTypes.length > 0)
   for (const type of genericTypes) {
     assert.equal(editorLanguageFor(type), GENERIC_LANGUAGE_ID)

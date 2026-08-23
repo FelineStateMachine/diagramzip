@@ -28,6 +28,7 @@ const diagrams = {
   svgbob: 'cloud.bob',
   symbolator: 'component.sv',
   tikz: 'periodic-table.tex',
+  trn: 'zenith.trn',
   umlet: 'umlet.xml',
   vega: 'bar-chart.vega',
   vegalite: 'discretizing-scale.vlite',

@@ -1,0 +1,10 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "diagramzip-render-trn",
+  "main": "../../src/units/trn.ts",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 1 } },
+  "vars": { "RENDERER_BUILD": "diagramzip-trn-13" },
+  "routes": [{ "pattern": "trn.render.diagram.zip", "custom_domain": true }]
+}

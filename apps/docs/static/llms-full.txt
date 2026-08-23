@@ -49,7 +49,7 @@ edit links remain alias-based and do not depend on this query.
 
 ## Source, Details, and preview
 
-The left pane has **Source** and **Details** tabs. Source contains the selected diagram language. Details contains validated JSON for metadata and presentation.
+The left pane has **Source** and **Details** tabs. Source contains the selected diagram language. Details contains validated JSON for metadata, renderer options, and presentation.
 
 Edit the title directly in the top bar for a faster naming workflow. The value stays synchronized with `title` in Details.
 
@@ -107,12 +107,13 @@ sidebar_position: 1
 
 # General presentation settings
 
-Open the **Details** tab in the left pane. It contains a validated JSON document for metadata and presentation.
+Open the **Details** tab in the left pane. It contains a validated JSON document for metadata, renderer options, and presentation.
 
 ```json
 {
   "title": "Service flow",
   "description": "A request moving through the public API.",
+  "options": {},
   "presentation": {
     "appearance": "auto-transparent",
     "background": "",
@@ -125,6 +126,10 @@ Open the **Details** tab in the left pane. It contains a validated JSON document
 `title` accepts at most 200 characters. `description` accepts at most 2,000 characters. Unknown properties are rejected.
 
 The diagnostics dock reports invalid JSON or schema values. Diagram.zip keeps the last valid preview until the document becomes valid again.
+
+## Renderer options
+
+Put renderer-specific settings in the top-level `options` object. Option values may be strings, numbers, or booleans. The Style page for each diagram type lists its supported keys.
 
 ## Appearance
 
@@ -301,8 +306,8 @@ The [renderer catalog](https://diagram.zip/render/v1/catalog) reports every engi
 | Canonical schema | `1` | The canonical SVG structure changes incompatibly. |
 | Normalizer | `svg-normalizer-2` | Sanitization, annotation, or serialization behavior changes. |
 | Profile | `neutral-svg-semantic-2` | Renderer recognition or role assignment changes. |
-| Palette | `diagramzip-palette-1` | Materialized role colors change. |
-| Materializer | `svg-materializer-2` | Appearance rules, padding, frame, or output assembly changes. |
+| Palette | `diagramzip-palette-2` | Materialized role colors change. |
+| Materializer | `svg-materializer-3` | Appearance rules, padding, frame, or output assembly changes. |
 | Renderer | Catalog version and build | Engine output or its integration changes. |
 
 These versions advance independently. A renderer upgrade does not require a schema change, and a palette update does not require new geometry.
@@ -598,7 +603,7 @@ The working state is what you currently see and edit. It includes the diagram
 source, type, renderer options, presentation settings, title, and description.
 
 Source and Details use separate editor tabs. Details is a JSON document that
-contains the title, description, and presentation settings.
+contains the title, description, renderer options, and presentation settings.
 
 Invalid Details JSON remains in the local draft. The editor keeps the last
 valid preview and blocks file export, publishing, sharing, privacy, and type
@@ -2786,6 +2791,114 @@ Start with the [general presentation settings](/style/presentation). Edit shared
 - [General presentation settings](/style/presentation)
 - [SVG normalization and version contracts](/style/svg-normalization)
 - [Open TikZ in the editor](https://diagram.zip/?type=tikz)
+
+---
+
+---
+id: create-trn
+slug: /create/types/trn
+title: TRN
+description: Create a TRN diagram in diagram.zip.
+sidebar_label: TRN
+---
+
+# TRN
+
+TRN stands for Tabular Recipe Notation. It shows how ingredients and intermediate outcomes combine into one or more final results.
+
+## Use this type
+
+Use TRN for recipes, crafting trees, assembly instructions, and other nested transformations.
+
+## Source format
+
+The source format is **Tabular Recipe Notation text**. Enter the source in the diagram.zip editor.
+
+## Syntax essentials
+
+- Optionally begin with `.layout combined` or `.layout individual`; the default is `combined`.
+- Declare each leaf value with `ingredient`.
+- Declare a meaningful final or reusable result with an `outcome` block.
+- Keep incidental conversions, such as ore to bars, as steps inside the outcome that consumes them.
+- Add a full-width preparation row with `instruction`.
+- Add a quoted display label after an identifier when needed.
+- Each `+` adds an input row from top to bottom.
+- Each `->` adds an operation column from left to right.
+- Add `portion` after an outcome label or identifier when the result has a useful quantity.
+- Use `{portion}` in an action to embed that outcome quantity.
+- Start comments with `#`; OCR importers should record uncertain text in comments instead of guessing.
+
+### Example
+
+```text
+.layout combined
+
+ingredient flour "Bread flour"
+ingredient water
+ingredient yeast
+ingredient salt
+
+outcome bread portion 1 loaf {
+  + flour 500 g
+  + water 350 ml
+  + yeast 7 g
+  + salt 10 g
+  -> mix
+  -> knead
+  -> proof for 1 hour
+  -> bake {portion} at 230°C for 30 minutes
+}
+```
+
+## Origin
+
+TRN originates with [Michael Chu](https://www.cookingforengineers.com/) at [Cooking for Engineers](https://www.cookingforengineers.com/). Diagram.zip implements a text DSL and SVG renderer for Chu’s tabular recipe concept.
+
+## Limitations
+
+- The source selects one layout; the SVG does not embed an interactive layout toggle.
+
+## Related pages
+
+- [Style TRN](/style/types/trn)
+- [General presentation settings](/style/presentation)
+- [Open TRN in the editor](https://diagram.zip/?type=trn)
+
+## Upstream reference
+
+[TRN documentation](https://www.cookingforengineers.com/2004/08/recipe-summaries-standards-and.html)
+
+---
+id: style-trn
+slug: /style/types/trn
+title: TRN
+description: Style a TRN diagram in diagram.zip.
+sidebar_label: TRN
+---
+
+# Style TRN
+
+TRN colors complete relationship zones as branches. Adjacent zones receive different normalized colors, while ingredients run downward and operations run right.
+
+Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
+
+## Source controls
+
+- Use `.layout combined` for one merged table or `.layout individual` for dependency-positioned recipe tables.
+- Order `+` lines as the ingredient rows should appear from top to bottom.
+- Order `->` lines as operations should proceed from left to right.
+- Use outcomes for meaningful reusable or final results; keep incidental conversions inside the consuming outcome.
+- Use short action labels because operation text is vertical.
+## Limitations
+
+- The source selects one layout; the SVG does not embed an interactive layout toggle.
+
+## Related pages
+
+- [Create a TRN diagram](/create/types/trn)
+- [General presentation settings](/style/presentation)
+- [SVG normalization and version contracts](/style/svg-normalization)
+- [Open TRN in the editor](https://diagram.zip/?type=trn)
 
 ---
 

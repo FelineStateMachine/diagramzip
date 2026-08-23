@@ -8,6 +8,7 @@ const fixtures = {
   erd: '[Person]\n*name\n\n[Place]\n*id\n\nPerson *--1 Place',
   nomnoml: '[Alice]->[Bob]',
   bytefield: '[{:bits 8 :name "field"}]',
+  trn: 'ingredient flour\noutcome bread {\n + flour 500 g\n -> bake\n}',
   vega: '{"width":100,"height":50,"marks":[{"type":"rect","encode":{"enter":{"x":{"value":0},"y":{"value":0},"width":{"value":100},"height":{"value":50}}}}]}',
   vegalite: '{"data":{"values":[{"x":"A","y":2}]},"mark":"bar","encoding":{"x":{"field":"x"},"y":{"field":"y","type":"quantitative"}}}',
   wavedrom: '{ signal: [{ name: "clock", wave: "p..." }] }',

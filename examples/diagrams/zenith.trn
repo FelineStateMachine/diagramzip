@@ -1,0 +1,103 @@
+# Zenith crafting story for current Desktop, Console, and Mobile Terraria.
+# Outcomes name meaningful crafted items. Material conversions stay as steps inside them.
+# This example follows the Corruption route through Light's Bane.
+
+.layout individual
+
+ingredient hellstone
+ingredient obsidian
+ingredient demonite_ore "Demonite Ore"
+ingredient jungle_spores "Jungle Spores"
+ingredient stinger
+ingredient vine
+ingredient muramasa
+ingredient soul_of_fright "Soul of Fright"
+ingredient soul_of_might "Soul of Might"
+ingredient soul_of_sight "Soul of Sight"
+ingredient hallowed_bar "Hallowed Bar"
+ingredient chlorophyte_ore "Chlorophyte Ore"
+ingredient broken_hero_sword "Broken Hero Sword"
+ingredient copper_ore "Copper Ore"
+ingredient meowmere
+ingredient star_wrath "Star Wrath"
+ingredient influx_waver "Influx Waver"
+ingredient horseman_blade "The Horseman's Blade"
+ingredient seedler
+ingredient starfury
+ingredient bee_keeper "Bee Keeper"
+ingredient enchanted_sword "Enchanted Sword"
+
+outcome volcano {
+    + obsidian 20
+    + hellstone 60
+    -> smelt 20 Hellstone Bars
+    -> forge Volcano
+}
+
+outcome lights_bane "Light's Bane" {
+    + demonite_ore 30
+    -> smelt 10 Demonite Bars
+    -> forge Light's Bane
+}
+
+outcome blade_of_grass {
+    + jungle_spores 15
+    + stinger 12
+    + vine 3
+    -> forge Blade of Grass
+}
+
+outcome nights_edge "Night's Edge" {
+    + lights_bane
+    + blade_of_grass
+    + muramasa
+    + volcano
+    -> combine Night's Edge
+}
+
+outcome true_nights_edge "True Night's Edge" {
+    + nights_edge
+    + soul_of_fright 20
+    + soul_of_might 20
+    + soul_of_sight 20
+    -> forge True Night's Edge
+}
+
+outcome excalibur {
+    + hallowed_bar 12
+    -> forge Excalibur
+}
+
+outcome true_excalibur {
+    + excalibur
+    + chlorophyte_ore 120
+    -> smelt 24 Chlorophyte Bars
+    -> forge True Excalibur
+}
+
+outcome terra_blade {
+    + true_nights_edge
+    + true_excalibur
+    + broken_hero_sword
+    -> forge Terra Blade
+}
+
+outcome copper_shortsword {
+    + copper_ore 15
+    -> smelt 5 Copper Bars
+    -> forge Copper Shortsword
+}
+
+outcome zenith {
+    + copper_shortsword
+    + starfury
+    + enchanted_sword
+    + bee_keeper
+    + terra_blade
+    + seedler
+    + horseman_blade
+    + influx_waver
+    + star_wrath
+    + meowmere
+    -> forge Zenith
+}

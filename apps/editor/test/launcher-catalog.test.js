@@ -10,13 +10,13 @@ import {
 
 test('launcher groups cover every diagram type exactly once in the source order', () => {
   const groupedIds = launcherCatalogGroups.flatMap(group => group.items.map(item => item.id))
-  assert.equal(launcherCatalog.length, 30)
+  assert.equal(launcherCatalog.length, 31)
   assert.equal(groupedIds.length, diagramTypes.length)
   assert.equal(new Set(groupedIds).size, groupedIds.length)
   assert.deepEqual(new Set(groupedIds), new Set(diagramTypes.map(type => type.id)))
   assert.deepEqual(launcherCatalog.map(item => item.id), diagramTypes.map(type => type.id))
   assert.deepEqual(launcherCatalogGroups.map(group => [group.label, group.items.length]), [
-    ['Flow & sequence', 6],
+    ['Flow & sequence', 7],
     ['Architecture', 6],
     ['Data & charts', 4],
     ['Network & hardware', 7],

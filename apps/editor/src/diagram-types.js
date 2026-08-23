@@ -24,6 +24,7 @@ const DIAGRAM_TYPES = [
   ['svgbob', 'Svgbob'],
   ['symbolator', 'Symbolator'],
   ['tikz', 'TikZ'],
+  ['trn', 'TRN'],
   ['umlet', 'UMLet'],
   ['vega', 'Vega'],
   ['vegalite', 'Vega-Lite'],

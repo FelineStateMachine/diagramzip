@@ -114,8 +114,8 @@ The [renderer catalog](https://diagram.zip/render/v1/catalog) reports every engi
 | Canonical schema | `1` | The canonical SVG structure changes incompatibly. |
 | Normalizer | `svg-normalizer-2` | Sanitization, annotation, or serialization behavior changes. |
 | Profile | `neutral-svg-semantic-2` | Renderer recognition or role assignment changes. |
-| Palette | `diagramzip-palette-1` | Materialized role colors change. |
-| Materializer | `svg-materializer-2` | Appearance rules, padding, frame, or output assembly changes. |
+| Palette | `diagramzip-palette-2` | Materialized role colors change. |
+| Materializer | `svg-materializer-3` | Appearance rules, padding, frame, or output assembly changes. |
 | Renderer | Catalog version and build | Engine output or its integration changes. |
 
 These versions advance independently. A renderer upgrade does not require a schema change, and a palette update does not require new geometry.

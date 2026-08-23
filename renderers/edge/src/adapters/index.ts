@@ -7,6 +7,7 @@ import { graphvizAdapter } from './graphviz'
 import { goatAdapter } from './goat'
 import { nomnomlAdapter } from './nomnoml'
 import { svgbobAdapter } from './svgbob'
+import { trnAdapter } from './trn'
 import { vegaAdapter } from './vega'
 import { vegaliteAdapter } from './vegalite'
 import { wavedromAdapter } from './wavedrom'
@@ -21,6 +22,7 @@ const adapters: Record<EdgeEngineId, RendererAdapter> = {
   goat: goatAdapter,
   nomnoml: nomnomlAdapter,
   svgbob: svgbobAdapter,
+  trn: trnAdapter,
   vega: vegaAdapter,
   vegalite: vegaliteAdapter,
   wavedrom: wavedromAdapter,

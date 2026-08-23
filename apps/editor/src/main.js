@@ -3,6 +3,7 @@ import { exampleStateFor } from './examples.js'
 import { exampleStateForTheme } from './example-defaults.js'
 import {
   DETAILS_MODEL_URI,
+  detailsDocumentFor,
   detailsStateWithTitle,
   parseDetailsDocument,
   serializeDetailsDocument,
@@ -299,6 +300,7 @@ for (const { id, label } of diagramTypes) {
 const initialState = await loadInitialState()
 detailsState = {
   meta: normalizeMetadata(initialState.meta),
+  options: initialState.options ?? {},
   presentation: normalizePresentation(initialState.presentation),
 }
 typePicker.value = initialState.type
@@ -750,7 +752,7 @@ function currentState() {
   return {
     type: typePicker.value,
     source: sourceEditor.getValue(),
-    options: {},
+    options: detailsState.options,
     meta: detailsState.meta,
     presentation: detailsState.presentation,
   }
@@ -923,9 +925,11 @@ function ensureValidDetails() {
 }
 
 function setDetailsState(nextDetails) {
+  const normalized = detailsDocumentFor(nextDetails)
   detailsState = {
-    meta: normalizeMetadata(nextDetails.meta),
-    presentation: normalizePresentation(nextDetails.presentation),
+    meta: normalizeMetadata({ title: normalized.title, description: normalized.description }),
+    options: normalized.options,
+    presentation: normalizePresentation(normalized.presentation),
   }
   detailsValid = true
   detailsError = ''
@@ -1020,7 +1024,7 @@ function applyState(state, commit = true) {
   activeType = state.type
   typePicker.value = state.type
   updateTypeCommand()
-  setDetailsState({ meta, presentation })
+  setDetailsState({ meta, options: state.options ?? {}, presentation })
   syncPreviewAppearanceControls()
   sourceEditor.setDocument({ source: state.source, diagramType: state.type })
   if (commit) commitState()

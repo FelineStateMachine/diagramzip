@@ -1,5 +1,5 @@
 const ICON_KIND_BY_TYPE = Object.freeze({
-  plantuml: 'sequence', mermaid: 'flow', seqdiag: 'sequence', actdiag: 'flow', blockdiag: 'flow', bpmn: 'flow',
+  plantuml: 'sequence', mermaid: 'flow', seqdiag: 'sequence', actdiag: 'flow', blockdiag: 'flow', bpmn: 'flow', trn: 'flow',
   c4plantuml: 'layers', structurizr: 'layers', d2: 'graph', graphviz: 'graph', nomnoml: 'classes', umlet: 'classes',
   dbml: 'database', erd: 'database', vega: 'chart', vegalite: 'chart',
   nwdiag: 'network', packetdiag: 'packet', rackdiag: 'rack', bytefield: 'packet', wavedrom: 'wave', symbolator: 'chip', wireviz: 'cable',

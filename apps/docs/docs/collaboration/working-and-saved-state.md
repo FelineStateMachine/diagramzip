@@ -16,7 +16,7 @@ The working state is what you currently see and edit. It includes the diagram
 source, type, renderer options, presentation settings, title, and description.
 
 Source and Details use separate editor tabs. Details is a JSON document that
-contains the title, description, and presentation settings.
+contains the title, description, renderer options, and presentation settings.
 
 Invalid Details JSON remains in the local draft. The editor keeps the last
 valid preview and blocks file export, publishing, sharing, privacy, and type

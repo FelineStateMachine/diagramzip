@@ -121,8 +121,11 @@ const llms = await source(join(site, 'static', 'llms.txt'))
 const llmsFull = await source(join(site, 'static', 'llms-full.txt'))
 assert(llms.includes('https://docs.diagram.zip/create/'), 'llms.txt does not link the editor workspace guide.')
 assert(llms.includes('https://docs.diagram.zip/style/presentation/'), 'llms.txt does not link the Details presentation guide.')
+assert(llms.includes('TRN stands for Tabular Recipe Notation'), 'llms.txt does not expand TRN.')
+assert(llms.includes('Michael Chu at Cooking for Engineers'), 'llms.txt does not credit the origin of TRN.')
 assert(llmsFull.includes('# General presentation settings'), 'llms-full.txt does not include the presentation guide.')
 assert(llmsFull.includes('# Working state and published state'), 'llms-full.txt does not include the working-state guide.')
+assert(llmsFull.includes('TRN originates with [Michael Chu]'), 'llms-full.txt does not credit the origin of TRN.')
 
 const expectedSkillIds = [...diagramSkillIds].sort()
 const skillEntries = await readdir(skills, { withFileTypes: true })
@@ -180,6 +183,9 @@ for (const entry of diagramSkills) {
 
 const workshopOpenAI = await source(join(skills, 'diagram-workshop', 'agents', 'openai.yaml'))
 assert(/allow_implicit_invocation:\s*false/.test(workshopOpenAI), 'Diagram workshop must disable implicit OpenAI invocation.')
+const publishedDiagramming = await source(join(publicSkills, 'diagramming', 'SKILL.md'))
+assert(publishedDiagramming.includes('Use Tabular Recipe Notation (`trn`) for recipes'), 'Published diagramming skill does not expand or route TRN.')
+assert(publishedDiagramming.includes('Michael Chu at Cooking for Engineers'), 'Published diagramming skill does not credit the origin of TRN.')
 
 for (const id of expected) {
   const type = diagramTypes.find((item) => item.id === id)

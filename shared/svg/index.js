@@ -12,8 +12,8 @@ const SAFE_DATA_FONT = /^data:(?:font\/(?:woff2?|opentype|truetype)|application\
 export const SVG_SCHEMA = '1'
 export const EDITABLE_SVG_SCHEMA = '1'
 export const NORMALIZER_BUILD = 'svg-normalizer-2'
-export const MATERIALIZER_BUILD = 'svg-materializer-2'
-export const PALETTE_BUILD = 'diagramzip-palette-1'
+export const MATERIALIZER_BUILD = 'svg-materializer-3'
+export const PALETTE_BUILD = 'diagramzip-palette-2'
 export const RAW_PROFILE = 'safe-raw-1'
 export const APPEARANCES = Object.freeze([
   'raw',
@@ -87,6 +87,11 @@ const AUTHORED_NEUTRAL_NORMALIZATION = capability(
   'adaptive',
   ['Neutral canvas, ink, and line paint adapts; authored non-neutral paint remains renderer-defined.'],
 )
+const TRN_NORMALIZATION = capability(
+  'trn-semantic-4',
+  'semantic',
+  ['Four relationship-zone branch colors adapt to the selected appearance and adjacent zones never share a color.'],
+)
 
 const PROFILE_BY_ENGINE = Object.freeze({
   graphviz: GRAPHVIZ_NORMALIZATION,
@@ -119,6 +124,7 @@ const PROFILE_BY_ENGINE = Object.freeze({
   diagramsnet: PRESENTATION_NORMALIZATION,
   excalidraw: AUTHORED_NEUTRAL_NORMALIZATION,
   tikz: AUTHORED_NEUTRAL_NORMALIZATION,
+  trn: TRN_NORMALIZATION,
 })
 
 const VERSION_PATTERNS = Object.freeze({
@@ -152,6 +158,7 @@ const VERSION_PATTERNS = Object.freeze({
   diagramsnet: /diagrams\.net@29\.6\.1/,
   excalidraw: /@excalidraw\/excalidraw@0\.18\.1/,
   tikz: /@planktimerr\/tikzjax@1\.0\.63/,
+  trn: /diagramzip-trn@13/,
 })
 
 export function normalizationFor(engine, rendererVersion = '') {
@@ -710,6 +717,39 @@ function resolveSiblingTextContrast(root) {
   visit(root)
 }
 
+function applyTrnProfile(root) {
+  const visit = (node, inGrid = false) => {
+    if (node.type === 'text') return
+    const classes = classNames(node)
+    const name = localName(node)
+    const nextInGrid = inGrid || classes.has('trn-grid')
+
+    if (classes.has('trn-canvas')) node.attributes.set('data-dz-role', 'canvas')
+    if (classes.has('trn-header')) {
+      node.attributes.set('data-dz-fill', 'surface-2')
+      node.attributes.set('data-dz-stroke', 'line-muted')
+    }
+    if (classes.has('trn-table-surface')) node.attributes.set('data-dz-fill', 'surface-1')
+    if (classes.has('trn-ingredient-cell') || classes.has('trn-flow-cell') || classes.has('trn-instruction-cell')) {
+      node.attributes.set('data-dz-fill', 'surface-1')
+      node.attributes.set('data-dz-stroke', 'line-muted')
+    }
+    if (classes.has('trn-zone-fill') || classes.has('trn-zone-shape')) {
+      const branch = [1, 2, 3, 4].find(index => classes.has(`trn-branch-${index}`)) ?? 1
+      node.attributes.set('data-dz-fill', `accent-${branch}`)
+    }
+    if (classes.has('trn-zone-border') || classes.has('trn-zone-shape')) node.attributes.set('data-dz-stroke', 'line-muted')
+    if (nextInGrid && SHAPE_ELEMENTS.has(name)) node.attributes.set('data-dz-stroke', 'line-muted')
+    if (classes.has('trn-title') || classes.has('trn-ingredient-label') || classes.has('trn-instruction-label')) {
+      node.attributes.set('data-dz-fill', 'ink')
+    }
+    if (classes.has('trn-operation-label')) node.attributes.set('data-dz-fill', 'on-accent')
+
+    for (const child of node.children) visit(child, nextInGrid)
+  }
+  visit(root)
+}
+
 function applyProfile(root, capability, engine) {
   if (capability.profile === 'graphviz-15-semantic-2') applyGraphvizProfile(root, engine)
   else if (capability.profile === 'd2-0.7-semantic-2') applyD2Profile(root)
@@ -726,6 +766,7 @@ function applyProfile(root, capability, engine) {
     else if (engine === 'wavedrom') applyWavedromProfile(root)
   }
   else if (capability.profile === 'authored-neutral-semantic-1') applyNeutralSvgProfile(root, engine)
+  else if (capability.profile === 'trn-semantic-4') applyTrnProfile(root)
   if (capability.conformance !== 'presentation-only') resolveSiblingTextContrast(root)
 }
 
@@ -951,16 +992,23 @@ export function materializePresentation(canonical, presentation) {
 const LIGHT_PALETTE = Object.freeze({
   canvas: '#f8fafc', surface1: '#ffffff', surface2: '#f1f5f9', surface3: '#e2e8f0',
   ink: '#0f172a', inkMuted: '#475569', line: '#334155', lineMuted: '#94a3b8',
-  accent1: '#2563eb', accent2: '#7c3aed', accent3: '#c2410c', onAccent: '#ffffff', frame: '#cbd5e1',
+  accent1: '#2563eb', accent2: '#7c3aed', accent3: '#c2410c', accent4: '#047857', onAccent: '#ffffff', frame: '#cbd5e1',
 })
 const DARK_PALETTE = Object.freeze({
   canvas: '#0f172a', surface1: '#1e293b', surface2: '#273449', surface3: '#334155',
   ink: '#f8fafc', inkMuted: '#cbd5e1', line: '#e2e8f0', lineMuted: '#94a3b8',
-  accent1: '#60a5fa', accent2: '#c4b5fd', accent3: '#fb923c', onAccent: '#0f172a', frame: '#475569',
+  accent1: '#60a5fa', accent2: '#c4b5fd', accent3: '#fb923c', accent4: '#34d399', onAccent: '#0f172a', frame: '#475569',
+})
+const TRN_LIGHT_BRANCH_PALETTE = Object.freeze({
+  accent1: '#dbeafe', accent2: '#fef3c7', accent3: '#ede9fe', accent4: '#ccfbf1', onAccent: '#0f172a',
 })
 
 function paletteVariables(palette) {
-  return `--dz-canvas:${palette.canvas};--dz-surface-1:${palette.surface1};--dz-surface-2:${palette.surface2};--dz-surface-3:${palette.surface3};--dz-ink:${palette.ink};--dz-ink-muted:${palette.inkMuted};--dz-line:${palette.line};--dz-line-muted:${palette.lineMuted};--dz-accent-1:${palette.accent1};--dz-accent-2:${palette.accent2};--dz-accent-3:${palette.accent3};--dz-on-accent:${palette.onAccent};--dz-frame:${palette.frame};`
+  return `--dz-canvas:${palette.canvas};--dz-surface-1:${palette.surface1};--dz-surface-2:${palette.surface2};--dz-surface-3:${palette.surface3};--dz-ink:${palette.ink};--dz-ink-muted:${palette.inkMuted};--dz-line:${palette.line};--dz-line-muted:${palette.lineMuted};--dz-accent-1:${palette.accent1};--dz-accent-2:${palette.accent2};--dz-accent-3:${palette.accent3};--dz-accent-4:${palette.accent4};--dz-on-accent:${palette.onAccent};--dz-frame:${palette.frame};`
+}
+
+function branchPaletteVariables(palette) {
+  return `--dz-accent-1:${palette.accent1};--dz-accent-2:${palette.accent2};--dz-accent-3:${palette.accent3};--dz-accent-4:${palette.accent4};--dz-on-accent:${palette.onAccent};`
 }
 
 function materializerCss(appearance) {
@@ -969,7 +1017,11 @@ function materializerCss(appearance) {
   const variables = automatic
     ? `:root{${paletteVariables(LIGHT_PALETTE)}}@media(prefers-color-scheme:dark){:root{${paletteVariables(DARK_PALETTE)}}}`
     : `:root{${paletteVariables(scheme)}}`
-  return `${variables}[data-dz-role="canvas"]:not([data-dz-owned="materializer"]){display:none!important}[data-dz-fill="none"]{fill:none!important}[data-dz-fill="surface-1"]{fill:var(--dz-surface-1)!important}[data-dz-fill="surface-2"]{fill:var(--dz-surface-2)!important}[data-dz-fill="surface-3"]{fill:var(--dz-surface-3)!important}[data-dz-fill="ink"]{fill:var(--dz-ink)!important;color:var(--dz-ink)!important}[data-dz-fill="ink-muted"]{fill:var(--dz-ink-muted)!important;color:var(--dz-ink-muted)!important}[data-dz-fill="line"]{fill:var(--dz-line)!important}[data-dz-fill="accent-1"]{fill:var(--dz-accent-1)!important}[data-dz-fill="accent-2"]{fill:var(--dz-accent-2)!important}[data-dz-fill="accent-3"]{fill:var(--dz-accent-3)!important}[data-dz-fill="on-accent"]{fill:var(--dz-on-accent)!important;color:var(--dz-on-accent)!important}[data-dz-stroke="line"]{stroke:var(--dz-line)!important}[data-dz-stroke="line-muted"]{stroke:var(--dz-line-muted)!important}[data-dz-stroke="accent-1"]{stroke:var(--dz-accent-1)!important}[data-dz-stroke="accent-2"]{stroke:var(--dz-accent-2)!important}[data-dz-stroke="accent-3"]{stroke:var(--dz-accent-3)!important}`
+  const trnSelector = ':root[data-dz-profile="trn-semantic-4"]'
+  const trnVariables = automatic
+    ? `${trnSelector}{${branchPaletteVariables(TRN_LIGHT_BRANCH_PALETTE)}}@media(prefers-color-scheme:dark){${trnSelector}{${branchPaletteVariables(DARK_PALETTE)}}}`
+    : appearance.startsWith('light-') ? `${trnSelector}{${branchPaletteVariables(TRN_LIGHT_BRANCH_PALETTE)}}` : ''
+  return `${variables}${trnVariables}[data-dz-role="canvas"]:not([data-dz-owned="materializer"]){display:none!important}[data-dz-fill="none"]{fill:none!important}[data-dz-fill="surface-1"]{fill:var(--dz-surface-1)!important}[data-dz-fill="surface-2"]{fill:var(--dz-surface-2)!important}[data-dz-fill="surface-3"]{fill:var(--dz-surface-3)!important}[data-dz-fill="ink"]{fill:var(--dz-ink)!important;color:var(--dz-ink)!important}[data-dz-fill="ink-muted"]{fill:var(--dz-ink-muted)!important;color:var(--dz-ink-muted)!important}[data-dz-fill="line"]{fill:var(--dz-line)!important}[data-dz-fill="accent-1"]{fill:var(--dz-accent-1)!important}[data-dz-fill="accent-2"]{fill:var(--dz-accent-2)!important}[data-dz-fill="accent-3"]{fill:var(--dz-accent-3)!important}[data-dz-fill="accent-4"]{fill:var(--dz-accent-4)!important}[data-dz-fill="on-accent"]{fill:var(--dz-on-accent)!important;color:var(--dz-on-accent)!important}[data-dz-stroke="line"]{stroke:var(--dz-line)!important}[data-dz-stroke="line-muted"]{stroke:var(--dz-line-muted)!important}[data-dz-stroke="accent-1"]{stroke:var(--dz-accent-1)!important}[data-dz-stroke="accent-2"]{stroke:var(--dz-accent-2)!important}[data-dz-stroke="accent-3"]{stroke:var(--dz-accent-3)!important}[data-dz-stroke="accent-4"]{stroke:var(--dz-accent-4)!important}`
 }
 
 function canonicalBounds(root) {

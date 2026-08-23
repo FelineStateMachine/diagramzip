@@ -21,7 +21,7 @@ export default function TypeGrid() {
     <section className={styles.typeSection} aria-labelledby="type-grid-title">
       <div className={styles.sectionHeading}>
         <div>
-          <p className={styles.eyebrow}>30 supported types</p>
+          <p className={styles.eyebrow}>{diagramTypes.length} supported types</p>
           <h2 id="type-grid-title">Choose a diagram type</h2>
         </div>
         <label className={styles.searchLabel}>

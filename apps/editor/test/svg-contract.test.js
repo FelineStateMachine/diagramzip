@@ -91,8 +91,8 @@ test('materializes explicit and automatic palettes without changing diagram geom
   const automatic = materializeSvg(semanticCanonical, 'auto-transparent')
 
   for (const output of [light, dark, automatic]) {
-    assert.match(output, /data-dz-materializer="svg-materializer-2"/)
-    assert.match(output, /data-dz-palette="diagramzip-palette-1"/)
+    assert.match(output, /data-dz-materializer="svg-materializer-3"/)
+    assert.match(output, /data-dz-palette="diagramzip-palette-2"/)
     assert.match(output, /<rect x="1" y="1" width="8" height="8"/)
     assert.doesNotMatch(output, /<(?:rect|path|polygon)[^>]*data-dz-role="canvas"/)
   }
@@ -177,6 +177,23 @@ test('applies D2, PlantUML, Svgbob, and neutral SVG family roles', () => {
     for (const role of fixture.roles) assert.ok(canonical.includes(role), `${fixture.engine} missing ${role}`)
     assert.match(materializeSvg(canonical, 'dark-transparent'), /data-dz-appearance="dark-transparent"/)
   }
+})
+
+test('normalizes TRN table structure and relationship zones', () => {
+  const trn = canonicalizeSvg(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"><rect class="trn-canvas" width="80" height="40" fill="#fbf8dc"></rect><text class="trn-title" fill="#111827">Bread</text><rect class="trn-table-surface" y="10" width="80" height="30" fill="white"></rect><path class="trn-zone-shape trn-branch-4" fill="white" stroke="#65a268"></path><text class="trn-operation-label" fill="#111827">mix</text></svg>',
+    metadata, 'trn', 'diagramzip-trn@13',
+  )
+
+  assert.match(trn, /data-dz-profile="trn-semantic-4"/)
+  assert.match(trn, /class="trn-zone-shape trn-branch-4"[^>]*data-dz-fill="accent-4"[^>]*data-dz-stroke="line-muted"/)
+  assert.match(trn, /class="trn-operation-label"[^>]*data-dz-fill="on-accent"/)
+  const light = materializeSvg(trn, 'light-transparent')
+  assert.match(light, /:root\[data-dz-profile="trn-semantic-4"\]\{--dz-accent-1:#dbeafe;--dz-accent-2:#fef3c7;--dz-accent-3:#ede9fe;--dz-accent-4:#ccfbf1;--dz-on-accent:#0f172a;/)
+  const dark = materializeSvg(trn, 'dark-transparent')
+  assert.match(dark, /data-dz-appearance="dark-transparent"/)
+  assert.match(dark, /--dz-accent-4:#34d399/)
+  assert.doesNotMatch(dark, /--dz-accent-1:#dbeafe/)
 })
 
 test('themes every Svgbob stroke without treating open curves as object surfaces', () => {

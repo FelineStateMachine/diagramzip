@@ -1,0 +1,5 @@
+{
+  "engine": "trn",
+  "source": ".layout combined\n\ningredient flour \"Bread flour\"\ningredient water\ningredient yeast\ningredient salt\n\noutcome bread portion 1 loaf {\n  + flour 500 g\n  + water 350 ml\n  + yeast 7 g\n  + salt 10 g\n  -> mix\n  -> knead\n  -> proof for 1 hour\n  -> bake {portion} at 230°C for 30 minutes\n}",
+  "sourceKind": "page-example"
+}

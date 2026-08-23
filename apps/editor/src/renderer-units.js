@@ -1,3 +1,5 @@
+const trnRendererUnit = import.meta.env?.VITE_TRN_RENDERER_UNIT ?? 'https://trn.render.diagram.zip/v1/svg'
+
 export const HTTP_RENDERER_UNITS = Object.freeze({
   plantuml: 'https://plantuml.render.diagram.zip/v1/svg',
   graphviz: 'https://graphviz.render.diagram.zip/v1/svg',
@@ -29,6 +31,7 @@ export const HTTP_RENDERER_UNITS = Object.freeze({
   excalidraw: 'https://excalidraw.render.diagram.zip/v1/svg',
   diagramsnet: 'https://diagramsnet.render.diagram.zip/v1/svg',
   tikz: 'https://tikz.render.diagram.zip/v1/svg',
+  trn: trnRendererUnit,
 })
 
 export function httpRendererUnitFor(engine) {

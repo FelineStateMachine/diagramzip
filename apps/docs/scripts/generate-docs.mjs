@@ -89,15 +89,19 @@ function example(type, interactive = true) {
   return `${heading}\n\n${note}\`\`\`${fence(type.language)}\n${content}\n\`\`\`\n${rendered}`
 }
 
-function options(type) {
-  return `| Option | Values | Purpose |\n| --- | --- | --- |\n${type.rendererOptions.map((item) => `| \`${inline(item.name)}\` | ${inline(item.values)} | ${inline(item.description)} |`).join('\n')}\n`
+function options(items) {
+  return `| Option | Values | Purpose |\n| --- | --- | --- |\n${items.map((item) => `| \`${inline(item.name)}\` | ${inline(item.values)} | ${inline(item.description)} |`).join('\n')}\n`
 }
 
 function syntaxPage(type, interactive = true) {
   const limitations = lines(type.limitations)
   const article = articleFor(type.label)
+  const origin = type.origin
+    ? `## Origin\n\n${type.label} originates with [${type.origin.creator}](${type.origin.siteUrl}) at [${type.origin.site}](${type.origin.siteUrl}). ${type.origin.note}\n\n`
+    : ''
   return frontmatter(type, 'create', `Create ${article} ${type.label} diagram in diagram.zip.`) +
 `${interactive ? "import DiagramExample from '@site/src/components/DiagramExample';\n\n" : ''}# ${type.label}\n\n${type.summary}\n\n## Use this type\n\n${type.use}\n\n## Source format\n\nThe source format is **${type.format}**. Enter the source in the diagram.zip editor.\n\n## Syntax essentials\n\n${lines(type.syntax).map((item) => `- ${item}`).join('\n')}\n\n${example(type, interactive)}\n` +
+(origin) +
 (limitations.length ? `## Limitations\n\n${limitations.map((item) => `- ${item}`).join('\n')}\n\n` : '') +
 `## Related pages\n\n- [Style ${type.label}](${stylePath(type.id)})\n- [General presentation settings](/style/presentation)\n- [Open ${type.label} in the editor](${editorLink(type.id)})\n\n## Upstream reference\n\n[${type.label} documentation](${type.upstream})\n`
 }
@@ -106,7 +110,7 @@ function stylePage(type) {
   const limitations = lines(type.limitations)
   const article = articleFor(type.label)
   const rendererOptions = type.rendererOptions?.length
-    ? `\n## Renderer options\n\n${options(type)}\n`
+    ? `\n## Renderer options\n\n${options(type.rendererOptions)}\n`
     : ''
   return frontmatter(type, 'style', `Style a ${type.label} diagram in diagram.zip.`) +
 `# Style ${type.label}\n\n${type.styleSummary}\n\nStart with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.\n\n## Source controls\n\n${lines(type.sourceStyle).map((item) => `- ${item}`).join('\n')}\n${rendererOptions}` +
@@ -117,6 +121,7 @@ function stylePage(type) {
 const catalog = diagramTypes.map((type) => ({
   id: type.id,
   label: type.label,
+  ...(type.fullName === undefined ? {} : { fullName: type.fullName }),
   category: type.category,
   format: type.format,
   language: type.language,
@@ -125,6 +130,7 @@ const catalog = diagramTypes.map((type) => ({
   style: stylePath(type.id),
   editor: editorLink(type.id),
   example: `/examples/${type.id}.json`,
+  ...(type.origin === undefined ? {} : { origin: type.origin }),
 }))
 const coreDocPaths = [
   join(docs, 'create', 'index.md'),
@@ -158,7 +164,7 @@ await Promise.all(diagramTypes.flatMap((type) => [
 await Promise.all(diagramSkills.map(({ id }) => cp(join(skillsDir, id), join(publicSkillsDir, id), { recursive: true })))
 await writeFile(join(staticDir, 'diagram-types.json'), `${JSON.stringify({ version: 1, diagramTypes: catalog }, null, 2)}\n`)
 await writeFile(join(staticDir, 'diagram-skills.json'), `${JSON.stringify({ version: 1, groups: skillGroups, skills: skillCatalog, standards: standardsSupport }, null, 2)}\n`)
-await writeFile(join(staticDir, 'llms.txt'), `# diagram.zip documentation\n\n> Choose the semantic story first. Use Source for notation and Details for metadata and presentation.\n\n- [Diagram routing skill](https://docs.diagram.zip/skills/diagramming/SKILL.md): Select a diagram family from the reader's question.\n- [Machine-readable semantic catalog](https://docs.diagram.zip/diagram-skills.json): Inspect every skill, use case, exclusion, role, and invocation constraint.\n\n${skillIndex()}\n\n## Renderer and source formats\n\n${diagramTypes.map((type) => `- [${type.label} syntax](https://docs.diagram.zip${syntaxPath(type.id)}/): Create ${articleFor(type.label)} ${type.label} diagram. [Style](https://docs.diagram.zip${stylePath(type.id)}/).`).join('\n')}\n\n## General pages\n\n- [Editor workspace](https://docs.diagram.zip/create/)\n- [Editable SVG files and local drafts](https://docs.diagram.zip/create/): Reopen validated enriched SVG files without publishing.\n- [Details JSON and presentation](https://docs.diagram.zip/style/presentation/)\n- [SVG normalization and version contracts](https://docs.diagram.zip/style/svg-normalization/)\n- [Share a diagram](https://docs.diagram.zip/collaboration/sharing/)\n- [Password encryption](https://docs.diagram.zip/collaboration/encryption/)\n- [Working state and saved state](https://docs.diagram.zip/collaboration/working-and-saved-state/)\n\n## Structured catalogs\n\n- [diagram-skills.json](https://docs.diagram.zip/diagram-skills.json)\n- [diagram-types.json](https://docs.diagram.zip/diagram-types.json)\n- [Full documentation text](https://docs.diagram.zip/llms-full.txt)\n- [Source repository](https://github.com/FelineStateMachine/diagramzip)\n`)
+await writeFile(join(staticDir, 'llms.txt'), `# diagram.zip documentation\n\n> Choose the semantic story first. Use Source for notation and Details for metadata and presentation.\n\n- [Diagram routing skill](https://docs.diagram.zip/skills/diagramming/SKILL.md): Select a diagram family from the reader's question.\n- [Machine-readable semantic catalog](https://docs.diagram.zip/diagram-skills.json): Inspect every skill, use case, exclusion, role, and invocation constraint.\n\n${skillIndex()}\n\n## Renderer and source formats\n\n${diagramTypes.map((type) => `- [${type.label} syntax](https://docs.diagram.zip${syntaxPath(type.id)}/): ${type.fullName === undefined ? '' : `${type.label} stands for ${type.fullName}. `}Create ${articleFor(type.label)} ${type.label} diagram. [Style](https://docs.diagram.zip${stylePath(type.id)}/).${type.origin === undefined ? '' : ` Origin: [${type.origin.creator} at ${type.origin.site}](${type.origin.siteUrl}).`}`).join('\n')}\n\n## General pages\n\n- [Editor workspace](https://docs.diagram.zip/create/)\n- [Editable SVG files and local drafts](https://docs.diagram.zip/create/): Reopen validated enriched SVG files without publishing.\n- [Details JSON and presentation](https://docs.diagram.zip/style/presentation/)\n- [SVG normalization and version contracts](https://docs.diagram.zip/style/svg-normalization/)\n- [Share a diagram](https://docs.diagram.zip/collaboration/sharing/)\n- [Password encryption](https://docs.diagram.zip/collaboration/encryption/)\n- [Working state and saved state](https://docs.diagram.zip/collaboration/working-and-saved-state/)\n\n## Structured catalogs\n\n- [diagram-skills.json](https://docs.diagram.zip/diagram-skills.json)\n- [diagram-types.json](https://docs.diagram.zip/diagram-types.json)\n- [Full documentation text](https://docs.diagram.zip/llms-full.txt)\n- [Source repository](https://github.com/FelineStateMachine/diagramzip)\n`)
 const llmsPath = join(staticDir, 'llms.txt')
 const llmsIndex = await readFile(llmsPath, 'utf8')
 await writeFile(llmsPath, llmsIndex.replace('Working state and saved state', 'Working state and published state'))

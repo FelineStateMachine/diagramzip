@@ -8,7 +8,7 @@ const GROUP_DEFINITIONS = [
     id: 'flow-sequence',
     label: 'Flow & sequence',
     description: 'Processes, interactions, and timelines.',
-    types: ['plantuml', 'mermaid', 'seqdiag', 'actdiag', 'blockdiag', 'bpmn'],
+    types: ['plantuml', 'mermaid', 'seqdiag', 'actdiag', 'blockdiag', 'bpmn', 'trn'],
   },
   {
     id: 'architecture',
@@ -62,6 +62,7 @@ const DESCRIPTIONS = {
   svgbob: 'ASCII diagrams rendered as SVG.',
   symbolator: 'HDL and digital logic symbol diagrams.',
   tikz: 'Precise TeX-based technical drawings.',
+  trn: 'Tabular recipes with ingredient rows and operation columns.',
   umlet: 'Lightweight UML diagrams.',
   vega: 'Programmable data visualizations with Vega.',
   vegalite: 'Concise declarative data visualizations.',
@@ -76,7 +77,7 @@ const EXTENSIONS = {
   bytefield: ['.bf'], dbml: ['.dbml'], diagramsnet: ['.drawio'], ditaa: ['.ditaa'],
   erd: ['.erd'], excalidraw: ['.excalidraw'], goat: ['.goat'], nomnoml: ['.nomnoml'],
   pikchr: ['.pikchr'], structurizr: ['.dsl'], svgbob: ['.bob'], symbolator: ['.sv'],
-  tikz: ['.tex'], umlet: ['.uxf'], vega: ['.json'], vegalite: ['.json'], wavedrom: ['.json'],
+  tikz: ['.tex'], trn: ['.trn'], umlet: ['.uxf'], vega: ['.json'], vegalite: ['.json'], wavedrom: ['.json'],
   wireviz: ['.yaml', '.yml'],
 }
 

@@ -8,7 +8,7 @@ export const DETAILS_DOCUMENT_SCHEMA = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
   $id: DETAILS_SCHEMA_URI,
   title: 'Diagram details',
-  description: 'Metadata and presentation settings for the current diagram.',
+  description: 'Metadata, renderer options, and presentation settings for the current diagram.',
   type: 'object',
   additionalProperties: false,
   required: ['title', 'description', 'presentation'],
@@ -22,6 +22,13 @@ export const DETAILS_DOCUMENT_SCHEMA = {
       type: 'string',
       maxLength: 2000,
       description: 'A plain-text description of what the diagram shows.',
+    },
+    options: {
+      type: 'object',
+      maxProperties: 64,
+      propertyNames: { pattern: '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$' },
+      additionalProperties: { type: ['string', 'number', 'boolean'] },
+      description: 'Renderer-specific options.',
     },
     presentation: {
       type: 'object',
@@ -59,6 +66,7 @@ export function detailsDocumentFor(state = {}) {
   return {
     title: meta.title,
     description: meta.description,
+    options: normalizeRendererOptions(state.options),
     presentation,
   }
 }
@@ -73,6 +81,7 @@ export function detailsStateWithTitle(state, title) {
   }
   return {
     meta: normalizeMetadata({ ...state.meta, title }),
+    options: normalizeRendererOptions(state.options),
     presentation: normalizePresentation(state.presentation),
   }
 }
@@ -85,7 +94,7 @@ export function parseDetailsDocument(source) {
     throw new Error(`Details must be valid JSON. ${error instanceof Error ? error.message : ''}`.trim())
   }
   assertObject(value, 'Details must be a JSON object.')
-  assertKeys(value, ['title', 'description', 'presentation'], 'details')
+  assertKeys(value, ['title', 'description', 'options', 'presentation'], 'details')
   assertRequired(value, ['title', 'description', 'presentation'], 'details')
   if (typeof value.title !== 'string' || value.title.length > 200) {
     throw new Error('title must be a string with at most 200 characters.')
@@ -105,8 +114,25 @@ export function parseDetailsDocument(source) {
   }
   return {
     meta: normalizeMetadata({ title: value.title, description: value.description }),
+    options: normalizeRendererOptions(value.options),
     presentation,
   }
+}
+
+function normalizeRendererOptions(options = {}) {
+  assertObject(options, 'options must be a JSON object.')
+  const entries = Object.entries(options)
+  if (entries.length > 64) throw new Error('options cannot contain more than 64 properties.')
+  const normalized = {}
+  for (const [name, value] of entries) {
+    if (!/^[a-z0-9][a-z0-9_-]{0,63}$/i.test(name)) throw new Error(`options contains invalid property "${name}".`)
+    if (!['string', 'number', 'boolean'].includes(typeof value) || (typeof value === 'number' && !Number.isFinite(value))) {
+      throw new Error(`option "${name}" must be a string, number, or boolean.`)
+    }
+    if (String(value).length > 4_096) throw new Error(`option "${name}" is too large.`)
+    normalized[name] = value
+  }
+  return normalized
 }
 
 function assertObject(value, message) {

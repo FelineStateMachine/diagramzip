@@ -7,12 +7,13 @@ sidebar_position: 1
 
 # General presentation settings
 
-Open the **Details** tab in the left pane. It contains a validated JSON document for metadata and presentation.
+Open the **Details** tab in the left pane. It contains a validated JSON document for metadata, renderer options, and presentation.
 
 ```json
 {
   "title": "Service flow",
   "description": "A request moving through the public API.",
+  "options": {},
   "presentation": {
     "appearance": "auto-transparent",
     "background": "",
@@ -25,6 +26,10 @@ Open the **Details** tab in the left pane. It contains a validated JSON document
 `title` accepts at most 200 characters. `description` accepts at most 2,000 characters. Unknown properties are rejected.
 
 The diagnostics dock reports invalid JSON or schema values. Diagram.zip keeps the last valid preview until the document becomes valid again.
+
+## Renderer options
+
+Put renderer-specific settings in the top-level `options` object. Option values may be strings, numbers, or booleans. The Style page for each diagram type lists its supported keys.
 
 ## Appearance
 

@@ -36,6 +36,7 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
   svgbob: 'edge-wasm',
   symbolator: 'edge-python',
   tikz: 'edge-wasm',
+  trn: 'edge-js',
   umlet: 'edge-js',
   vega: 'edge-js',
   vegalite: 'edge-js',
@@ -73,6 +74,7 @@ const activeRuntime: Record<EngineId, EngineRuntime> = {
   ditaa: 'edge-wasm',
   symbolator: 'edge-python',
   tikz: 'edge-wasm',
+  trn: 'edge-js',
   umlet: 'edge-js',
 }
 
@@ -106,6 +108,7 @@ const versions: Record<EngineId, string> = {
   ditaa: 'ditaa-ascii+svgbob@0.7.6/edge-wasm-1',
   symbolator: 'symbolator@1.2.2/python-translation-1',
   tikz: '@planktimerr/tikzjax@1.0.63',
+  trn: 'diagramzip-trn@13',
   umlet: 'diagramzip-umlet-svg@1',
 }
 
@@ -209,6 +212,9 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'The edge unit uses the pinned TikZJax TeX/PGF package set, not a full TeX Live installation.',
     'External files, package downloads, shell escape, hyperlinks, and external resources are unavailable.',
     'Typography and SVG details may differ from the browser TikZJax unit.',
+  ],
+  trn: [
+    'The source selects one layout; the SVG does not embed an interactive layout toggle.',
   ],
   umlet: [
     'Only SVG is supported.',

@@ -9,17 +9,20 @@ import {
 
 const state = {
   meta: { title: 'Connections', description: 'A small D2 example.' },
+  options: { scale: 2, sketch: false },
   presentation: { appearance: 'dark-transparent', background: '', padding: 0, frame: false },
 }
 
 test('round trips the schema-backed details document', () => {
   assert.deepEqual(parseDetailsDocument(serializeDetailsDocument(state)), {
     meta: state.meta,
+    options: state.options,
     presentation: state.presentation,
   })
   assert.deepEqual(detailsDocumentFor(state), {
     title: 'Connections',
     description: 'A small D2 example.',
+    options: state.options,
     presentation: state.presentation,
   })
 })
@@ -42,11 +45,16 @@ test('communicates metadata and presentation restrictions', () => {
     ...detailsDocumentFor(state),
     presentation: { ...state.presentation, padding: 257 },
   })), /invalid appearance/)
+  assert.throws(() => parseDetailsDocument(JSON.stringify({
+    ...detailsDocumentFor(state),
+    options: { layout: { mode: 'individual' } },
+  })), /must be a string, number, or boolean/)
 })
 
 test('updates the title without changing other details', () => {
   assert.deepEqual(detailsStateWithTitle(state, 'Renamed'), {
     meta: { title: 'Renamed', description: state.meta.description },
+    options: state.options,
     presentation: state.presentation,
   })
   assert.throws(() => detailsStateWithTitle(state, 'x'.repeat(201)), /at most 200/)

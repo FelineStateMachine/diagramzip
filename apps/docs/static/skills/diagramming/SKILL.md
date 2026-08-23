@@ -26,6 +26,8 @@ The same system can be shown as a flow, interaction, boundary, dependency, data 
 
 Common choices include Mermaid for compact general diagrams, PlantUML for UML-oriented notation, C4 PlantUML for C4 views, and Graphviz or D2 for graph structure. BPMN supports formal process exchange, DBML supports relational schemas, and PacketDiag or Bytefield supports protocol fields.
 
+Use Tabular Recipe Notation (`trn`) for recipes, crafting trees, and assembly transformations where ingredient quantities feed short actions and meaningful outcomes. Put `.layout combined` or `.layout individual` in the TRN source. TRN originates with [Michael Chu at Cooking for Engineers](https://www.cookingforengineers.com/); diagram.zip provides its own text DSL and SVG renderer for that tabular recipe concept. For OCR transcription, preserve the printed quantities and wording, and put uncertain readings in `#` comments instead of guessing.
+
 The complete renderer set and syntax links are in [llms.txt](https://docs.diagram.zip/llms.txt) and [diagram-types.json](https://docs.diagram.zip/diagram-types.json). Semantic routing metadata is in [diagram-skills.json](https://docs.diagram.zip/diagram-skills.json).
 
 Do not infer standards support from a similarly named renderer mode. Confirm the renderer's output and interchange fidelity.

@@ -47,7 +47,7 @@ edit links remain alias-based and do not depend on this query.
 
 ## Source, Details, and preview
 
-The left pane has **Source** and **Details** tabs. Source contains the selected diagram language. Details contains validated JSON for metadata and presentation.
+The left pane has **Source** and **Details** tabs. Source contains the selected diagram language. Details contains validated JSON for metadata, renderer options, and presentation.
 
 Edit the title directly in the top bar for a faster naming workflow. The value stays synchronized with `title` in Details.
 
