@@ -73,6 +73,15 @@ function actionText(item: StageLayout): string {
   return item.stage.action.replaceAll('{portion}', item.outcome.portion)
 }
 
+function fifoInputs(document: TrnDocument, inputs: TrnInput[]): TrnInput[] {
+  const outcomes: TrnInput[] = []
+  const ingredients: TrnInput[] = []
+  for (const input of inputs) {
+    (document.outcomes.has(input.id) ? outcomes : ingredients).push(input)
+  }
+  return [...outcomes, ...ingredients]
+}
+
 function layoutTree(document: TrnDocument): Layout {
   const layout: Layout = { leaves: [], stages: [], rows: 0, columns: 0 }
   let nextRow = 0
@@ -95,7 +104,7 @@ function layoutTree(document: TrnDocument): Layout {
       let dependencyColumn = previousColumn
       const inputs: Array<{ startRow: number; endRow: number; column: number }> = []
 
-      for (const input of stage.inputs) {
+      for (const input of fifoInputs(document, stage.inputs)) {
         const child = document.outcomes.get(input.id)
         const placed = child === undefined ? leaf(input) : outcome(child)
         inputs.push(placed)

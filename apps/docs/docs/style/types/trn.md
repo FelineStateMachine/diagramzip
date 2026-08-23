@@ -15,7 +15,7 @@ Start with the [general presentation settings](/style/presentation). Edit shared
 ## Source controls
 
 - Use `.layout combined` for one merged table or `.layout individual` for dependency-positioned recipe tables.
-- Order `+` lines as the ingredient rows should appear from top to bottom.
+- Combined layout places prerequisite outcomes before direct ingredients and preserves source order within each FIFO group.
 - Order `->` lines as operations should proceed from left to right.
 - Use outcomes for meaningful reusable or final results; keep incidental conversions inside the consuming outcome.
 - Use short action labels because operation text is vertical.

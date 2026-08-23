@@ -28,7 +28,8 @@ The source format is **Tabular Recipe Notation text**. Enter the source in the d
 - Keep incidental conversions, such as ore to bars, as steps inside the outcome that consumes them.
 - Add a full-width preparation row with `instruction`.
 - Add a quoted display label after an identifier when needed.
-- Each `+` adds an input row from top to bottom.
+- Each `+` queues an input for the next `->` action.
+- Combined layout places prerequisite outcomes before direct ingredients in stable FIFO order.
 - Each `->` adds an operation column from left to right.
 - Add `portion` after an outcome label or identifier when the result has a useful quantity.
 - Use `{portion}` in an action to embed that outcome quantity.

@@ -391,7 +391,7 @@ export const diagramTypes = [
     format: 'Tabular Recipe Notation text',
     summary: 'TRN stands for Tabular Recipe Notation. It shows how ingredients and intermediate outcomes combine into one or more final results.',
     use: 'Use TRN for recipes, crafting trees, assembly instructions, and other nested transformations.',
-    syntax: ['Optionally begin with `.layout combined` or `.layout individual`; the default is `combined`.', 'Declare each leaf value with `ingredient`.', 'Declare a meaningful final or reusable result with an `outcome` block.', 'Keep incidental conversions, such as ore to bars, as steps inside the outcome that consumes them.', 'Add a full-width preparation row with `instruction`.', 'Add a quoted display label after an identifier when needed.', 'Each `+` adds an input row from top to bottom.', 'Each `->` adds an operation column from left to right.', 'Add `portion` after an outcome label or identifier when the result has a useful quantity.', 'Use `{portion}` in an action to embed that outcome quantity.', 'Start comments with `#`; OCR importers should record uncertain text in comments instead of guessing.'],
+    syntax: ['Optionally begin with `.layout combined` or `.layout individual`; the default is `combined`.', 'Declare each leaf value with `ingredient`.', 'Declare a meaningful final or reusable result with an `outcome` block.', 'Keep incidental conversions, such as ore to bars, as steps inside the outcome that consumes them.', 'Add a full-width preparation row with `instruction`.', 'Add a quoted display label after an identifier when needed.', 'Each `+` queues an input for the next `->` action.', 'Combined layout places prerequisite outcomes before direct ingredients in stable FIFO order.', 'Each `->` adds an operation column from left to right.', 'Add `portion` after an outcome label or identifier when the result has a useful quantity.', 'Use `{portion}` in an action to embed that outcome quantity.', 'Start comments with `#`; OCR importers should record uncertain text in comments instead of guessing.'],
     language: 'text',
     example: [
       '.layout combined',
@@ -413,7 +413,7 @@ export const diagramTypes = [
       '}',
     ],
     styleSummary: 'TRN colors complete relationship zones as branches. Adjacent zones receive different normalized colors, while ingredients run downward and operations run right.',
-    sourceStyle: ['Use `.layout combined` for one merged table or `.layout individual` for dependency-positioned recipe tables.', 'Order `+` lines as the ingredient rows should appear from top to bottom.', 'Order `->` lines as operations should proceed from left to right.', 'Use outcomes for meaningful reusable or final results; keep incidental conversions inside the consuming outcome.', 'Use short action labels because operation text is vertical.'],
+    sourceStyle: ['Use `.layout combined` for one merged table or `.layout individual` for dependency-positioned recipe tables.', 'Combined layout places prerequisite outcomes before direct ingredients and preserves source order within each FIFO group.', 'Order `->` lines as operations should proceed from left to right.', 'Use outcomes for meaningful reusable or final results; keep incidental conversions inside the consuming outcome.', 'Use short action labels because operation text is vertical.'],
     rendererOptions: [],
     limitations: ['The source selects one layout; the SVG does not embed an interactive layout toggle.'],
     origin: {

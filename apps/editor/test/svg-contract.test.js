@@ -182,7 +182,7 @@ test('applies D2, PlantUML, Svgbob, and neutral SVG family roles', () => {
 test('normalizes TRN table structure and relationship zones', () => {
   const trn = canonicalizeSvg(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"><rect class="trn-canvas" width="80" height="40" fill="#fbf8dc"></rect><text class="trn-title" fill="#111827">Bread</text><rect class="trn-table-surface" y="10" width="80" height="30" fill="white"></rect><path class="trn-zone-shape trn-branch-4" fill="white" stroke="#65a268"></path><text class="trn-operation-label" fill="#111827">mix</text></svg>',
-    metadata, 'trn', 'diagramzip-trn@13',
+    metadata, 'trn', 'diagramzip-trn@14',
   )
 
   assert.match(trn, /data-dz-profile="trn-semantic-4"/)

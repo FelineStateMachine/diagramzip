@@ -159,4 +159,28 @@ outcome marshmallows {
     expect(result.body).toContain('data-outcome-id="marshmallows" data-column="6" data-cell-count="12" data-arm-count="1"')
     expect(result.body).toContain('height="196"')
   })
+
+  it('places prerequisite outcomes before direct ingredients in FIFO order', async () => {
+    const source = `ingredient remaining_water "remaining 2½ c lukewarm water"
+ingredient starter_water "½ c lukewarm water"
+ingredient yeast "2 pkt yeast"
+
+outcome activated_yeast {
+  + starter_water
+  + yeast
+  -> sprinkle yeast over water
+}
+
+outcome bagels portion 16 bagels {
+  + remaining_water
+  + activated_yeast
+  -> combine
+}`
+    const result = await trnAdapter.render(request(source), new AbortController().signal)
+    const rows = [...result.body.matchAll(/class="trn-ingredient" data-value-id="([^"]+)"/g)]
+      .map(match => match[1])
+
+    expect(rows).toEqual(['starter_water', 'yeast', 'remaining_water'])
+    expect(result.body).toContain('data-outcome-id="bagels" data-column="2" data-cell-count="4" data-arm-count="1"')
+  })
 })
