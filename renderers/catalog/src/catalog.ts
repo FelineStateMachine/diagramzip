@@ -108,7 +108,7 @@ const versions: Record<EngineId, string> = {
   ditaa: 'ditaa-ascii+svgbob@0.7.6/edge-wasm-1',
   symbolator: 'symbolator@1.2.2/python-translation-1',
   tikz: '@planktimerr/tikzjax@1.0.63',
-  trn: 'diagramzip-trn@15',
+  trn: 'diagramzip-trn@16',
   umlet: 'diagramzip-umlet-svg@1',
 }
 

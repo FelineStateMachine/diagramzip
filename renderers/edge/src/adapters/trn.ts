@@ -4,7 +4,7 @@ import { parseTrn } from '../languages/trn'
 import { renderTrn } from '../languages/trn-renderer'
 import { edgeFailure, edgeResult } from './types'
 
-const VERSION = 'diagramzip-trn@15'
+const VERSION = 'diagramzip-trn@16'
 
 function validateOptions(options: Record<string, string>): void {
   for (const name of Object.keys(options)) {

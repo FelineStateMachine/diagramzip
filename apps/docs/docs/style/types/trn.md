@@ -14,15 +14,20 @@ Start with the [general presentation settings](/style/presentation). Edit shared
 
 ## Source controls
 
-- Use `.layout combined` for one merged table or `.layout individual` for dependency-positioned recipe tables.
+- Use `.layout combined` for one merged table.
+- Use `.layout individual` for dependency-positioned recipe tables.
 - Combined layout places prerequisite outcomes before direct ingredients and preserves source order within each FIFO group.
-- Order `->` lines as operations should proceed from left to right.
+- Place each `+` immediately before the operation that consumes it.
+- Independent branches can reuse a visual column when their inputs do not depend on each other.
+- Order consecutive `->` lines as operations should proceed from left to right.
 - Use outcomes for meaningful reusable or final results; keep incidental conversions inside the consuming outcome.
-- Use short action labels because operation text is vertical.
-- Full-width `instruction` rows wrap automatically; operation labels remain single-line and vertical.
+- Use concise, complete instructions because combined and individual operation text is vertical.
+- Full-width `instruction` rows wrap automatically; combined and individual operation labels remain single-line.
 ## Limitations
 
 - The source selects one layout; the SVG does not embed an interactive layout toggle.
+- Combined and individual operation labels do not wrap. Long operation text can overflow.
+- TRN does not expose a source control for custom column packing.
 
 ## Related pages
 

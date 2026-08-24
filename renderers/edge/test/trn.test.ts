@@ -59,7 +59,7 @@ describe('TRN language', () => {
 
   it('validates the source layout directive and rejects renderer options', () => {
     expect(() => parseTrn(zenith.replace('.layout individual', '.layout grid')))
-      .toThrow(/Expected '.layout combined', '.layout individual', or '.layout test'/)
+      .toThrow(/Expected '.layout combined' or '.layout individual'/)
     expect(() => parseTrn('.layout combined\n.layout individual\ningredient flour\noutcome bread {\n + flour\n -> bake\n}'))
       .toThrow(/may only appear once/)
     expect(() => parseTrn('ingredient flour\n.layout individual\noutcome bread {\n + flour\n -> bake\n}'))
@@ -85,35 +85,6 @@ describe('TRN language', () => {
     for (const [left, right] of touchingPairs) {
       expect(colors[left]!).not.toBe(colors[right]!)
     }
-  })
-
-  it('renders the test layout with instructions on the left and ingredients on the right', async () => {
-    const source = `.layout test\n${marshmallows}`
-    const document = parseTrn(source)
-    const result = await trnAdapter.render(request(source), new AbortController().signal)
-
-    expect(document.layout).toBe('test')
-    expect(result.body).toContain('data-layout="test"')
-    expect(result.body).toContain('horizontal operation labels on the left and vertical ingredient labels on the right')
-    expect(result.body).toContain('class="trn-instruction-cell"')
-    expect(result.body).toContain('>Grease 9x13-in. pan and powder with powdered sugar</tspan>')
-    expect(result.body).toContain('>powder</text>')
-    expect(result.body).toContain('class="trn-operation-zone"')
-    expect(result.body).toContain('data-outcome-id="marshmallows" data-column="7"')
-    expect(result.body).toContain('class="trn-ingredient" data-value-id="gelatin"')
-    expect(result.body).toContain('>3 Tbs. (21 g) gelatin</text>')
-    expect(result.body).toContain('class="trn-ingredient" data-value-id="powdered_sugar"')
-    expect(result.body).toContain('>Powdered sugar</text>')
-
-    const ingredientX = Number(result.body.match(/class="trn-ingredient-cell" x="(\d+)"/)?.[1])
-    const ingredientLabel = result.body.match(/class="trn-ingredient-label"[^>]+/)?.[0] ?? ''
-    const operationLabel = result.body.match(/class="trn-operation-label"[^>]+/)?.[0] ?? ''
-    const operationXs = [...result.body.matchAll(/class="trn-operation-label" x="([\d.]+)"/g)]
-      .map(match => Number(match[1]))
-    expect(ingredientX).toBeGreaterThan(12)
-    expect(ingredientLabel).toContain('transform="rotate(90')
-    expect(operationLabel).not.toContain('transform=')
-    expect(Math.max(...operationXs)).toBeLessThan(ingredientX)
   })
 
   it('rejects unknown values and dependency cycles with source locations', () => {

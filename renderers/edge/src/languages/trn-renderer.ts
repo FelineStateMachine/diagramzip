@@ -19,9 +19,6 @@ const RECIPE_LINK_CLEARANCE = 4
 const FONT_FAMILY = 'Arial,Helvetica,sans-serif'
 const GRID_COLOR = '#65a268'
 const BRANCH_COLORS = ['#dbeafe', '#fef3c7', '#ede9fe', '#ccfbf1'] as const
-const TEST_INGREDIENT_WIDTH = 44
-const TEST_OPERATION_FONT_SIZE = 11
-const TEST_INGREDIENT_FONT_SIZE = 10
 
 interface LeafLayout {
   row: number
@@ -365,79 +362,34 @@ function geometryFor(layout: Layout): Geometry {
   return { labelWidth, columnWidths, columnOffsets, rowHeights, rowOffsets, bodyHeight, tableWidth: offset }
 }
 
-function testGeometryFor(layout: Layout): Geometry {
-  const columnWidths = Array.from({ length: layout.columns }, (_, index) => {
-    const actions = layout.stages
-      .filter(stage => stage.column === index + 1)
-      .map(stage => textWidth(actionText(stage), TEST_OPERATION_FONT_SIZE, 28))
-    return Math.ceil(clamp(Math.max(82, ...actions), 82, 280))
-  })
-  const columnOffsets: number[] = []
-  let offset = TEST_INGREDIENT_WIDTH
-  for (const width of columnWidths) {
-    columnOffsets.push(offset)
-    offset += width
-  }
-  const rowHeights = Array.from({ length: layout.rows }, () => MIN_ROW_HEIGHT)
-  for (const leaf of layout.leaves) {
-    rowHeights[leaf.row] = Math.ceil(clamp(
-      textWidth(ingredientText(leaf), TEST_INGREDIENT_FONT_SIZE, 20),
-      64,
-      240,
-    ))
-  }
-  const rowOffsets: number[] = []
-  let bodyHeight = 0
-  for (const height of rowHeights) {
-    rowOffsets.push(bodyHeight)
-    bodyHeight += height
-  }
-  return {
-    labelWidth: TEST_INGREDIENT_WIDTH,
-    columnWidths,
-    columnOffsets,
-    rowHeights,
-    rowOffsets,
-    bodyHeight,
-    tableWidth: offset,
-  }
-}
-
 function leafSvg(
   leaf: LeafLayout,
   geometry: Geometry,
   bodyY: number,
-  mirrored = false,
-  verticalLabel = false,
 ): string {
   const text = ingredientText(leaf)
-  const cellX = MARGIN + (mirrored ? geometry.tableWidth - geometry.labelWidth : 0)
+  const cellX = MARGIN
   const height = geometry.rowHeights[leaf.row]!
   const top = rowY(leaf.row, bodyY, geometry)
-  const centerX = cellX + geometry.labelWidth / 2
   const centerY = top + height / 2
-  const x = verticalLabel ? centerX : cellX + 7
-  const y = verticalLabel ? centerY : centerY + 4
-  const fontSize = verticalLabel ? TEST_INGREDIENT_FONT_SIZE : 12
-  const available = (verticalLabel ? height : geometry.labelWidth) - 14
+  const x = cellX + 7
+  const y = centerY + 4
+  const fontSize = 12
+  const available = geometry.labelWidth - 14
   const length = Math.max(1, Math.floor(available / (fontSize * 0.56)))
   const shown = text.length <= length ? text : `${text.slice(0, length - 1)}…`
-  const transform = verticalLabel ? ` transform="rotate(90 ${centerX} ${centerY})"` : ''
-  return `<g class="trn-ingredient" data-value-id="${escapeXml(leaf.input.id)}"><title>${escapeXml(text)}</title><rect class="trn-ingredient-cell" x="${cellX}" y="${top}" width="${geometry.labelWidth}" height="${height}" fill="white" stroke="${GRID_COLOR}" stroke-width="1"/><text class="trn-ingredient-label" x="${x}" y="${y}" text-anchor="${verticalLabel ? 'middle' : 'start'}" dominant-baseline="${verticalLabel ? 'middle' : 'auto'}" fill="#111827" font-size="${fontSize}" font-family="${FONT_FAMILY}"${transform}>${escapeXml(shown)}</text></g>`
+  return `<g class="trn-ingredient" data-value-id="${escapeXml(leaf.input.id)}"><title>${escapeXml(text)}</title><rect class="trn-ingredient-cell" x="${cellX}" y="${top}" width="${geometry.labelWidth}" height="${height}" fill="white" stroke="${GRID_COLOR}" stroke-width="1"/><text class="trn-ingredient-label" x="${x}" y="${y}" text-anchor="start" dominant-baseline="auto" fill="#111827" font-size="${fontSize}" font-family="${FONT_FAMILY}">${escapeXml(shown)}</text></g>`
 }
 
 function stageSvg(
   item: StageLayout,
   geometry: Geometry,
   bodyY: number,
-  mirrored = false,
-  horizontalLabel = false,
 ): string {
   const width = geometry.columnWidths[item.column - 1]!
   const columnLeft = (column: number): number => {
     const offset = geometry.columnOffsets[column - 1]!
-    const columnWidth = geometry.columnWidths[column - 1]!
-    return MARGIN + (mirrored ? geometry.tableWidth - offset - columnWidth : offset)
+    return MARGIN + offset
   }
   const columnRight = (column: number): number => columnLeft(column) + geometry.columnWidths[column - 1]!
   const x = columnLeft(item.column)
@@ -454,8 +406,8 @@ function stageSvg(
     const top = rowY(row, bodyY, geometry)
     const bottom = top + geometry.rowHeights[row]!
     if (!cells.has(`${column}:${row - 1}`)) edges.push({ start: [left, top], end: [right, top] })
-    const rightNeighbor = mirrored ? column - 1 : column + 1
-    const leftNeighbor = mirrored ? column + 1 : column - 1
+    const rightNeighbor = column + 1
+    const leftNeighbor = column - 1
     if (!cells.has(`${rightNeighbor}:${row}`)) edges.push({ start: [right, top], end: [right, bottom] })
     if (!cells.has(`${column}:${row + 1}`)) edges.push({ start: [right, bottom], end: [left, bottom] })
     if (!cells.has(`${leftNeighbor}:${row}`)) edges.push({ start: [left, bottom], end: [left, top] })
@@ -488,12 +440,12 @@ function stageSvg(
   const zonePath = paths.join('')
   const labelX = x + width / 2
   const labelY = y + height / 2
-  const transform = horizontalLabel ? '' : ` transform="rotate(90 ${labelX} ${labelY})"`
+  const transform = ` transform="rotate(90 ${labelX} ${labelY})"`
   return [
     `<g class="trn-operation-zone" data-outcome-id="${escapeXml(item.outcome.id)}" data-column="${item.column}" data-cell-count="${cells.size}" data-arm-count="${item.arms.length}" data-branch-color="${item.branchColor + 1}">`,
     `<title>${escapeXml(action)} → ${escapeXml(result)}</title>`,
     `<path class="trn-zone-shape trn-branch-${item.branchColor + 1}" d="${zonePath}" fill="${BRANCH_COLORS[item.branchColor]}" stroke="${GRID_COLOR}" stroke-width="1"/>`,
-    `<text class="trn-operation-label" x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" fill="#111827" font-size="${horizontalLabel ? TEST_OPERATION_FONT_SIZE : OPERATION_FONT_SIZE}" font-family="${FONT_FAMILY}"${transform}>${escapeXml(action)}</text>`,
+    `<text class="trn-operation-label" x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" fill="#111827" font-size="${OPERATION_FONT_SIZE}" font-family="${FONT_FAMILY}"${transform}>${escapeXml(action)}</text>`,
     '</g>',
   ].join('')
 }
@@ -679,34 +631,7 @@ function renderIndividualTrn(document: TrnDocument): string {
 </svg>`
 }
 
-function renderTestTrn(document: TrnDocument): string {
-  const layout = layoutTree(document)
-  const geometry = testGeometryFor(layout)
-  const title = document.roots.map(root => root.portion === '' ? root.label : `${root.label} (yields ${root.portion})`).join(' + ')
-  const tableY = MARGIN + HEADER_HEIGHT
-  const instructionLayout = layoutInstructions(document, geometry.tableWidth)
-  const instructionHeight = instructionLayout.height
-  const bodyY = tableY + instructionHeight
-  const width = MARGIN * 2 + geometry.tableWidth
-  const height = MARGIN * 2 + HEADER_HEIGHT + instructionHeight + geometry.bodyHeight
-  const instructions = instructionSvg(document, instructionLayout, tableY, geometry.tableWidth)
-  const leaves = layout.leaves.map(item => leafSvg(item, geometry, bodyY, true, true)).join('')
-  const stages = layout.stages.map(item => stageSvg(item, geometry, bodyY, true, true)).join('')
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" class="trn-diagram trn-layout-test" data-layout="test">
-  <title>${escapeXml(title)} test TRN layout</title>
-  <desc>Tabular Recipe Notation with horizontal operation labels on the left and vertical ingredient labels on the right.</desc>
-  <rect class="trn-canvas" data-dz-role="canvas" x="0" y="0" width="${width}" height="${height}" fill="#fbf8dc"/>
-  <text class="trn-title" x="${MARGIN + 7}" y="${MARGIN + 19}" fill="#111827" font-size="14" font-weight="700" font-family="${FONT_FAMILY}">${escapeXml(title)}</text>
-  <rect class="trn-table-surface" x="${MARGIN}" y="${tableY}" width="${geometry.tableWidth}" height="${instructionHeight + geometry.bodyHeight}" fill="white" stroke="${GRID_COLOR}" stroke-width="1"/>
-  ${instructions}
-  ${leaves}
-  ${stages}
-</svg>`
-}
-
 export function renderTrn(document: TrnDocument): string {
   if (document.layout === 'individual') return renderIndividualTrn(document)
-  if (document.layout === 'test') return renderTestTrn(document)
   return renderCombinedTrn(document)
 }

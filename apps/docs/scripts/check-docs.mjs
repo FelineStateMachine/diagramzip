@@ -116,6 +116,9 @@ let catalog
 try { catalog = JSON.parse(catalogRaw) } catch { errors.push('static/diagram-types.json is not valid JSON.') }
 assert(catalog?.diagramTypes?.length === expected.length, 'Machine catalog does not contain all diagram types.')
 assert(JSON.stringify((catalog?.diagramTypes ?? []).map(({ id }) => id).sort()) === JSON.stringify(expected), 'Machine catalog IDs do not match the diagram type catalog.')
+const trnCatalog = (catalog?.diagramTypes ?? []).find(({ id }) => id === 'trn')
+assert(Array.isArray(trnCatalog?.authoringContract), 'Machine catalog does not expose the TRN public authoring contract.')
+assert(trnCatalog?.authoringContract?.some((item) => item.includes('Do not edit generated SVG')), 'Machine catalog does not protect the TRN output boundary.')
 
 const llms = await source(join(site, 'static', 'llms.txt'))
 const llmsFull = await source(join(site, 'static', 'llms-full.txt'))
@@ -123,9 +126,13 @@ assert(llms.includes('https://docs.diagram.zip/create/'), 'llms.txt does not lin
 assert(llms.includes('https://docs.diagram.zip/style/presentation/'), 'llms.txt does not link the Details presentation guide.')
 assert(llms.includes('TRN stands for Tabular Recipe Notation'), 'llms.txt does not expand TRN.')
 assert(llms.includes('Michael Chu at Cooking for Engineers'), 'llms.txt does not credit the origin of TRN.')
+assert(llms.includes('Generated SVG and renderer internals are output, not authoring controls.'), 'llms.txt does not protect the public authoring boundary.')
 assert(llmsFull.includes('# General presentation settings'), 'llms-full.txt does not include the presentation guide.')
 assert(llmsFull.includes('# Working state and published state'), 'llms-full.txt does not include the working-state guide.')
 assert(llmsFull.includes('TRN originates with [Michael Chu]'), 'llms-full.txt does not credit the origin of TRN.')
+assert(llmsFull.includes('## Public authoring contract'), 'llms-full.txt does not include the public authoring contract.')
+assert(llmsFull.includes('Presentation appearance changes palette and canvas treatment.'), 'llms-full.txt does not separate TRN layout from appearance.')
+assert(llmsFull.includes('Do not edit generated SVG, CSS classes, data attributes, viewBox values, or renderer implementation files.'), 'llms-full.txt does not protect the TRN output boundary.')
 
 const expectedSkillIds = [...diagramSkillIds].sort()
 const skillEntries = await readdir(skills, { withFileTypes: true })

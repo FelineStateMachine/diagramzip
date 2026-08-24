@@ -133,6 +133,10 @@ Put renderer-specific settings in the top-level `options` object. Option values 
 
 ## Appearance
 
+Appearance is presentation only. It does not change source geometry, notation layout, orientation, wrapping, or packing.
+
+For TRN, use the `.layout` directive in Source. Generated SVG classes and data attributes are output metadata, not an authoring API.
+
 `raw` keeps the safe renderer output. It enables the custom background, padding, and frame values in the presentation document.
 
 The shared appearances apply one Diagram.zip palette to supported renderer output:
@@ -2823,9 +2827,11 @@ The source format is **Tabular Recipe Notation text**. Enter the source in the d
 - Add a full-width preparation row with `instruction`.
 - Long instruction rows wrap and grow vertically to preserve their complete text.
 - Add a quoted display label after an identifier when needed.
-- Each `+` queues an input for the next `->` action.
+- Each `+` queues an input for the next `->`; place it immediately before the operation that consumes it.
+- Columns represent dependency depth. Independent operations on disjoint inputs can share a column.
+- Consecutive `->` lines without a new input extend the same branch from left to right.
+- Write one complete instruction in each `->` step.
 - Combined layout places prerequisite outcomes before direct ingredients in stable FIFO order.
-- Each `->` adds an operation column from left to right.
 - Add `portion` after an outcome label or identifier when the result has a useful quantity.
 - Use `{portion}` in an action to embed that outcome quantity.
 - Start comments with `#`; OCR importers should record uncertain text in comments instead of guessing.
@@ -2852,6 +2858,15 @@ outcome bread portion 1 loaf {
 }
 ```
 
+
+## Public authoring contract
+
+- Treat TRN source as the only public geometry control surface.
+- Select combined or individual geometry with the `.layout` directive.
+- Presentation appearance changes palette and canvas treatment. It does not change TRN layout, orientation, wrapping, or packing.
+- Edit the TRN source and request a new render.
+- Do not edit generated SVG, CSS classes, data attributes, viewBox values, or renderer implementation files.
+- If the source format cannot express requested geometry, report the limitation instead of patching renderer output.
 ## Origin
 
 TRN originates with [Michael Chu](https://www.cookingforengineers.com/) at [Cooking for Engineers](https://www.cookingforengineers.com/). Diagram.zip implements a text DSL and SVG renderer for Chu’s tabular recipe concept.
@@ -2859,6 +2874,8 @@ TRN originates with [Michael Chu](https://www.cookingforengineers.com/) at [Cook
 ## Limitations
 
 - The source selects one layout; the SVG does not embed an interactive layout toggle.
+- Combined and individual operation labels do not wrap. Long operation text can overflow.
+- TRN does not expose a source control for custom column packing.
 
 ## Related pages
 
@@ -2886,15 +2903,20 @@ Start with the [general presentation settings](/style/presentation). Edit shared
 
 ## Source controls
 
-- Use `.layout combined` for one merged table or `.layout individual` for dependency-positioned recipe tables.
+- Use `.layout combined` for one merged table.
+- Use `.layout individual` for dependency-positioned recipe tables.
 - Combined layout places prerequisite outcomes before direct ingredients and preserves source order within each FIFO group.
-- Order `->` lines as operations should proceed from left to right.
+- Place each `+` immediately before the operation that consumes it.
+- Independent branches can reuse a visual column when their inputs do not depend on each other.
+- Order consecutive `->` lines as operations should proceed from left to right.
 - Use outcomes for meaningful reusable or final results; keep incidental conversions inside the consuming outcome.
-- Use short action labels because operation text is vertical.
-- Full-width `instruction` rows wrap automatically; operation labels remain single-line and vertical.
+- Use concise, complete instructions because combined and individual operation text is vertical.
+- Full-width `instruction` rows wrap automatically; combined and individual operation labels remain single-line.
 ## Limitations
 
 - The source selects one layout; the SVG does not embed an interactive layout toggle.
+- Combined and individual operation labels do not wrap. Long operation text can overflow.
+- TRN does not expose a source control for custom column packing.
 
 ## Related pages
 

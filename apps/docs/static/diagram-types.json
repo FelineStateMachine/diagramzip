@@ -318,7 +318,15 @@
         "site": "Cooking for Engineers",
         "siteUrl": "https://www.cookingforengineers.com/",
         "note": "Diagram.zip implements a text DSL and SVG renderer for Chu’s tabular recipe concept."
-      }
+      },
+      "authoringContract": [
+        "Treat TRN source as the only public geometry control surface.",
+        "Select combined or individual geometry with the `.layout` directive.",
+        "Presentation appearance changes palette and canvas treatment. It does not change TRN layout, orientation, wrapping, or packing.",
+        "Edit the TRN source and request a new render.",
+        "Do not edit generated SVG, CSS classes, data attributes, viewBox values, or renderer implementation files.",
+        "If the source format cannot express requested geometry, report the limitation instead of patching renderer output."
+      ]
     },
     {
       "id": "umlet",

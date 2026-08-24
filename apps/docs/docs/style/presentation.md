@@ -33,6 +33,10 @@ Put renderer-specific settings in the top-level `options` object. Option values 
 
 ## Appearance
 
+Appearance is presentation only. It does not change source geometry, notation layout, orientation, wrapping, or packing.
+
+For TRN, use the `.layout` directive in Source. Generated SVG classes and data attributes are output metadata, not an authoring API.
+
 `raw` keeps the safe renderer output. It enables the custom background, padding, and frame values in the presentation document.
 
 The shared appearances apply one Diagram.zip palette to supported renderer output:

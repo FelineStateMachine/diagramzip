@@ -158,7 +158,7 @@ const VERSION_PATTERNS = Object.freeze({
   diagramsnet: /diagrams\.net@29\.6\.1/,
   excalidraw: /@excalidraw\/excalidraw@0\.18\.1/,
   tikz: /@planktimerr\/tikzjax@1\.0\.63/,
-  trn: /diagramzip-trn@15/,
+  trn: /diagramzip-trn@16/,
 })
 
 export function normalizationFor(engine, rendererVersion = '') {
