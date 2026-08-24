@@ -19,6 +19,7 @@ Start with the [general presentation settings](/style/presentation). Edit shared
 - Order `->` lines as operations should proceed from left to right.
 - Use outcomes for meaningful reusable or final results; keep incidental conversions inside the consuming outcome.
 - Use short action labels because operation text is vertical.
+- Full-width `instruction` rows wrap automatically; operation labels remain single-line and vertical.
 ## Limitations
 
 - The source selects one layout; the SVG does not embed an interactive layout toggle.

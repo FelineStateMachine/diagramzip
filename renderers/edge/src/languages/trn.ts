@@ -26,7 +26,7 @@ export interface TrnOutcome {
   line: number
 }
 
-export type TrnLayout = 'combined' | 'individual'
+export type TrnLayout = 'combined' | 'individual' | 'test'
 
 export interface TrnDocument {
   layout: TrnLayout
@@ -141,7 +141,7 @@ export function parseTrn(source: string): TrnDocument {
       sourceError(lineNumber, "Expected '+ value', '-> action', or '}'.")
     }
 
-    const layoutMatch = line.match(/^\.layout\s+(combined|individual)\s*$/)
+    const layoutMatch = line.match(/^\.layout\s+(combined|individual|test)\s*$/)
     if (layoutMatch !== null) {
       if (declarationsStarted) sourceError(lineNumber, 'The .layout directive must appear before recipe declarations.')
       if (layoutDeclared) sourceError(lineNumber, 'The .layout directive may only appear once.')
@@ -149,7 +149,7 @@ export function parseTrn(source: string): TrnDocument {
       layoutDeclared = true
       continue
     }
-    if (line.startsWith('.layout')) sourceError(lineNumber, "Expected '.layout combined' or '.layout individual'.")
+    if (line.startsWith('.layout')) sourceError(lineNumber, "Expected '.layout combined', '.layout individual', or '.layout test'.")
 
     const instructionMatch = line.match(/^instruction\s+"((?:[^"\\]|\\.)*)"\s*$/)
     if (instructionMatch !== null) {

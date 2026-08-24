@@ -190,6 +190,13 @@ AES-GCM ciphertext encoded as JSON. Open embeds use the stable URL
 that route. An unlocked browser can fetch opaque bytes with `?encrypted=1` and
 decrypt them with the same in-memory bundle key.
 
+When a writable, unchanged alias opens, the editor compares the current
+renderer identity with the published render head. If they differ, it silently
+renders the saved source and uploads fresh SVG/PNG bytes through the same
+guarded `PUT`. This advances the render head without changing the alias revision
+or inventing a second `/update` mutation route. Dirty diagrams are never
+refreshed, so unpublished source cannot be attached to a published render ID.
+
 An open SVG read may add an `appearance` query parameter:
 
 ```text
@@ -233,6 +240,8 @@ changes stay blocked.
   URL and create no alias.
 - New draft: **Publish** creates an alias and changes the browser to its read URL.
 - Writable alias: **Publish** updates with the last revision.
+- Writable unchanged alias: stale cached SVG/PNG bytes refresh automatically
+  when the owner opens the diagram, without creating a diagram revision.
 - Local document: the launcher can reopen, duplicate, or explicitly delete it.
 - Read-only alias: edits form a local fork; **Publish a Copy** creates a new alias.
 - Conflict: offer **Reload published** or **Publish as new**. Never overwrite silently.

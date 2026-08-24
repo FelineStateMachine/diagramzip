@@ -329,6 +329,46 @@ describe('open aliases', () => {
     })
   })
 
+  it('refreshes a render head for a newer renderer build without advancing the alias revision', async () => {
+    const created = await create()
+    const { aliasId, renderId } = await created.json<{ aliasId: string; renderId: string }>()
+    const first = canonicalizeSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><text>old</text></svg>',
+      { title: '', description: '' },
+      'd2',
+      'd2@0.7.1',
+    )
+    const refreshed = canonicalizeSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><text>new</text></svg>',
+      { title: '', description: '' },
+      'd2',
+      'd2@0.7.2',
+    )
+    const upload = (body: string, build: string) => worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${capability}`,
+        'Content-Type': 'image/svg+xml',
+        'If-Match': '"1"',
+        'X-Render-Id': renderId,
+        'X-Renderer-Unit': 'd2',
+        'X-Renderer-Build': build,
+        'X-Renderer-Pipeline': 'd2',
+      },
+      body,
+    })
+
+    expect((await upload(first, 'd2-compat-unit-1')).status).toBe(204)
+    expect((await upload(refreshed, 'd2-compat-unit-2')).status).toBe(204)
+
+    const render = await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}/renders/svg`)
+    expect(render.headers.get('X-Renderer-Build')).toBe('d2-compat-unit-2')
+    expect(await render.text()).toBe(refreshed)
+    expect((await worker.fetch(`https://diagram.zip/api/v1/aliases/${aliasId}`)).headers.get('ETag')).toBe('"1"')
+    expect(await env.CONTENT.get(`renders/open/d2/d2-compat-unit-1/${renderId}.svg`)).not.toBeNull()
+    expect(await env.CONTENT.get(`renders/open/d2/d2-compat-unit-2/${renderId}.svg`)).not.toBeNull()
+  })
+
   it('materializes supported appearances from one canonical SVG object', async () => {
     const created = await create()
     const { aliasId, renderId } = await created.json<{ aliasId: string; renderId: string }>()

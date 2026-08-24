@@ -59,7 +59,7 @@ describe('TRN language', () => {
 
   it('validates the source layout directive and rejects renderer options', () => {
     expect(() => parseTrn(zenith.replace('.layout individual', '.layout grid')))
-      .toThrow(/Expected '.layout combined' or '.layout individual'/)
+      .toThrow(/Expected '.layout combined', '.layout individual', or '.layout test'/)
     expect(() => parseTrn('.layout combined\n.layout individual\ningredient flour\noutcome bread {\n + flour\n -> bake\n}'))
       .toThrow(/may only appear once/)
     expect(() => parseTrn('ingredient flour\n.layout individual\noutcome bread {\n + flour\n -> bake\n}'))
@@ -85,6 +85,35 @@ describe('TRN language', () => {
     for (const [left, right] of touchingPairs) {
       expect(colors[left]!).not.toBe(colors[right]!)
     }
+  })
+
+  it('renders the test layout with instructions on the left and ingredients on the right', async () => {
+    const source = `.layout test\n${marshmallows}`
+    const document = parseTrn(source)
+    const result = await trnAdapter.render(request(source), new AbortController().signal)
+
+    expect(document.layout).toBe('test')
+    expect(result.body).toContain('data-layout="test"')
+    expect(result.body).toContain('horizontal operation labels on the left and vertical ingredient labels on the right')
+    expect(result.body).toContain('class="trn-instruction-cell"')
+    expect(result.body).toContain('>Grease 9x13-in. pan and powder with powdered sugar</tspan>')
+    expect(result.body).toContain('>powder</text>')
+    expect(result.body).toContain('class="trn-operation-zone"')
+    expect(result.body).toContain('data-outcome-id="marshmallows" data-column="7"')
+    expect(result.body).toContain('class="trn-ingredient" data-value-id="gelatin"')
+    expect(result.body).toContain('>3 Tbs. (21 g) gelatin</text>')
+    expect(result.body).toContain('class="trn-ingredient" data-value-id="powdered_sugar"')
+    expect(result.body).toContain('>Powdered sugar</text>')
+
+    const ingredientX = Number(result.body.match(/class="trn-ingredient-cell" x="(\d+)"/)?.[1])
+    const ingredientLabel = result.body.match(/class="trn-ingredient-label"[^>]+/)?.[0] ?? ''
+    const operationLabel = result.body.match(/class="trn-operation-label"[^>]+/)?.[0] ?? ''
+    const operationXs = [...result.body.matchAll(/class="trn-operation-label" x="([\d.]+)"/g)]
+      .map(match => Number(match[1]))
+    expect(ingredientX).toBeGreaterThan(12)
+    expect(ingredientLabel).toContain('transform="rotate(90')
+    expect(operationLabel).not.toContain('transform=')
+    expect(Math.max(...operationXs)).toBeLessThan(ingredientX)
   })
 
   it('rejects unknown values and dependency cycles with source locations', () => {
@@ -116,6 +145,39 @@ outcome blade {
     expect(Number(ingredientCell?.[1])).toBeGreaterThan(28)
     expect(result.body).toContain('font-size="10"')
     expect(result.body).toContain('>forge a finished copper shortsword</text>')
+  })
+
+  it('wraps long instructions and expands the table before recipe rows begin', async () => {
+    const source = `instruction "Position a rack in the center of the oven, preheat thoroughly, and grease the pan all the way into the corners before dusting it lightly with flour."
+ingredient flour
+outcome cake {
+  + flour 2 cups
+  -> bake
+}`
+    const result = await trnAdapter.render(request(source), new AbortController().signal)
+    const instructionCell = result.body.match(/class="trn-instruction-cell"[^>]*y="([\d.]+)"[^>]*width="([\d.]+)"[^>]*height="([\d.]+)"/)
+    const ingredientCell = result.body.match(/class="trn-ingredient-cell"[^>]*y="([\d.]+)"/)
+    const lines = [...result.body.matchAll(/class="trn-instruction-line"/g)]
+
+    expect(lines.length).toBeGreaterThan(1)
+    expect(Number(instructionCell?.[3])).toBeGreaterThan(28)
+    expect(Number(ingredientCell?.[1])).toBe(Number(instructionCell?.[1]) + Number(instructionCell?.[3]))
+    expect(result.body).toContain('<title>Position a rack in the center of the oven')
+    expect(result.body).toContain('>the corners before dusting it</tspan>')
+    expect(result.body).toContain('>lightly with flour.</tspan>')
+  })
+
+  it('breaks a single instruction token that is wider than the table', async () => {
+    const source = `instruction "supercalifragilisticexpialidocioussupercalifragilisticexpialidocious"
+ingredient flour
+outcome cake {
+  + flour
+  -> bake
+}`
+    const result = await trnAdapter.render(request(source), new AbortController().signal)
+
+    expect(result.body.match(/class="trn-instruction-line"/g)?.length).toBeGreaterThan(1)
+    expect(result.body).not.toContain('…')
   })
 
   it('merges waiting cells and grows operations across the inputs they consume', async () => {

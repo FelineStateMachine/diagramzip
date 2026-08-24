@@ -27,6 +27,7 @@ The source format is **Tabular Recipe Notation text**. Enter the source in the d
 - Declare a meaningful final or reusable result with an `outcome` block.
 - Keep incidental conversions, such as ore to bars, as steps inside the outcome that consumes them.
 - Add a full-width preparation row with `instruction`.
+- Long instruction rows wrap and grow vertically to preserve their complete text.
 - Add a quoted display label after an identifier when needed.
 - Each `+` queues an input for the next `->` action.
 - Combined layout places prerequisite outcomes before direct ingredients in stable FIFO order.

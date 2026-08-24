@@ -212,6 +212,32 @@ test('uploads and retrieves an opaque locked render', async () => {
   assert.equal(requests[1].url, `http://localhost/api/v1/aliases/${aliasId}/renders/png?encrypted=1`)
 })
 
+test('reads the published renderer identity without downloading render bytes', async () => {
+  let captured
+  const client = new PersistenceClient({
+    fetchImpl: async (url, init) => {
+      captured = { url: url.toString(), init }
+      return new Response(null, {
+        headers: {
+          'X-Renderer-Unit': renderer.unit,
+          'X-Renderer-Build': renderer.build,
+          'X-Renderer-Pipeline': renderer.pipeline.join(','),
+        },
+      })
+    },
+  })
+  assert.deepEqual(await client.getRenderIdentity(aliasId, 'svg', 'locked'), renderer)
+  assert.equal(captured.url, `http://localhost/api/v1/aliases/${aliasId}/renders/svg?encrypted=1`)
+  assert.equal(captured.init.method, 'HEAD')
+})
+
+test('treats a missing published render as stale', async () => {
+  const client = new PersistenceClient({
+    fetchImpl: async () => new Response(null, { status: 404 }),
+  })
+  assert.equal(await client.getRenderIdentity(aliasId), null)
+})
+
 test('surfaces structured persistence errors', async () => {
   const client = new PersistenceClient({
     fetchImpl: async () => Response.json({

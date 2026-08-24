@@ -1325,12 +1325,54 @@ async function lockedPayloadForState(state) {
   return encryptLockedState(state, remote.bundleKey, remote.keyEnvelope)
 }
 
-async function cacheSavedRenders(state) {
-  if (!remote.aliasId || !remote.writeCapability) return
+function rendererIdentitiesMatch(left, right) {
+  return Boolean(
+    left
+    && right
+    && left.unit === right.unit
+    && left.build === right.build
+    && left.pipeline.join(',') === right.pipeline.join(',')
+  )
+}
+
+function savedRenderCanRefresh(state) {
+  return Boolean(
+    remote.aliasId
+    && remote.writeCapability
+    && remote.savedState === state
+    && !remote.dirty
+    && !remote.keyEnvelopeDirty
+    && detailsValid
+    && workingStateSnapshot(currentState(), remote.mode) === remote.savedSnapshot
+  )
+}
+
+async function refreshSavedRenderIfStale() {
+  const state = remote.savedState
+  if (!savedRenderCanRefresh(state)) return
+  const target = `${remote.aliasId}:${remote.revision}:${remote.renderId}`
+  try {
+    await preview.render(state)
+    if (!savedRenderCanRefresh(state)
+      || target !== `${remote.aliasId}:${remote.revision}:${remote.renderId}`) return
+    const current = preview.rendererIdentityFor(state)
+    if (!current) return
+    const published = await persistence.getRenderIdentity(remote.aliasId, 'svg', remote.mode)
+    if (!savedRenderCanRefresh(state)
+      || target !== `${remote.aliasId}:${remote.revision}:${remote.renderId}`
+      || rendererIdentitiesMatch(current, published)) return
+    await cacheSavedRenders(state, { silent: true })
+  } catch {
+    // Render freshness is best effort and must not interrupt opening a diagram.
+  }
+}
+
+async function cacheSavedRenders(state, { silent = false } = {}) {
+  if (!remote.aliasId || !remote.writeCapability) return false
   await preview.render(state)
   const svg = preview.svgBlobFor(state)
   const renderer = preview.rendererIdentityFor(state)
-  if (!svg || !renderer) return
+  if (!svg || !renderer) return false
 
   const renders = [['svg', svg]]
   try {
@@ -1356,8 +1398,10 @@ async function cacheSavedRenders(state) {
   })
   const results = await Promise.allSettled(uploads)
   if (results.every(result => result.status === 'rejected')) {
-    showToast('Published, but the render cache is unavailable.', 4000)
+    if (!silent) showToast('Published, but the render cache is unavailable.', 4000)
+    return false
   }
+  return results[0]?.status === 'fulfilled'
 }
 
 async function svgToPngBlob(svg) {
@@ -1879,4 +1923,5 @@ function showToast(message, duration = 1800) {
 }
 
 commitState()
+void refreshSavedRenderIfStale()
 if (initialLoadError) showToast(initialLoadError)

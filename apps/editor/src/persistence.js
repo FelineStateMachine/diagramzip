@@ -242,6 +242,34 @@ export class PersistenceClient {
     if (!response.ok) throw await this.errorFor(response)
   }
 
+  async getRenderIdentity(aliasId, format = 'svg', mode = 'open') {
+    if (!ALIAS_ID_PATTERN.test(aliasId)) throw new Error('Invalid diagram alias.')
+    if (format !== 'svg' && format !== 'png') throw new Error('Invalid render format.')
+    if (mode !== 'open' && mode !== 'locked') throw new Error('Invalid diagram mode.')
+    const url = this.url(`/${aliasId}/renders/${format}`)
+    if (mode === 'locked') url.searchParams.set('encrypted', '1')
+    const response = await this.fetch(url, { method: 'HEAD' })
+    if (response.status === 404) return null
+    if (!response.ok) throw await this.errorFor(response)
+    const identity = {
+      unit: response.headers.get('X-Renderer-Unit')?.trim().toLowerCase() ?? '',
+      build: response.headers.get('X-Renderer-Build')?.trim() ?? '',
+      pipeline: (response.headers.get('X-Renderer-Pipeline') ?? '')
+        .split(',')
+        .map(value => value.trim().toLowerCase())
+        .filter(Boolean),
+    }
+    if (!/^[a-z][a-z0-9-]{0,31}$/.test(identity.unit)
+      || !/^[A-Za-z0-9][A-Za-z0-9._@+-]{0,127}$/.test(identity.build)
+      || identity.pipeline.length < 1
+      || identity.pipeline.some(value => !/^[a-z][a-z0-9-]{0,31}$/.test(value))) {
+      throw new PersistenceError('The persistence service returned an invalid renderer identity.', {
+        code: 'invalid_response',
+      })
+    }
+    return identity
+  }
+
   async getEncryptedRender(aliasId, format) {
     if (!ALIAS_ID_PATTERN.test(aliasId)) throw new Error('Invalid diagram alias.')
     if (format !== 'svg' && format !== 'png') throw new Error('Invalid render format.')
