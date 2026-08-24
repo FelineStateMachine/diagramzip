@@ -105,6 +105,14 @@ requiring publication. An open published alias uses its stable server render.
 An anonymous draft uses a compressed, self-contained editable SVG URL and does
 not create server state.
 
+Before packing an anonymous URL, the editor prepares the selected transparent
+or framed geometry and embeds self-contained palette CSS. The root
+`data-dz-appearance` value selects raw, light, dark, or automatic palette rules.
+The `/svg/{packed}` route validates the SVG and synchronizes that one value from
+the embedded `diagram.presentation.appearance`. Consumers do not need to
+simulate the palette or patch SVG paint client-side. Frame padding and the outer
+`viewBox` are prepared before packing because CSS cannot change SVG bounds.
+
 Packed URLs contain the rendered SVG, diagram source, options, metadata, and
 presentation settings. Anyone with the URL can inspect that content and reopen
 it as an editable SVG. Do not use a packed URL for secrets. Diagram.zip rejects

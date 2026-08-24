@@ -12,7 +12,7 @@ const SAFE_DATA_FONT = /^data:(?:font\/(?:woff2?|opentype|truetype)|application\
 export const SVG_SCHEMA = '1'
 export const EDITABLE_SVG_SCHEMA = '1'
 export const NORMALIZER_BUILD = 'svg-normalizer-2'
-export const MATERIALIZER_BUILD = 'svg-materializer-3'
+export const MATERIALIZER_BUILD = 'svg-materializer-4'
 export const PALETTE_BUILD = 'diagramzip-palette-2'
 export const RAW_PROFILE = 'safe-raw-1'
 export const APPEARANCES = Object.freeze([
@@ -910,6 +910,10 @@ export function attachEditableDocument(source, document) {
   if (root.attributes.get('data-dz-schema') !== SVG_SCHEMA) {
     throw new SvgNormalizationError(422, 'not_canonical', 'SVG does not use the current Diagram.zip canonical schema.')
   }
+  const appearance = document?.diagram?.presentation?.appearance
+  if (typeof appearance === 'string' && APPEARANCES.includes(appearance)) {
+    root.attributes.set('data-dz-appearance', appearance)
+  }
   root.children = root.children.filter(child => child.type === 'text'
     || !(localName(child) === 'metadata' && child.attributes.get('data-dz-kind') === 'document'))
   root.attributes.set('data-dz-document', EDITABLE_SVG_SCHEMA)
@@ -1011,17 +1015,18 @@ function branchPaletteVariables(palette) {
   return `--dz-accent-1:${palette.accent1};--dz-accent-2:${palette.accent2};--dz-accent-3:${palette.accent3};--dz-accent-4:${palette.accent4};--dz-on-accent:${palette.onAccent};`
 }
 
-function materializerCss(appearance) {
-  const scheme = appearance.startsWith('dark-') ? DARK_PALETTE : LIGHT_PALETTE
-  const automatic = appearance.startsWith('auto-')
-  const variables = automatic
-    ? `:root{${paletteVariables(LIGHT_PALETTE)}}@media(prefers-color-scheme:dark){:root{${paletteVariables(DARK_PALETTE)}}}`
-    : `:root{${paletteVariables(scheme)}}`
-  const trnSelector = ':root[data-dz-profile="trn-semantic-4"]'
-  const trnVariables = automatic
-    ? `${trnSelector}{${branchPaletteVariables(TRN_LIGHT_BRANCH_PALETTE)}}@media(prefers-color-scheme:dark){${trnSelector}{${branchPaletteVariables(DARK_PALETTE)}}}`
-    : appearance.startsWith('light-') ? `${trnSelector}{${branchPaletteVariables(TRN_LIGHT_BRANCH_PALETTE)}}` : ''
-  return `${variables}${trnVariables}[data-dz-role="canvas"]:not([data-dz-owned="materializer"]){display:none!important}[data-dz-fill="none"]{fill:none!important}[data-dz-fill="surface-1"]{fill:var(--dz-surface-1)!important}[data-dz-fill="surface-2"]{fill:var(--dz-surface-2)!important}[data-dz-fill="surface-3"]{fill:var(--dz-surface-3)!important}[data-dz-fill="ink"]{fill:var(--dz-ink)!important;color:var(--dz-ink)!important}[data-dz-fill="ink-muted"]{fill:var(--dz-ink-muted)!important;color:var(--dz-ink-muted)!important}[data-dz-fill="line"]{fill:var(--dz-line)!important}[data-dz-fill="accent-1"]{fill:var(--dz-accent-1)!important}[data-dz-fill="accent-2"]{fill:var(--dz-accent-2)!important}[data-dz-fill="accent-3"]{fill:var(--dz-accent-3)!important}[data-dz-fill="accent-4"]{fill:var(--dz-accent-4)!important}[data-dz-fill="on-accent"]{fill:var(--dz-on-accent)!important;color:var(--dz-on-accent)!important}[data-dz-stroke="line"]{stroke:var(--dz-line)!important}[data-dz-stroke="line-muted"]{stroke:var(--dz-line-muted)!important}[data-dz-stroke="accent-1"]{stroke:var(--dz-accent-1)!important}[data-dz-stroke="accent-2"]{stroke:var(--dz-accent-2)!important}[data-dz-stroke="accent-3"]{stroke:var(--dz-accent-3)!important}[data-dz-stroke="accent-4"]{stroke:var(--dz-accent-4)!important}`
+function materializerCss() {
+  const light = ':root[data-dz-appearance^="light-"]'
+  const dark = ':root[data-dz-appearance^="dark-"]'
+  const automatic = ':root[data-dz-appearance^="auto-"]'
+  const themed = ':root:not([data-dz-appearance="raw"])'
+  const trnLight = ':root[data-dz-profile="trn-semantic-4"][data-dz-appearance^="light-"]'
+  const trnAutomatic = ':root[data-dz-profile="trn-semantic-4"][data-dz-appearance^="auto-"]'
+  const variables = `${light}{${paletteVariables(LIGHT_PALETTE)}}${dark}{${paletteVariables(DARK_PALETTE)}}${automatic}{${paletteVariables(LIGHT_PALETTE)}}@media(prefers-color-scheme:dark){${automatic}{${paletteVariables(DARK_PALETTE)}}}`
+  const trnVariables = `${trnLight}{${branchPaletteVariables(TRN_LIGHT_BRANCH_PALETTE)}}${trnAutomatic}{${branchPaletteVariables(TRN_LIGHT_BRANCH_PALETTE)}}@media(prefers-color-scheme:dark){${trnAutomatic}{${branchPaletteVariables(DARK_PALETTE)}}}`
+  const materializerVisibility = `:root[data-dz-appearance="raw"] [data-dz-owned="materializer"],:root[data-dz-appearance$="-transparent"] [data-dz-owned="materializer"]{display:none!important}`
+  const roles = `${themed} [data-dz-role="canvas"]:not([data-dz-owned="materializer"]){display:none!important}${themed} [data-dz-fill="none"]{fill:none!important}${themed} [data-dz-fill="surface-1"]{fill:var(--dz-surface-1)!important}${themed} [data-dz-fill="surface-2"]{fill:var(--dz-surface-2)!important}${themed} [data-dz-fill="surface-3"]{fill:var(--dz-surface-3)!important}${themed} [data-dz-fill="ink"]{fill:var(--dz-ink)!important;color:var(--dz-ink)!important}${themed} [data-dz-fill="ink-muted"]{fill:var(--dz-ink-muted)!important;color:var(--dz-ink-muted)!important}${themed} [data-dz-fill="line"]{fill:var(--dz-line)!important}${themed} [data-dz-fill="accent-1"]{fill:var(--dz-accent-1)!important}${themed} [data-dz-fill="accent-2"]{fill:var(--dz-accent-2)!important}${themed} [data-dz-fill="accent-3"]{fill:var(--dz-accent-3)!important}${themed} [data-dz-fill="accent-4"]{fill:var(--dz-accent-4)!important}${themed} [data-dz-fill="on-accent"]{fill:var(--dz-on-accent)!important;color:var(--dz-on-accent)!important}${themed} [data-dz-stroke="line"]{stroke:var(--dz-line)!important}${themed} [data-dz-stroke="line-muted"]{stroke:var(--dz-line-muted)!important}${themed} [data-dz-stroke="accent-1"]{stroke:var(--dz-accent-1)!important}${themed} [data-dz-stroke="accent-2"]{stroke:var(--dz-accent-2)!important}${themed} [data-dz-stroke="accent-3"]{stroke:var(--dz-accent-3)!important}${themed} [data-dz-stroke="accent-4"]{stroke:var(--dz-accent-4)!important}`
+  return `${variables}${trnVariables}${materializerVisibility}${roles}`
 }
 
 function canonicalBounds(root) {
@@ -1058,7 +1063,7 @@ export function materializeSvg(canonical, appearance) {
   root.attributes.set('data-dz-appearance', appearance)
   root.attributes.set('data-dz-palette', PALETTE_BUILD)
   root.attributes.set('data-dz-materializer', MATERIALIZER_BUILD)
-  root.children.unshift(element('style', [['data-dz-owned', 'materializer']], [{ type: 'text', value: materializerCss(appearance) }]))
+  root.children.unshift(element('style', [['data-dz-owned', 'materializer']], [{ type: 'text', value: materializerCss() }]))
   if (appearance.endsWith('-framed')) {
     const [x, y, width, height] = bounds
     const padding = 24

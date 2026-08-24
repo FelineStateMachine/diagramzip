@@ -461,8 +461,10 @@ difficult to compare by pixels.
 ## Materialization
 
 Canonical SVG is the reusable geometry and role representation. Materialization
-selects a root appearance value and embeds the required palette tokens and role
-rules. It applies canvas or frame geometry and serializes a self-contained SVG.
+embeds the palette tokens and role rules for raw, light, dark, and automatic
+selection. The root `data-dz-appearance` is the single CSS selector for those
+palettes. Materialization also applies canvas or frame geometry and serializes a
+self-contained SVG.
 
 Consumers may inline canonical SVG and change its root appearance in a trusted
 environment. Consumers displaying SVG through an image element cannot assume
@@ -473,6 +475,10 @@ Materialization must not invoke the diagram engine. Switching between light
 and dark or transparent and framed variants reuses canonical geometry. Framed
 and transparent variants may have different outer view boxes because padding
 and frame geometry are presentation, not diagram layout.
+
+Changing the root data value is sufficient to switch palette rules within
+prepared geometry. Changing between transparent and framed bounds still
+requires materialization because CSS cannot rewrite the root `viewBox`.
 
 ## Conformance and capability reporting
 

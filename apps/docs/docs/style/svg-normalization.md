@@ -115,7 +115,7 @@ The [renderer catalog](https://diagram.zip/render/v1/catalog) reports every engi
 | Normalizer | `svg-normalizer-2` | Sanitization, annotation, or serialization behavior changes. |
 | Profile | `neutral-svg-semantic-2` | Renderer recognition or role assignment changes. |
 | Palette | `diagramzip-palette-2` | Materialized role colors change. |
-| Materializer | `svg-materializer-3` | Appearance rules, padding, frame, or output assembly changes. |
+| Materializer | `svg-materializer-4` | Appearance rules, padding, frame, or output assembly changes. |
 | Renderer | Catalog version and build | Engine output or its integration changes. |
 
 These versions advance independently. A renderer upgrade does not require a schema change, and a palette update does not require new geometry.
@@ -133,7 +133,7 @@ Canonical and materialized SVG expose their active contract through `data-dz-*` 
 | `data-dz-engine` | Renderer engine identifier. |
 | `data-dz-profile` | Selected normalization profile. |
 | `data-dz-palette` | `renderer` for raw SVG, or the selected Diagram.zip palette build. |
-| `data-dz-appearance` | Materialized appearance. |
+| `data-dz-appearance` | Active palette selector and materialized geometry mode. |
 | `data-dz-conformance` | Active capability level. |
 | `data-dz-appearances` | Supported non-raw appearances, separated by spaces. |
 | `data-dz-bounds` | Canonical diagram bounds as `x y width height`. |
@@ -158,6 +158,12 @@ Normalized elements may also use `data-dz-fill`, `data-dz-stroke`, and `data-dz-
 The identifiers above are examples. Inspect the artifact or catalog instead of hard-coding them.
 
 Consumers should treat `data-dz-appearances` as an allowlist. Adding an unsupported value by hand does not create a supported artifact.
+
+Materialized SVG embeds raw, light, dark, and automatic palette rules keyed by
+the root `data-dz-appearance`. Changing that one value can select palette CSS
+without rewriting element paint. Transparent versus framed output may have
+different bounds; materialization still prepares the outer `viewBox`, padding,
+canvas, and frame geometry.
 
 ## Consumer guarantees
 

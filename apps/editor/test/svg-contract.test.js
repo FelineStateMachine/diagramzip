@@ -91,13 +91,15 @@ test('materializes explicit and automatic palettes without changing diagram geom
   const automatic = materializeSvg(semanticCanonical, 'auto-transparent')
 
   for (const output of [light, dark, automatic]) {
-    assert.match(output, /data-dz-materializer="svg-materializer-3"/)
+    assert.match(output, /data-dz-materializer="svg-materializer-4"/)
     assert.match(output, /data-dz-palette="diagramzip-palette-2"/)
     assert.match(output, /<rect x="1" y="1" width="8" height="8"/)
     assert.doesNotMatch(output, /<(?:rect|path|polygon)[^>]*data-dz-role="canvas"/)
   }
-  assert.match(light, /--dz-ink:#0f172a/)
-  assert.match(dark, /--dz-ink:#f8fafc/)
+  for (const output of [light, dark, automatic]) {
+    assert.ok(output.includes("data-dz-appearance^=\"light-\"") && output.includes("--dz-ink:#0f172a"))
+    assert.ok(output.includes("data-dz-appearance^=\"dark-\"") && output.includes("--dz-ink:#f8fafc"))
+  }
   assert.match(automatic, /@media\(prefers-color-scheme:dark\)/)
 })
 
@@ -189,11 +191,11 @@ test('normalizes TRN table structure and relationship zones', () => {
   assert.match(trn, /class="trn-zone-shape trn-branch-4"[^>]*data-dz-fill="accent-4"[^>]*data-dz-stroke="line-muted"/)
   assert.match(trn, /class="trn-operation-label"[^>]*data-dz-fill="on-accent"/)
   const light = materializeSvg(trn, 'light-transparent')
-  assert.match(light, /:root\[data-dz-profile="trn-semantic-4"\]\{--dz-accent-1:#dbeafe;--dz-accent-2:#fef3c7;--dz-accent-3:#ede9fe;--dz-accent-4:#ccfbf1;--dz-on-accent:#0f172a;/)
+  assert.match(light, /:root\[data-dz-profile="trn-semantic-4"\]\[data-dz-appearance\^="light-"\]/)
   const dark = materializeSvg(trn, 'dark-transparent')
   assert.match(dark, /data-dz-appearance="dark-transparent"/)
   assert.match(dark, /--dz-accent-4:#34d399/)
-  assert.doesNotMatch(dark, /--dz-accent-1:#dbeafe/)
+  assert.match(dark, /:root\[data-dz-appearance\^="dark-"\]\{[^}]*--dz-accent-4:#34d399/)
 })
 
 test('themes every Svgbob stroke without treating open curves as object surfaces', () => {

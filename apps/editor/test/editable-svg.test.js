@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
-import { canonicalizeSvg } from '../../../shared/svg/index.js'
+import { attachEditableDocument, canonicalizeSvg, materializeSvg } from '../../../shared/svg/index.js'
 import {
   EditableSvgError,
   editableDocumentFor,
@@ -60,6 +60,18 @@ const cases = [
   },
 ]
 
+test('uses the embedded presentation as the packed SVG palette selector', async () => {
+  const state = cases[1].state
+  const rendered = await fixture('mermaid')
+  const canonical = canonicalizeSvg(rendered, state.meta, state.type, cases[1].version)
+  const light = materializeSvg(canonical, 'light-transparent')
+  const packed = attachEditableDocument(light, editableDocumentFor(state))
+
+  assert.match(packed, /data-dz-appearance=\"dark-transparent\"/)
+  assert.ok(packed.includes('data-dz-appearance^=\"light-\"'))
+  assert.ok(packed.includes('data-dz-appearance^=\"dark-\"'))
+})
+
 test('exports and reimports a deterministic golden set of renderer SVGs', async () => {
   for (const entry of cases) {
     const state = entry.state
@@ -73,6 +85,7 @@ test('exports and reimports a deterministic golden set of renderer SVGs', async 
     assert.equal(first, repeated, `${entry.name} export must be deterministic`)
     assert.equal(first, reexported, `${entry.name} import/export must be byte-stable`)
     assert.deepEqual(imported, state, `${entry.name} state must round trip exactly`)
+    assert.ok(first.includes("data-dz-appearance=\"" + state.presentation.appearance + "\""))
     assert.match(first, /data-dz-document="1"/)
     assert.equal((first.match(/<metadata data-dz-kind="document"/g) ?? []).length, 1)
   }

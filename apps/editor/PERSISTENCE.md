@@ -212,10 +212,14 @@ the same appearance on stable SVG and Markdown links. `raw` uses the renderer
 canvas controls. A shared appearance ignores those legacy controls and
 materializes its own palette and, for framed appearances, its own canvas.
 
-An anonymous draft instead exports the current deterministic editable SVG and
-packs those bytes into `/svg/{compressed_editable_svg}`. This path does not
-proxy a render request and works with the canonical output from every HTTP
-renderer unit.
+An anonymous draft instead prepares the selected transparent or framed
+geometry, embeds self-contained palette CSS, and packs the deterministic
+editable SVG into `/svg/{compressed_editable_svg}`. The root
+`data-dz-appearance` is the palette selector. The route validates and sanitizes
+the packed SVG, then synchronizes that one value from the embedded
+`diagram.presentation.appearance`. It does not proxy a render request. Frame
+padding and the outer `viewBox` remain export-time geometry because CSS cannot
+change SVG bounds.
 
 ## Editor and share UX
 

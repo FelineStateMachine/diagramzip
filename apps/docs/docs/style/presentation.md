@@ -47,6 +47,14 @@ The shared appearances apply one Diagram.zip palette to supported renderer outpu
 - Transparent appearances omit the outer canvas.
 - Framed appearances add a matching canvas, standard padding, and a border.
 
+When the editor creates an anonymous packed SVG URL, it embeds self-contained
+palette rules selected by the root `data-dz-appearance`. The `/svg/{packed}`
+route synchronizes that single value from the embedded
+`diagram.presentation.appearance`. Changing the data value selects raw, light,
+dark, or automatic palette CSS without rewriting SVG paint. Transparent or
+framed bounds are prepared before packing because CSS cannot change the outer
+`viewBox`.
+
 The editor disables appearances that the current renderer profile cannot support. Diagrams.net supports raw and framed appearances while its authored paint remains unchanged.
 
 Excalidraw and TikZ support every appearance. Their neutral canvas, ink, and line paint adapt while authored non-neutral paint remains renderer-defined.

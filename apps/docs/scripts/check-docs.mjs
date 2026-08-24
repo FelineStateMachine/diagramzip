@@ -133,6 +133,12 @@ assert(llmsFull.includes('TRN originates with [Michael Chu]'), 'llms-full.txt do
 assert(llmsFull.includes('## Public authoring contract'), 'llms-full.txt does not include the public authoring contract.')
 assert(llmsFull.includes('Presentation appearance changes palette and canvas treatment.'), 'llms-full.txt does not separate TRN layout from appearance.')
 assert(llmsFull.includes('Do not edit generated SVG, CSS classes, data attributes, viewBox values, or renderer implementation files.'), 'llms-full.txt does not protect the TRN output boundary.')
+assert(llmsFull.includes('`data-dz-appearance` value selects raw, light, dark, or automatic palette rules.'), 'llms-full.txt does not explain packed SVG palette selection.')
+assert(llmsFull.includes('CSS cannot change SVG bounds.'), 'llms-full.txt does not preserve the packed SVG geometry boundary.')
+
+const diagrammingSkill = await source(join(site, 'static', 'skills', 'diagramming', 'SKILL.md'))
+assert(diagrammingSkill.includes('synchronizes that single'), 'Diagramming skill does not explain packed SVG appearance synchronization.')
+assert(diagrammingSkill.includes('report a mismatch as a contract violation'), 'Diagramming skill does not tell agents how to handle a packed SVG appearance mismatch.')
 
 const expectedSkillIds = [...diagramSkillIds].sort()
 const skillEntries = await readdir(skills, { withFileTypes: true })

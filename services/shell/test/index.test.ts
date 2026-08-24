@@ -1,6 +1,7 @@
 import { env, SELF } from 'cloudflare:test'
 import { deflate } from 'pako'
 import { describe, expect, it } from 'vitest'
+import { extractEditableDocument } from '../../../shared/svg/index.js'
 
 function packedSvg(source: string): string {
   const bytes = deflate(new TextEncoder().encode(source), { level: 9 })
@@ -39,8 +40,11 @@ describe('diagram.zip shell', () => {
     const source = `<svg xmlns="http://www.w3.org/2000/svg" data-dz-schema="1" data-dz-document="1"><metadata data-dz-kind="document" data-dz-schema="1">${document}</metadata><script>alert(1)</script><rect width="10" height="10" onload="alert(1)"/></svg>`
     const response = await SELF.fetch(`https://diagram.zip/svg/${packedSvg(source)}`)
     const body = await response.text()
+    const embedded = extractEditableDocument(body) as { diagram: { presentation: { appearance: string } } }
 
     expect(response.status).toBe(200)
+    expect(body).toContain('data-dz-appearance=\"raw\"')
+    expect(embedded.diagram.presentation.appearance).toBe('raw')
     expect(response.headers.get('content-type')).toContain('image/svg+xml')
     expect(response.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
     expect(response.headers.get('x-diagram-document')).toBe('editable-svg-1')

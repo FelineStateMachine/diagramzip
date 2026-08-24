@@ -48,9 +48,16 @@ the user wants server persistence or a share alias.
 
 For an image link without persistence, **Copy SVG URL** or **Copy as Markdown**
 packs the editable SVG into a self-contained URL. Published open aliases use
-their stable render URL instead. Packed links expose the embedded source and
-metadata to anyone who has the URL; use a file or alias when the packed URL is
-too large, and do not suggest public embeds for locked diagrams.
+their stable render URL instead. For an anonymous packed link, the editor
+prepares transparent or framed geometry and embeds palette CSS selected by the
+root `data-dz-appearance`. The `/svg/{packed}` route synchronizes that single
+value from the embedded `diagram.presentation.appearance`. Verify those values
+agree; report a mismatch as a contract violation, and do not simulate the
+palette or patch SVG paint client-side. CSS does not change the outer `viewBox`,
+so changing between transparent and framed geometry requires a fresh export.
+Packed links expose the embedded source and metadata to anyone who has the URL;
+use a file or alias when the packed URL is too large, and do not suggest public
+embeds for locked diagrams.
 
 ## Prior art and standards
 
