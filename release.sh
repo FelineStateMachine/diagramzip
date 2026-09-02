@@ -5,14 +5,16 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 CHECK_ONLY=false
 ALLOW_DIRTY=false
+ASSUME_YES=false
 PHASE="initialization"
 
 usage() {
   cat <<'EOF'
-Usage: ./release.sh [--check] [--allow-dirty]
+Usage: ./release.sh [--check] [--allow-dirty] [-y]
 
   --check        Run the local gate without Cloudflare authentication or deployment.
   --allow-dirty  Permit a dirty worktree in --check mode only.
+  -y, --yes      Skip the interactive production confirmation.
 EOF
 }
 
@@ -36,6 +38,7 @@ while (($#)); do
   case "$1" in
     --check) CHECK_ONLY=true ;;
     --allow-dirty) ALLOW_DIRTY=true ;;
+    -y|--yes) ASSUME_YES=true ;;
     -h|--help) usage; exit 0 ;;
     *) usage >&2; die "unknown option: $1" ;;
   esac
@@ -210,10 +213,14 @@ section 'Cloudflare authentication and remote preflight'
 run_in "$ROOT/renderers/edge" "$WRANGLER" whoami
 run_in "$ROOT/services/api" "$ROOT/services/api/node_modules/.bin/wrangler" d1 migrations list diagramzip --remote --config wrangler.jsonc
 
-[[ -t 0 ]] || die 'production confirmation requires an interactive terminal.'
-printf '\nDeploy %s to production across %s Cloudflare deployments? [y/N] ' "$RELEASE_SHORT_SHA" "$DEPLOYMENT_COUNT"
-read -r answer
-[[ "$answer" == y || "$answer" == Y ]] || die 'production release cancelled.'
+if [[ "$ASSUME_YES" == true ]]; then
+  printf '\nDeploying %s to production across %s Cloudflare deployments (-y).\n' "$RELEASE_SHORT_SHA" "$DEPLOYMENT_COUNT"
+else
+  [[ -t 0 ]] || die 'production confirmation requires an interactive terminal; pass -y to skip it.'
+  printf '\nDeploy %s to production across %s Cloudflare deployments? [y/N] ' "$RELEASE_SHORT_SHA" "$DEPLOYMENT_COUNT"
+  read -r answer
+  [[ "$answer" == y || "$answer" == Y ]] || die 'production release cancelled.'
+fi
 
 export DIAGRAMZIP_RELEASE_MESSAGE="$RELEASE_MESSAGE"
 
