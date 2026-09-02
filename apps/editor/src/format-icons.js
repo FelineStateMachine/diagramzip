@@ -2,7 +2,7 @@ const ICON_KIND_BY_TYPE = Object.freeze({
   plantuml: 'sequence', mermaid: 'flow', seqdiag: 'sequence', actdiag: 'flow', blockdiag: 'flow', bpmn: 'flow', trn: 'flow',
   c4plantuml: 'layers', structurizr: 'layers', d2: 'graph', graphviz: 'graph', nomnoml: 'classes', umlet: 'classes',
   dbml: 'database', erd: 'database', vega: 'chart', vegalite: 'chart',
-  nwdiag: 'network', packetdiag: 'packet', rackdiag: 'rack', bytefield: 'packet', wavedrom: 'wave', symbolator: 'chip', wireviz: 'cable',
+  nwdiag: 'network', packetdiag: 'packet', rackdiag: 'rack', bytefield: 'packet', wavedrom: 'wave', symbolator: 'chip', wireviz: 'cable', squaring: 'squares',
   excalidraw: 'drawing', diagramsnet: 'canvas', ditaa: 'terminal', goat: 'terminal', svgbob: 'terminal', pikchr: 'drawing', tikz: 'typeset',
 })
 
@@ -23,6 +23,7 @@ const ICON_PATHS = Object.freeze({
   drawing: '<path d="m11 45 4-14L40 6l10 10-25 25-14 4Z"/><path d="m16 30 10 10M36 10l10 10M11 45l9-3-6-6-3 9Z"/>',
   canvas: '<rect x="7" y="10" width="46" height="39" rx="3"/><circle cx="19" cy="23" r="5"/><path d="m10 43 13-12 8 7 8-10 11 15M43 16h4M45 14v4"/>',
   terminal: '<rect x="6" y="10" width="48" height="40" rx="4"/><path d="m14 22 7 6-7 6M27 36h14"/>',
+  squares: '<rect x="7" y="7" width="26" height="26"/><rect x="33" y="7" width="20" height="20"/><rect x="33" y="27" width="14" height="14"/><rect x="47" y="27" width="6" height="6"/><rect x="47" y="33" width="6" height="6"/><rect x="33" y="41" width="12" height="12"/><rect x="45" y="39" width="8" height="8"/><rect x="7" y="33" width="20" height="20"/><rect x="27" y="33" width="6" height="6"/><rect x="27" y="39" width="6" height="6"/><rect x="27" y="45" width="6" height="8"/><rect x="45" y="47" width="8" height="6"/>',
   typeset: '<path d="M13 12h34M30 12v36M21 48h18M14 21h11M35 39h11"/><path d="m42 21 5 5-5 5"/>',
 })
 

@@ -181,6 +181,22 @@ test('applies D2, PlantUML, Svgbob, and neutral SVG family roles', () => {
   }
 })
 
+test('normalizes squaring ink and canvas while preserving voltage colors', () => {
+  const squaring = canonicalizeSvg(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"><rect class="squaring-canvas" x="0" y="0" width="80" height="40" fill="#ffffff"></rect><g class="squaring-square" data-side="2"><rect x="4" y="4" width="20" height="20" fill="rgb(254,226,226)" stroke="#111827" stroke-width="1"></rect><text x="14" y="14" fill="#111827">2</text></g><path class="squaring-wire" d="M0 0L1 1" fill="none" stroke="#111827"></path><text class="squaring-summary" fill="#666666">Order 3</text></svg>',
+    metadata, 'squaring', 'diagramzip-squaring@1',
+  )
+
+  assert.match(squaring, /data-dz-profile="neutral-svg-semantic-2"/)
+  assert.match(squaring, /class="squaring-canvas"[^>]*data-dz-role="canvas"/)
+  assert.match(squaring, /fill="rgb\(254,226,226\)"[^>]*data-dz-stroke="line"/)
+  assert.doesNotMatch(squaring, /fill="rgb\(254,226,226\)"[^>]*data-dz-fill=/)
+  // The side label sits on a preserved tint, so it keeps its authored ink instead of a themed role.
+  assert.match(squaring, /<text x="14" y="14" fill="#111827">2<\/text>/)
+  assert.match(squaring, /class="squaring-summary"[^>]*data-dz-fill="ink-muted"/)
+  assert.match(materializeSvg(squaring, 'dark-transparent'), /data-dz-appearance="dark-transparent"/)
+})
+
 test('normalizes TRN table structure and relationship zones', () => {
   const trn = canonicalizeSvg(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"><rect class="trn-canvas" width="80" height="40" fill="#fbf8dc"></rect><text class="trn-title" fill="#111827">Bread</text><rect class="trn-table-surface" y="10" width="80" height="30" fill="white"></rect><path class="trn-zone-shape trn-branch-4" fill="white" stroke="#65a268"></path><text class="trn-operation-label" fill="#111827">mix</text></svg>',

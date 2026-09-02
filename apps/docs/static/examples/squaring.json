@@ -1,0 +1,5 @@
+{
+  "engine": "squaring",
+  "source": ".view both\ntitle Order 9 simple perfect squared rectangle\n\nrectangle 33 x 32\nsquares (18 15) (7 8) (14 4) (10 1) (9)",
+  "sourceKind": "page-example"
+}

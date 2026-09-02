@@ -11,6 +11,7 @@ export const HTTP_RENDERER_UNITS = Object.freeze({
   nwdiag: 'https://nwdiag.render.diagram.zip/v1/svg',
   packetdiag: 'https://packetdiag.render.diagram.zip/v1/svg',
   rackdiag: 'https://rackdiag.render.diagram.zip/v1/svg',
+  squaring: 'https://squaring.render.diagram.zip/v1/svg',
   bytefield: 'https://bytefield.render.diagram.zip/v1/svg',
   dbml: 'https://dbml.render.diagram.zip/v1/svg',
   ditaa: 'https://ditaa.render.diagram.zip/v1/svg',

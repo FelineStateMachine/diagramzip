@@ -28,6 +28,8 @@ Common choices include Mermaid for compact general diagrams, PlantUML for UML-or
 
 Use Tabular Recipe Notation (`trn`) for recipes, crafting trees, and assembly transformations where ingredient quantities feed short actions and meaningful outcomes. Put `.layout combined` or `.layout individual` in the TRN source. TRN originates with [Michael Chu at Cooking for Engineers](https://www.cookingforengineers.com/); diagram.zip provides its own text DSL and SVG renderer for that tabular recipe concept. For OCR transcription, preserve the printed quantities and wording, and put uncertain readings in `#` comments instead of guessing.
 
+Use Squaring (`squaring`) for squared rectangles, squared squares, and their Smith diagrams: the electric-circuit view in which every horizontal segment is a node and every square is a unit resistor whose current is the square's side. Write a known dissection as `rectangle <width> x <height>` followed by the square sides in Bouwkamp order, or build one backwards from a planar network with `battery <positive> <negative>` and wires such as `a - b - c`. The caption reports whether the result is simple (no smaller rectangle of squares) and perfect (no repeated side). The correspondence comes from [Brooks, Smith, Stone, and Tutte](https://doi.org/10.1215/S0012-7094-40-00718-9); diagram.zip provides its own notation and SVG renderer for it.
+
 The complete renderer set and syntax links are in [llms.txt](https://docs.diagram.zip/llms.txt) and [diagram-types.json](https://docs.diagram.zip/diagram-types.json). Semantic routing metadata is in [diagram-skills.json](https://docs.diagram.zip/diagram-skills.json).
 
 Do not infer standards support from a similarly named renderer mode. Confirm the renderer's output and interchange fidelity.

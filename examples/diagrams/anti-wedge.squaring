@@ -1,0 +1,12 @@
+# Build a squared rectangle backwards from a polyhedral graph.
+# This is the skeleton of the tetragonal anti-wedge: six corners, ten edges.
+# One edge becomes the battery, every other edge becomes a wire with
+# resistance one, and the current through each wire is the side of a square.
+.view both
+title Tetragonal anti-wedge as a Smith diagram
+
+battery a e
+a - b - c - d - a
+a - f - e
+b - f
+c - e - d

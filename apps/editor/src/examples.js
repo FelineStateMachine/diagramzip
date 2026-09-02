@@ -11,6 +11,7 @@ import nwdiag from '../../../examples/diagrams/network.diag?raw'
 import packetdiag from '../../../examples/diagrams/packet.diag?raw'
 import pikchr from '../../../examples/diagrams/diamond.pikchr?raw'
 import rackdiag from '../../../examples/diagrams/rack.diag?raw'
+import squaring from '../../../examples/diagrams/order-nine.squaring?raw'
 import svgbob from '../../../examples/diagrams/cloud.bob?raw'
 import symbolator from '../../../examples/diagrams/component.sv?raw'
 import tikz from '../../../examples/diagrams/tikz.tex?raw'
@@ -176,6 +177,7 @@ Rel(bob, tandem, "Completes tasks")
   goat,
   nomnoml,
   pikchr,
+  squaring,
   svgbob,
   symbolator,
   tikz,

@@ -16,6 +16,6 @@ describe('catalog service boundary', () => {
   it('publishes the complete catalog', async () => {
     const response = await worker.fetch(new Request('https://diagram.zip/render/v1/catalog'))
     expect(response.status).toBe(200)
-    await expect(response.json()).resolves.toMatchObject({ format: 'svg', engines: { length: 31 } })
+    await expect(response.json()).resolves.toMatchObject({ format: 'svg', engines: { length: 32 } })
   })
 })

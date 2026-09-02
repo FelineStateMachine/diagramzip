@@ -10,6 +10,7 @@ const DIAGRAM_TYPES = [
   ['nwdiag', 'NwDiag'],
   ['packetdiag', 'PacketDiag'],
   ['rackdiag', 'RackDiag'],
+  ['squaring', 'Squaring'],
   ['bpmn', 'BPMN'],
   ['bytefield', 'Bytefield'],
   ['dbml', 'DBML'],

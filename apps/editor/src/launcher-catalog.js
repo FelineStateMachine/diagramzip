@@ -20,7 +20,7 @@ const GROUP_DEFINITIONS = [
     id: 'data-charts',
     label: 'Data & charts',
     description: 'Data models, plots, and technical visualizations.',
-    types: ['dbml', 'erd', 'vega', 'vegalite'],
+    types: ['dbml', 'erd', 'vega', 'vegalite', 'squaring'],
   },
   {
     id: 'network-hardware',
@@ -48,6 +48,7 @@ const DESCRIPTIONS = {
   nwdiag: 'Network topology diagrams.',
   packetdiag: 'Packet and protocol layout diagrams.',
   rackdiag: 'Rack and infrastructure diagrams.',
+  squaring: 'Squared rectangles and their Smith diagram circuits.',
   bpmn: 'Business process model and notation diagrams.',
   bytefield: 'Structured byte and protocol field diagrams.',
   dbml: 'Database schemas from DBML.',
@@ -77,7 +78,7 @@ const EXTENSIONS = {
   bytefield: ['.bf'], dbml: ['.dbml'], diagramsnet: ['.drawio'], ditaa: ['.ditaa'],
   erd: ['.erd'], excalidraw: ['.excalidraw'], goat: ['.goat'], nomnoml: ['.nomnoml'],
   pikchr: ['.pikchr'], structurizr: ['.dsl'], svgbob: ['.bob'], symbolator: ['.sv'],
-  tikz: ['.tex'], trn: ['.trn'], umlet: ['.uxf'], vega: ['.json'], vegalite: ['.json'], wavedrom: ['.json'],
+  tikz: ['.tex'], trn: ['.trn'], squaring: ['.squaring'], umlet: ['.uxf'], vega: ['.json'], vegalite: ['.json'], wavedrom: ['.json'],
   wireviz: ['.yaml', '.yml'],
 }
 

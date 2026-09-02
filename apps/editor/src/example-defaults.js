@@ -10,6 +10,7 @@ const EXAMPLE_NAMES = {
   nwdiag: 'Network layout',
   packetdiag: 'TCP packet structure',
   rackdiag: 'Rack layout',
+  squaring: 'Order 9 squared rectangle',
   bpmn: 'Agent-assisted review',
   bytefield: 'Byte field layout',
   dbml: 'Database schema',

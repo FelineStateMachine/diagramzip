@@ -85,6 +85,7 @@
 - [GoAT syntax](https://docs.diagram.zip/create/types/goat/): Create a GoAT diagram. [Style](https://docs.diagram.zip/style/types/goat/).
 - [Nomnoml syntax](https://docs.diagram.zip/create/types/nomnoml/): Create a Nomnoml diagram. [Style](https://docs.diagram.zip/style/types/nomnoml/).
 - [Pikchr syntax](https://docs.diagram.zip/create/types/pikchr/): Create a Pikchr diagram. [Style](https://docs.diagram.zip/style/types/pikchr/).
+- [Squaring syntax](https://docs.diagram.zip/create/types/squaring/): Squaring stands for Squared rectangles and Smith diagrams. Create a Squaring diagram. [Style](https://docs.diagram.zip/style/types/squaring/). Origin: [Brooks, Smith, Stone, and Tutte at The dissection of rectangles into squares (Duke Mathematical Journal, 1940)](https://doi.org/10.1215/S0012-7094-40-00718-9).
 - [Structurizr syntax](https://docs.diagram.zip/create/types/structurizr/): Create a Structurizr diagram. [Style](https://docs.diagram.zip/style/types/structurizr/).
 - [Svgbob syntax](https://docs.diagram.zip/create/types/svgbob/): Create a Svgbob diagram. [Style](https://docs.diagram.zip/style/types/svgbob/).
 - [Symbolator syntax](https://docs.diagram.zip/create/types/symbolator/): Create a Symbolator diagram. [Style](https://docs.diagram.zip/style/types/symbolator/).

@@ -4,7 +4,7 @@ import { diagramTypes } from '../src/diagram-types.js'
 import { HTTP_RENDERER_UNITS, httpRendererUnitFor } from '../src/renderer-units.js'
 
 test('gives each HTTP renderer its own subdomain', () => {
-  assert.equal(Object.keys(HTTP_RENDERER_UNITS).length, 31)
+  assert.equal(Object.keys(HTTP_RENDERER_UNITS).length, 32)
   for (const [engine, endpoint] of Object.entries(HTTP_RENDERER_UNITS)) {
     assert.equal(new URL(endpoint).hostname, `${engine}.render.diagram.zip`)
     assert.equal(new URL(endpoint).pathname, '/v1/svg')
@@ -28,6 +28,6 @@ test('does not invent an endpoint for an unknown renderer', () => {
 
 test('assigns exactly one final renderer path to every diagram type', () => {
   const http = Object.keys(HTTP_RENDERER_UNITS)
-  assert.equal(http.length, 31)
+  assert.equal(http.length, 32)
   assert.deepEqual(new Set(http), new Set(diagramTypes.map(({ id }) => id)))
 })

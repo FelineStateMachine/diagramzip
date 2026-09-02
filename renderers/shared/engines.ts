@@ -12,6 +12,7 @@ export const ENGINE_IDS = [
   'nwdiag',
   'packetdiag',
   'rackdiag',
+  'squaring',
   'bpmn',
   'bytefield',
   'dbml',

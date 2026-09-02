@@ -254,6 +254,25 @@
       "example": "/examples/pikchr.json"
     },
     {
+      "id": "squaring",
+      "label": "Squaring",
+      "fullName": "Squared rectangles and Smith diagrams",
+      "category": "Graphs and networks",
+      "format": "Squaring text",
+      "language": "text",
+      "upstream": "https://www.squaring.net/",
+      "create": "/create/types/squaring",
+      "style": "/style/types/squaring",
+      "editor": "https://diagram.zip/?type=squaring",
+      "example": "/examples/squaring.json",
+      "origin": {
+        "creator": "Brooks, Smith, Stone, and Tutte",
+        "site": "The dissection of rectangles into squares (Duke Mathematical Journal, 1940)",
+        "siteUrl": "https://doi.org/10.1215/S0012-7094-40-00718-9",
+        "note": "Diagram.zip implements a text notation and SVG renderer for the squared-rectangle and Smith-diagram correspondence that the four Trinity students discovered."
+      }
+    },
+    {
       "id": "structurizr",
       "label": "Structurizr",
       "category": "UML and architecture",

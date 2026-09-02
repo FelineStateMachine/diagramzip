@@ -1,0 +1,9 @@
+# The smallest simple perfect squared rectangle: nine squares, no two alike,
+# and no smaller group of squares forming its own rectangle.
+# Squares are listed in Bouwkamp order: each one goes to the leftmost point
+# of the highest unfilled segment.
+.view both
+title Order 9 simple perfect squared rectangle
+
+rectangle 33 x 32
+squares (18 15) (7 8) (14 4) (10 1) (9)

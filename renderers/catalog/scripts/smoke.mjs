@@ -16,12 +16,12 @@ if (health.ok !== true) throw new Error('The health response is invalid.')
 
 if (!catalogResponse.ok) throw new Error(`Catalog check returned HTTP ${catalogResponse.status}.`)
 const catalog = await catalogResponse.json()
-if (catalog.format !== 'svg' || !Array.isArray(catalog.engines) || catalog.engines.length !== 31) {
-  throw new Error('The catalog response does not contain all 31 SVG engines.')
+if (catalog.format !== 'svg' || !Array.isArray(catalog.engines) || catalog.engines.length !== 32) {
+  throw new Error('The catalog response does not contain all 32 SVG engines.')
 }
 
 if (removedRenderResponse.status !== 404) {
   throw new Error(`The removed render proxy returned HTTP ${removedRenderResponse.status}.`)
 }
 
-console.log('The catalog service is healthy. It lists 31 engines and has no render proxy.')
+console.log('The catalog service is healthy. It lists 32 engines and has no render proxy.')

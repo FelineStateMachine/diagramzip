@@ -6,6 +6,7 @@ import { erdAdapter } from './erd'
 import { graphvizAdapter } from './graphviz'
 import { goatAdapter } from './goat'
 import { nomnomlAdapter } from './nomnoml'
+import { squaringAdapter } from './squaring'
 import { svgbobAdapter } from './svgbob'
 import { trnAdapter } from './trn'
 import { vegaAdapter } from './vega'
@@ -21,6 +22,7 @@ const adapters: Record<EdgeEngineId, RendererAdapter> = {
   graphviz: graphvizAdapter,
   goat: goatAdapter,
   nomnoml: nomnomlAdapter,
+  squaring: squaringAdapter,
   svgbob: svgbobAdapter,
   trn: trnAdapter,
   vega: vegaAdapter,

@@ -22,6 +22,7 @@ const targetRuntime: Record<EngineId, EngineRuntime> = {
   nwdiag: 'edge-python',
   packetdiag: 'edge-python',
   rackdiag: 'edge-python',
+  squaring: 'edge-js',
   bpmn: 'edge-js',
   bytefield: 'edge-js',
   dbml: 'edge-wasm',
@@ -62,6 +63,7 @@ const activeRuntime: Record<EngineId, EngineRuntime> = {
   nwdiag: 'edge-python',
   packetdiag: 'edge-python',
   rackdiag: 'edge-python',
+  squaring: 'edge-js',
   graphviz: 'edge-wasm',
   dbml: 'edge-wasm',
   pikchr: 'edge-wasm',
@@ -96,6 +98,7 @@ const versions: Record<EngineId, string> = {
   nwdiag: 'nwdiag@3.0.0/python-worker-1',
   packetdiag: 'packetdiag@3.0.0/python-worker-1',
   rackdiag: 'rackdiag@3.0.0/python-worker-1',
+  squaring: 'diagramzip-squaring@1',
   graphviz: 'graphviz@15.1.1/edge-wasm-2',
   dbml: 'dbml@1.0.31+graphviz@15.1.1/edge-wasm-2',
   pikchr: 'pikchr@85e65b9686/edge-wasm-1',
@@ -212,6 +215,9 @@ const losses: Partial<Record<EngineId, readonly string[]>> = {
     'The edge unit uses the pinned TikZJax TeX/PGF package set, not a full TeX Live installation.',
     'External files, package downloads, shell escape, hyperlinks, and external resources are unavailable.',
     'Typography and SVG details may differ from the browser TikZJax unit.',
+  ],
+  squaring: [
+    'Networks are arranged by search, so very large or non-planar networks are rejected instead of drawn.',
   ],
   trn: [
     'The source selects one layout; the SVG does not embed an interactive layout toggle.',

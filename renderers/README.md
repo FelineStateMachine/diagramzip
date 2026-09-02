@@ -11,7 +11,7 @@ This directory contains the complete Cloudflare renderer plane for diagram.zip.
 | `shared/` | Engine identities shared by the catalog and runtime units |
 | `scripts/` | Cross-runtime deployment and smoke-test orchestration |
 
-All 31 catalog engines have a final renderer path. No renderer uses the Fly.io application. No renderer can use an origin fallback.
+All 32 catalog engines have a final renderer path. No renderer uses the Fly.io application. No renderer can use an origin fallback.
 
 Each engine has a hostname:
 
@@ -37,7 +37,7 @@ npm --prefix edge run deploy:dry-run
 
 Run `npm --prefix edge run smoke:renderers` after all units are deployed. This command checks one repository fixture or capability response for each catalog engine. It checks coverage and SVG structure. It does not compare pixels.
 
-Run `npm --prefix edge run smoke:catalog` against a local catalog Worker. This command checks the health route, the 31-engine catalog, and the absence of the old render proxy.
+Run `npm --prefix edge run smoke:catalog` against a local catalog Worker. This command checks the health route, the 32-engine catalog, and the absence of the old render proxy.
 
 ## HTTP unit contract
 
@@ -79,12 +79,12 @@ Some units translate source into another engine. The pipeline header lists each 
 
 | Runtime | Count | Engines |
 | --- | ---: | --- |
-| Worker JavaScript | 10 | BPMN, Bytefield, Excalidraw, Nomnoml, Structurizr, TRN, UMLet, Vega, Vega-Lite, WaveDrom |
+| Worker JavaScript | 11 | BPMN, Bytefield, Excalidraw, Nomnoml, Squaring, Structurizr, TRN, UMLet, Vega, Vega-Lite, WaveDrom |
 | Worker Python | 8 | BlockDiag, SeqDiag, ActDiag, NwDiag, PacketDiag, RackDiag, Symbolator, WireViz |
 | Worker WebAssembly | 11 | PlantUML, C4 PlantUML, GraphViz, DBML, ERD, D2, Ditaa, GoAT, Pikchr, Svgbob, TikZ |
 | Browser Run | 2 | Mermaid, diagrams.net |
 
-The total is 31 of 31 engines. The Fly.io Java rendering image is not part of this renderer plane.
+The total is 32 of 32 engines. The Fly.io Java rendering image is not part of this renderer plane.
 
 ## Output policy
 

@@ -1,0 +1,216 @@
+import type { SquaringDocument } from './squaring'
+import type { SquaringModel, SquaringNode, SquaringSquare } from './squaring-model'
+
+const MARGIN = 16
+const PANEL_GAP = 44
+const PANEL_TITLE_HEIGHT = 26
+const CAPTION_HEIGHT = 44
+const BATTERY_GUTTER = 40
+const TARGET_SIZE = 480
+const FONT_FAMILY = 'Arial,Helvetica,sans-serif'
+const INK = '#111827'
+const MUTED = '#666666'
+const WIRE = '#111827'
+const OVERLAY_WIRE = '#1e293b'
+const BLOCK = '#db2777'
+
+interface Panel {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+function escapeXml(value: string): string {
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
+}
+
+function round(value: number): string {
+  return String(Math.round(value * 100) / 100)
+}
+
+function mix(a: [number, number, number], b: [number, number, number], t: number): string {
+  const channel = (index: 0 | 1 | 2): number => Math.round(a[index] + (b[index] - a[index]) * t)
+  return `rgb(${channel(0)},${channel(1)},${channel(2)})`
+}
+
+// Voltage runs from the negative pole (blue) through neutral to the positive pole (red).
+function voltageColor(t: number, tint: boolean): string {
+  const clamped = Math.min(1, Math.max(0, t))
+  const blue: [number, number, number] = tint ? [219, 234, 254] : [37, 99, 235]
+  const neutral: [number, number, number] = tint ? [241, 245, 249] : [148, 163, 184]
+  const red: [number, number, number] = tint ? [254, 226, 226] : [220, 38, 38]
+  return clamped < 0.5 ? mix(blue, neutral, clamped * 2) : mix(neutral, red, (clamped - 0.5) * 2)
+}
+
+function squareSvg(square: SquaringSquare, model: SquaringModel, panel: Panel, unit: number, labels: boolean, overlay: boolean): string {
+  const x = panel.x + square.x * unit
+  const y = panel.y + square.y * unit
+  const size = square.side * unit
+  const topVoltage = model.nodes[square.top]?.voltage ?? model.height
+  const fill = voltageColor((topVoltage - square.side / 2) / model.height, true)
+  const fontSize = Math.min(16, size * 0.42)
+  // In the overlay the wire runs down the middle of the square, so the label moves beside it.
+  const labelX = overlay ? x + size / 2 + 6 : x + size / 2
+  const label = labels && size >= 10
+    ? `<text x="${round(labelX)}" y="${round(y + size / 2)}" text-anchor="${overlay ? 'start' : 'middle'}" dominant-baseline="central" fill="${INK}" font-size="${round(fontSize)}" font-family="${FONT_FAMILY}">${square.side}</text>`
+    : ''
+  return `<g class="squaring-square" data-index="${square.index}" data-side="${square.side}" data-x="${square.x}" data-y="${square.y}"><title>Square ${square.side} at (${square.x}, ${square.y})</title><rect x="${round(x)}" y="${round(y)}" width="${round(size)}" height="${round(size)}" fill="${fill}" stroke="${INK}" stroke-width="1"/>${label}</g>`
+}
+
+function blocksSvg(model: SquaringModel, panel: Panel, unit: number): string {
+  return model.blocks.map(block => {
+    const inset = 2
+    return `<rect class="squaring-block" data-squares="${block.squares}" x="${round(panel.x + block.x * unit + inset)}" y="${round(panel.y + block.y * unit + inset)}" width="${round(block.width * unit - inset * 2)}" height="${round(block.height * unit - inset * 2)}" fill="none" stroke="${BLOCK}" stroke-width="2.5" stroke-dasharray="7 4"><title>Compound block ${block.width} × ${block.height} of ${block.squares} squares</title></rect>`
+  }).join('')
+}
+
+function nodeCenter(node: SquaringNode, panel: Panel, unit: number): { x: number; y: number } {
+  return { x: panel.x + ((node.x0 + node.x1) / 2) * unit, y: panel.y + node.y * unit }
+}
+
+function wireSvg(square: SquaringSquare, model: SquaringModel, panel: Panel, unit: number, maxSide: number, showCurrent: boolean, overlay: boolean): string {
+  const stroke = overlay ? OVERLAY_WIRE : WIRE
+  const top = model.nodes[square.top]
+  const bottom = model.nodes[square.bottom]
+  if (top === undefined || bottom === undefined) return ''
+  const a = nodeCenter(top, panel, unit)
+  const b = nodeCenter(bottom, panel, unit)
+  const cx = panel.x + (square.x + square.side / 2) * unit
+  const size = square.side * unit
+  const radius = Math.max(0, Math.min(8, size / 3, Math.abs(cx - a.x) / 2, Math.abs(cx - b.x) / 2))
+  const width = 1 + 2.4 * (square.side / maxSide)
+  const towardsA = a.x < cx ? -1 : 1
+  const towardsB = b.x < cx ? -1 : 1
+  const path = [
+    `M${round(a.x)} ${round(a.y)}`,
+    `L${round(cx + towardsA * radius)} ${round(a.y)}`,
+    `Q${round(cx)} ${round(a.y)} ${round(cx)} ${round(a.y + radius)}`,
+    `L${round(cx)} ${round(b.y - radius)}`,
+    `Q${round(cx)} ${round(b.y)} ${round(cx + towardsB * radius)} ${round(b.y)}`,
+    `L${round(b.x)} ${round(b.y)}`,
+  ].join(' ')
+  const midY = (a.y + b.y) / 2
+  const arrow = size >= 14
+    ? `<path d="M${round(cx - 3.5)} ${round(midY - 3)} L${round(cx + 3.5)} ${round(midY - 3)} L${round(cx)} ${round(midY + 3.5)} Z" fill="${stroke}"/>`
+    : ''
+  const label = showCurrent && size >= 14
+    ? `<text x="${round(cx + 6)}" y="${round(midY - 7)}" text-anchor="start" dominant-baseline="central" fill="${MUTED}" font-size="10" font-family="${FONT_FAMILY}">${square.side}</text>`
+    : ''
+  return `<g class="squaring-wire" data-from="${escapeXml(top.id)}" data-to="${escapeXml(bottom.id)}" data-current="${square.side}"><title>Wire ${escapeXml(top.id)} → ${escapeXml(bottom.id)} carries ${square.side}</title><path d="${path}" fill="none" stroke="${stroke}" stroke-width="${round(width)}" stroke-linecap="round" stroke-linejoin="round"/>${arrow}${label}</g>`
+}
+
+function nodeSvg(node: SquaringNode, model: SquaringModel, panel: Panel, unit: number, rung: boolean, showVoltage: boolean): string {
+  const center = nodeCenter(node, panel, unit)
+  const color = voltageColor(node.voltage / model.height, false)
+  const rungLine = rung
+    ? `<line x1="${round(panel.x + node.x0 * unit)}" y1="${round(center.y)}" x2="${round(panel.x + node.x1 * unit)}" y2="${round(center.y)}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>`
+    : ''
+  const pole = node.index === model.positive ? '+' : node.index === model.negative ? '−' : ''
+  // Wires leave every node horizontally, so labels sit above or below the rung instead of on it.
+  const labelX = pole === '' ? center.x + 7 : center.x
+  const labelY = node.index === model.negative ? center.y + 13 : center.y - 10
+  const anchor = pole === '' ? 'start' : 'middle'
+  const label = showVoltage
+    ? `<text x="${round(labelX)}" y="${round(labelY)}" text-anchor="${anchor}" dominant-baseline="central" fill="${INK}" font-size="11" font-weight="700" font-family="${FONT_FAMILY}">${pole === '' ? '' : `${pole} `}${node.voltage}</text>`
+    : ''
+  return `<g class="squaring-node" data-node-id="${escapeXml(node.id)}" data-voltage="${node.voltage}"><title>Node ${escapeXml(node.id)} at ${node.voltage}</title>${rungLine}<circle cx="${round(center.x)}" cy="${round(center.y)}" r="5" fill="${color}" stroke="white" stroke-width="1.5"/>${label}</g>`
+}
+
+function batterySvg(model: SquaringModel, panel: Panel, unit: number): string {
+  const positive = model.nodes[model.positive]
+  const negative = model.nodes[model.negative]
+  if (positive === undefined || negative === undefined) return ''
+  const a = nodeCenter(positive, panel, unit)
+  const b = nodeCenter(negative, panel, unit)
+  const gx = panel.x - BATTERY_GUTTER / 2 - 4
+  const midY = (a.y + b.y) / 2
+  return `<g class="squaring-battery"><title>Battery: ${escapeXml(positive.id)} is the positive pole at ${positive.voltage}, ${escapeXml(negative.id)} is the negative pole at 0</title>` +
+    `<path d="M${round(a.x)} ${round(a.y)} L${round(gx)} ${round(a.y)} L${round(gx)} ${round(midY - 7)} M${round(gx)} ${round(midY + 7)} L${round(gx)} ${round(b.y)} L${round(b.x)} ${round(b.y)}" fill="none" stroke="${WIRE}" stroke-width="1.5" stroke-dasharray="4 3"/>` +
+    `<line x1="${round(gx - 9)}" y1="${round(midY - 4)}" x2="${round(gx + 9)}" y2="${round(midY - 4)}" stroke="${WIRE}" stroke-width="2.5"/>` +
+    `<line x1="${round(gx - 4)}" y1="${round(midY + 4)}" x2="${round(gx + 4)}" y2="${round(midY + 4)}" stroke="${WIRE}" stroke-width="2.5"/>` +
+    `<text x="${round(gx - 12)}" y="${round(midY - 8)}" text-anchor="end" dominant-baseline="central" fill="${INK}" font-size="12" font-weight="700" font-family="${FONT_FAMILY}">+</text>` +
+    `<text x="${round(gx - 12)}" y="${round(midY + 9)}" text-anchor="end" dominant-baseline="central" fill="${INK}" font-size="12" font-weight="700" font-family="${FONT_FAMILY}">−</text>` +
+    `</g>`
+}
+
+function panelTitle(text: string, panel: Panel): string {
+  return `<text class="squaring-panel-title" x="${round(panel.x)}" y="${round(panel.y - 9)}" fill="${MUTED}" font-size="12" font-weight="700" font-family="${FONT_FAMILY}">${escapeXml(text)}</text>`
+}
+
+function frame(panel: Panel): string {
+  return `<rect x="${round(panel.x)}" y="${round(panel.y)}" width="${round(panel.width)}" height="${round(panel.height)}" fill="none" stroke="${INK}" stroke-width="1.5"/>`
+}
+
+function rectanglePanel(model: SquaringModel, panel: Panel, unit: number, labels: boolean, overlay = false): string {
+  const squares = model.squares.map(square => squareSvg(square, model, panel, unit, labels, overlay)).join('')
+  return `<g class="squaring-rectangle">${squares}${blocksSvg(model, panel, unit)}${frame(panel)}</g>`
+}
+
+function circuitPanel(model: SquaringModel, panel: Panel, unit: number, overlay: boolean, labels: boolean): string {
+  const maxSide = Math.max(...model.squares.map(square => square.side))
+  const wires = model.squares.map(square => wireSvg(square, model, panel, unit, maxSide, labels && !overlay, overlay)).join('')
+  const nodes = model.nodes.map(node => nodeSvg(node, model, panel, unit, overlay, labels && !overlay)).join('')
+  return `<g class="squaring-circuit" data-overlay="${overlay}">${batterySvg(model, panel, unit)}${wires}${nodes}</g>`
+}
+
+function defaultTitle(document: SquaringDocument, model: SquaringModel): string {
+  if (document.title !== '') return document.title
+  return model.width === model.height ? `Squared square ${model.width} × ${model.height}` : `Squared rectangle ${model.width} × ${model.height}`
+}
+
+export function describeSquaring(model: SquaringModel): string {
+  const parts = [`Order ${model.order}`, `${model.width} × ${model.height}`]
+  parts.push(model.simple ? 'simple' : `compound (${model.blocks.length} ${model.blocks.length === 1 ? 'block' : 'blocks'} outlined)`)
+  parts.push(model.perfect ? 'perfect' : `imperfect (${model.repeatedSides.length} repeated ${model.repeatedSides.length === 1 ? 'side' : 'sides'}: ${model.repeatedSides.join(', ')})`)
+  if (model.form === 'network') {
+    const positive = model.nodes[model.positive]?.id ?? ''
+    const negative = model.nodes[model.negative]?.id ?? ''
+    parts.push(`battery ${positive} → ${negative}`)
+  }
+  return parts.join(' · ')
+}
+
+export function renderSquaring(document: SquaringDocument, model: SquaringModel): string {
+  const unit = Math.min(60, Math.max(0.5, TARGET_SIZE / Math.max(model.width, model.height)))
+  const labels = document.labels === 'sides'
+  const view = document.view
+  const panelWidth = model.width * unit
+  const panelHeight = model.height * unit
+  const top = MARGIN + PANEL_TITLE_HEIGHT
+  const panels: string[] = []
+  let x = MARGIN
+
+  if (view === 'rectangle' || view === 'both') {
+    const panel = { x, y: top, width: panelWidth, height: panelHeight }
+    panels.push(panelTitle('Squared rectangle', panel), rectanglePanel(model, panel, unit, labels))
+    x += panelWidth + PANEL_GAP
+  }
+  if (view === 'circuit' || view === 'both') {
+    x += BATTERY_GUTTER
+    const panel = { x, y: top, width: panelWidth, height: panelHeight }
+    panels.push(panelTitle('Smith diagram', panel), circuitPanel(model, panel, unit, false, labels))
+    x += panelWidth
+  }
+  if (view === 'overlay') {
+    x += BATTERY_GUTTER
+    const panel = { x, y: top, width: panelWidth, height: panelHeight }
+    panels.push(panelTitle('Smith diagram over the squared rectangle', panel), rectanglePanel(model, panel, unit, labels, true), circuitPanel(model, panel, unit, true, labels))
+    x += panelWidth
+  }
+
+  const width = Math.max(x + MARGIN, 320)
+  const height = top + panelHeight + CAPTION_HEIGHT + MARGIN
+  const title = defaultTitle(document, model)
+  const summary = describeSquaring(model)
+  const captionY = top + panelHeight + 20
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${round(width)} ${round(height)}" width="${round(width)}" height="${round(height)}" class="squaring-diagram" data-view="${view}" data-form="${model.form}" data-order="${model.order}" data-width="${model.width}" data-height="${model.height}" data-simple="${model.simple}" data-perfect="${model.perfect}">
+  <title>${escapeXml(title)}</title>
+  <desc>${escapeXml(summary)}. Each square is a wire carrying current equal to its side; each horizontal segment is a node whose voltage is its height above the bottom edge.</desc>
+  <rect class="squaring-canvas" x="0" y="0" width="${round(width)}" height="${round(height)}" fill="#ffffff"/>
+  ${panels.join('\n  ')}
+  <text class="squaring-title" x="${MARGIN}" y="${round(captionY)}" fill="${INK}" font-size="14" font-weight="700" font-family="${FONT_FAMILY}">${escapeXml(title)}</text>
+  <text class="squaring-summary" x="${MARGIN}" y="${round(captionY + 17)}" fill="${MUTED}" font-size="12" font-family="${FONT_FAMILY}">${escapeXml(summary)}</text>
+</svg>`
+}
