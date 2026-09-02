@@ -146,7 +146,7 @@ documented by their own notices and the repository-level component manifest.
 | robust-predicates | 3.0.3 | Unlicense | excalidraw, vega-family |
 | roughjs | 4.6.4 | MIT | excalidraw |
 | sax | 1.6.1 | BlueOak-1.0.0 | wavedrom |
-| saxes | 6.0.0 | ISC | bpmn, bytefield, d2, excalidraw, goat, graphviz-family, nomnoml, pikchr, plantuml-family, svgbob, tikz, trn, umlet, vega-family, wavedrom |
+| saxes | 6.0.0 | ISC | bpmn, bytefield, d2, excalidraw, goat, graphviz-family, nomnoml, pikchr, plantuml-family, squaring, svgbob, tikz, trn, umlet, vega-family, wavedrom |
 | scheduler | 0.23.2 | MIT | excalidraw |
 | sliced | 1.0.1 | MIT | excalidraw |
 | stylis | 4.4.0 | MIT | excalidraw |
@@ -192,7 +192,7 @@ documented by their own notices and the repository-level component manifest.
 | vega-voronoi | 5.1.3 | BSD-3-Clause | vega-family |
 | vega-wordcloud | 5.1.3 | BSD-3-Clause | vega-family |
 | wavedrom | 3.6.2 | MIT | wavedrom |
-| xmlchars | 2.2.0 | MIT | bpmn, bytefield, d2, excalidraw, goat, graphviz-family, nomnoml, pikchr, plantuml-family, svgbob, tikz, trn, umlet, vega-family, wavedrom |
+| xmlchars | 2.2.0 | MIT | bpmn, bytefield, d2, excalidraw, goat, graphviz-family, nomnoml, pikchr, plantuml-family, squaring, svgbob, tikz, trn, umlet, vega-family, wavedrom |
 | zustand | 4.5.7 | MIT | excalidraw |
 
 ## License and notice texts
