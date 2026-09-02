@@ -15,6 +15,7 @@ Start with the [general presentation settings](/style/presentation). Edit shared
 ## Source controls
 
 - Use `.view rectangle` for the dissection alone and `.view circuit` for the Smith diagram alone.
+- Incomplete dissections always render as the rectangle view with hatched gaps.
 - Use `.view overlay` to draw the circuit on top of the squares, which shows how each segment collapses into a node.
 - Use `.labels none` for large dissections where numbers would not fit.
 - Choose a different battery wire in a network to obtain a different squaring from the same graph.
@@ -22,7 +23,8 @@ Start with the [general presentation settings](/style/presentation). Edit shared
 ## Limitations
 
 - Networks are arranged by search, so very large or non-planar networks are rejected instead of drawn.
-- A wire whose two nodes settle at the same voltage carries no current and is rejected; choose another battery.
+- A wire whose two nodes settle at the same voltage carries no current and is rejected; choose another battery or use `battery any`.
+- `battery any` is limited to networks with at most 60 wires.
 - Node positions in the Smith diagram follow the midpoints of the horizontal segments rather than a spring layout.
 
 ## Related pages

@@ -5,7 +5,7 @@ import { buildSquaring } from '../languages/squaring-model'
 import { renderSquaring } from '../languages/squaring-renderer'
 import { edgeFailure, edgeResult } from './types'
 
-const VERSION = 'diagramzip-squaring@2'
+const VERSION = 'diagramzip-squaring@3'
 
 function validateOptions(options: Record<string, string>): void {
   for (const name of Object.keys(options)) {

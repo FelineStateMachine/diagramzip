@@ -151,7 +151,7 @@ const VERSION_PATTERNS = Object.freeze({
   nwdiag: /(?:nwdiag@)?3\.0\.0/,
   packetdiag: /(?:packetdiag@)?3\.0\.0/,
   rackdiag: /(?:rackdiag@)?3\.0\.0/,
-  squaring: /diagramzip-squaring@2/,
+  squaring: /diagramzip-squaring@3/,
   bytefield: /bytefield-svg@1\.11\.0/,
   mermaid: /mermaid@11\.17\.0/,
   bpmn: /(?:bpmn-js@18\.25\.1|diagramzip-bpmn-svg@1)/,

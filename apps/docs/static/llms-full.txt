@@ -2496,7 +2496,7 @@ Squaring draws a squared rectangle, which is a rectangle tiled by squares, next 
 
 ## Use this type
 
-Use Squaring to explore squared rectangles and squared squares, or to check whether a dissection is simple and perfect. It can also build a squaring backwards from a planar network once you choose a battery edge.
+Use Squaring to explore squared rectangles and squared squares, or to check whether a dissection is simple and perfect. Sketch one with unknown sides and let the solver close it. Or build one backwards from a planar network by choosing or searching the battery edge.
 
 ## Source format
 
@@ -2509,10 +2509,16 @@ The source format is **Squaring text**. Enter the source in the diagram.zip edit
 - Add `title` followed by text to name the diagram.
 - For a known dissection, write `rectangle <width> x <height>` and then the square sides in Bouwkamp order; parentheses and commas are ignored.
 - Bouwkamp order places each square at the leftmost point of the highest unfilled segment. Squares that share a top edge are listed left to right.
-- For a network, write `battery <positive> <negative>` and then wires as `wire a b` or chains such as `a - b - c`.
-- Every wire has resistance one; the renderer solves Kirchhoff and Ohm exactly, scales the voltages so all sides are whole numbers, and arranges the squares.
+- Write `rectangle ? x ?` to infer the size; the first group is then the top row.
+- A `?` side is a square as wide as the gap it lands in. Squares that do not fit stop placement, and the rest of the rectangle is hatched.
+- For a sketch, name sides with letters or expressions such as `a`, `2a`, or `a+b`. Every later group needs an `under` clause such as `(g h) under f c`, listing the squares it rests on from left to right.
+- The sketch solver scales the unique solution to whole numbers, or reports free lengths, contradictions, or a fractional side.
+- For a network, write `battery <positive> <negative>` and then wires as `wire a b`, chains such as `a - b - c`, `face a b c d` polygons, or `polyhedron cube`.
+- Write `battery any` to try every wire as the battery; the best result is drawn and every candidate is listed.
 - The battery replaces one edge of the graph, so do not list that edge as a wire. A wire parallel to the battery becomes a full-height square.
+- Every wire has resistance one; the renderer solves Kirchhoff and Ohm exactly, scales the voltages so all sides are whole numbers, and arranges the squares.
 - The network form needs a planar network in which the battery closes a face; polyhedral (3-connected planar) networks give a simple squaring.
+- Symmetric solids often fail for every battery because mirror-image nodes settle at the same voltage; asymmetric polyhedra work best.
 - The caption reports the order, size, whether the squaring is simple (no smaller rectangle of squares) and perfect (no repeated side), and the battery.
 - Compound blocks are outlined; node color runs from blue at the negative pole to red at the positive pole.
 - Start comments with `#`.
@@ -2534,7 +2540,8 @@ Squaring originates with [Brooks, Smith, Stone, and Tutte](https://doi.org/10.12
 ## Limitations
 
 - Networks are arranged by search, so very large or non-planar networks are rejected instead of drawn.
-- A wire whose two nodes settle at the same voltage carries no current and is rejected; choose another battery.
+- A wire whose two nodes settle at the same voltage carries no current and is rejected; choose another battery or use `battery any`.
+- `battery any` is limited to networks with at most 60 wires.
 - Node positions in the Smith diagram follow the midpoints of the horizontal segments rather than a spring layout.
 
 ## Related pages
@@ -2564,6 +2571,7 @@ Start with the [general presentation settings](/style/presentation). Edit shared
 ## Source controls
 
 - Use `.view rectangle` for the dissection alone and `.view circuit` for the Smith diagram alone.
+- Incomplete dissections always render as the rectangle view with hatched gaps.
 - Use `.view overlay` to draw the circuit on top of the squares, which shows how each segment collapses into a node.
 - Use `.labels none` for large dissections where numbers would not fit.
 - Choose a different battery wire in a network to obtain a different squaring from the same graph.
@@ -2571,7 +2579,8 @@ Start with the [general presentation settings](/style/presentation). Edit shared
 ## Limitations
 
 - Networks are arranged by search, so very large or non-planar networks are rejected instead of drawn.
-- A wire whose two nodes settle at the same voltage carries no current and is rejected; choose another battery.
+- A wire whose two nodes settle at the same voltage carries no current and is rejected; choose another battery or use `battery any`.
+- `battery any` is limited to networks with at most 60 wires.
 - Node positions in the Smith diagram follow the midpoints of the horizontal segments rather than a spring layout.
 
 ## Related pages

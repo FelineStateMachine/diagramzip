@@ -1,0 +1,13 @@
+# Stone's method: sketch the dissection with unknown sides and let the
+# geometry solve them. Each group names the squares it hangs under, left to
+# right, so the sketch carries its own topology. The solver scales the
+# one-dimensional solution to whole numbers.
+.view both
+title Order 9 solved from a sketch
+
+rectangle ? x ?
+(a b)
+(c d) under b
+(e f) under a
+(g h) under f c
+(i) under h d

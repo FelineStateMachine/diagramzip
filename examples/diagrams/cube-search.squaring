@@ -1,0 +1,7 @@
+# Search every edge of a polyhedron as the battery. The renderer draws the
+# best result (simple and perfect first) and lists every candidate below.
+.view both
+title Cube skeleton with every battery tried
+
+polyhedron cube
+battery any

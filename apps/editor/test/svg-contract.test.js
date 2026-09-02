@@ -184,7 +184,7 @@ test('applies D2, PlantUML, Svgbob, and neutral SVG family roles', () => {
 test('normalizes squaring voltage bands, wires, and labels with dedicated palettes', () => {
   const squaring = canonicalizeSvg(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"><rect class="squaring-canvas" x="0" y="0" width="80" height="40" fill="#ffffff"></rect><g class="squaring-square" data-side="2"><rect class="squaring-square-fill" data-band="7" x="4" y="4" width="20" height="20" fill="#f87171" stroke="#1e293b"></rect><text class="squaring-square-label" x="14" y="14" fill="#0f172a">2</text></g><path class="squaring-wire-path" d="M0 0L1 1" fill="none" stroke="#1e293b"></path><circle class="squaring-node-dot" data-band="0" cx="1" cy="1" r="5" fill="#2563eb"></circle><rect class="squaring-block" x="1" y="1" width="2" height="2" fill="none" stroke="#db2777"></rect><text class="squaring-summary" fill="#666666">Order 3</text></svg>',
-    metadata, 'squaring', 'diagramzip-squaring@2',
+    metadata, 'squaring', 'diagramzip-squaring@3',
   )
 
   assert.match(squaring, /data-dz-profile="squaring-semantic-1"/)
