@@ -124,7 +124,7 @@ describe('squaring renderer', () => {
   it('renders the rectangle and the Smith diagram side by side', async () => {
     const result = await render(orderNine)
 
-    expect(result.engineVersion).toBe('diagramzip-squaring@1')
+    expect(result.engineVersion).toBe('diagramzip-squaring@2')
     expect(result.body).toContain('<title>Order 9 simple perfect squared rectangle</title>')
     expect(result.body).toContain('data-view="both" data-form="rectangle" data-order="9" data-width="33" data-height="32" data-simple="true" data-perfect="true"')
     expect(result.body.match(/class="squaring-square"/g)).toHaveLength(9)
