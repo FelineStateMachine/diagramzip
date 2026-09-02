@@ -181,20 +181,24 @@ test('applies D2, PlantUML, Svgbob, and neutral SVG family roles', () => {
   }
 })
 
-test('normalizes squaring ink and canvas while preserving voltage colors', () => {
+test('normalizes squaring voltage bands, wires, and labels with dedicated palettes', () => {
   const squaring = canonicalizeSvg(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"><rect class="squaring-canvas" x="0" y="0" width="80" height="40" fill="#ffffff"></rect><g class="squaring-square" data-side="2"><rect x="4" y="4" width="20" height="20" fill="rgb(254,226,226)" stroke="#111827" stroke-width="1"></rect><text x="14" y="14" fill="#111827">2</text></g><path class="squaring-wire" d="M0 0L1 1" fill="none" stroke="#111827"></path><text class="squaring-summary" fill="#666666">Order 3</text></svg>',
-    metadata, 'squaring', 'diagramzip-squaring@1',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"><rect class="squaring-canvas" x="0" y="0" width="80" height="40" fill="#ffffff"></rect><g class="squaring-square" data-side="2"><rect class="squaring-square-fill" data-band="7" x="4" y="4" width="20" height="20" fill="#f87171" stroke="#1e293b"></rect><text class="squaring-square-label" x="14" y="14" fill="#0f172a">2</text></g><path class="squaring-wire-path" d="M0 0L1 1" fill="none" stroke="#1e293b"></path><circle class="squaring-node-dot" data-band="0" cx="1" cy="1" r="5" fill="#2563eb"></circle><rect class="squaring-block" x="1" y="1" width="2" height="2" fill="none" stroke="#db2777"></rect><text class="squaring-summary" fill="#666666">Order 3</text></svg>',
+    metadata, 'squaring', 'diagramzip-squaring@2',
   )
 
-  assert.match(squaring, /data-dz-profile="neutral-svg-semantic-2"/)
+  assert.match(squaring, /data-dz-profile="squaring-semantic-1"/)
   assert.match(squaring, /class="squaring-canvas"[^>]*data-dz-role="canvas"/)
-  assert.match(squaring, /fill="rgb\(254,226,226\)"[^>]*data-dz-stroke="line"/)
-  assert.doesNotMatch(squaring, /fill="rgb\(254,226,226\)"[^>]*data-dz-fill=/)
-  // The side label sits on a preserved tint, so it keeps its authored ink instead of a themed role.
-  assert.match(squaring, /<text x="14" y="14" fill="#111827">2<\/text>/)
+  assert.match(squaring, /class="squaring-square-fill"[^>]*data-dz-fill="squaring-square-7"[^>]*data-dz-stroke="squaring-edge"/)
+  assert.match(squaring, /class="squaring-square-label"[^>]*data-dz-fill="squaring-label"/)
+  assert.match(squaring, /class="squaring-wire-path"[^>]*data-dz-stroke="squaring-wire"/)
+  assert.match(squaring, /class="squaring-node-dot"[^>]*data-dz-fill="squaring-node-0"/)
+  assert.match(squaring, /class="squaring-block"[^>]*data-dz-stroke="squaring-block"/)
   assert.match(squaring, /class="squaring-summary"[^>]*data-dz-fill="ink-muted"/)
-  assert.match(materializeSvg(squaring, 'dark-transparent'), /data-dz-appearance="dark-transparent"/)
+  const dark = materializeSvg(squaring, 'dark-transparent')
+  assert.match(dark, /:root\[data-dz-profile="squaring-semantic-1"\]\[data-dz-appearance\^="dark-"\]\{[^}]*--dz-sq-square-7:#dc2626/)
+  assert.match(dark, /--dz-sq-wire:#a5b4fc/)
+  assert.match(dark, /\[data-dz-fill="squaring-square-7"\]\{fill:var\(--dz-sq-square-7\)!important\}/)
 })
 
 test('normalizes TRN table structure and relationship zones', () => {

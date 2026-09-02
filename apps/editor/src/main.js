@@ -142,7 +142,7 @@ document.querySelector('#app').innerHTML = `
             <span class="preview-toolbar-divider" aria-hidden="true"></span>
             <div class="preview-appearance-controls" aria-label="Preview appearance">
               <button id="preview-raw" type="button" aria-pressed="false" title="Show the renderer's original appearance">Raw</button>
-              <button id="preview-theme-toggle" type="button" data-preview-theme="light" aria-pressed="false" aria-label="Preview theme: Light" title="Preview theme: Light · click for dark">
+              <button id="preview-theme-toggle" type="button" data-preview-theme="light" aria-pressed="false" aria-label="Preview theme: Light" title="Preview theme: Light. Click for Dark">
                 <svg class="preview-control-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <circle cx="12" cy="12" r="8"/>
                   <path class="preview-theme-fill" d="M12 4a8 8 0 0 1 0 16Z"/>
@@ -806,7 +806,7 @@ function syncPreviewAppearanceControls() {
   previewThemeButton.dataset.previewTheme = previewTheme
   previewThemeButton.setAttribute('aria-pressed', String(!raw && previewTheme === 'dark'))
   previewThemeButton.setAttribute('aria-label', `Preview theme: ${previewTheme === 'dark' ? 'Dark' : 'Light'}`)
-  previewThemeButton.title = `Preview theme: ${previewTheme === 'dark' ? 'Dark' : 'Light'} · click for ${oppositeTheme}`
+  previewThemeButton.title = `Preview theme: ${previewTheme === 'dark' ? 'Dark' : 'Light'}. Click for ${oppositeTheme}`
   previewThemeButton.disabled = raw || !supportedPreviewAppearances.has(
     `${oppositeTheme}-${previewTransparent ? 'transparent' : 'framed'}`,
   )

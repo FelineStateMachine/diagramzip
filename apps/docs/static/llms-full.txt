@@ -2557,7 +2557,7 @@ sidebar_label: Squaring
 
 # Style Squaring
 
-Squaring tints each square by the voltage at its top edge, colors nodes from blue to red by voltage, and scales wire thickness by current. Compound blocks are outlined with a dashed line.
+Squaring colors each square and node by voltage from blue to red and scales wire thickness by current. Light and dark appearances use their own square, node, and wire palettes, and compound blocks are outlined with a dashed line.
 
 Start with the [general presentation settings](/style/presentation). Edit shared or raw presentation in Details, and keep renderer-specific styling in Source.
 

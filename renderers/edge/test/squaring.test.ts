@@ -133,7 +133,7 @@ describe('squaring renderer', () => {
     expect(result.body).toContain('class="squaring-wire" data-from="top" data-to="n2" data-current="18"')
     expect(result.body).toContain('class="squaring-node" data-node-id="n1" data-voltage="17"')
     expect(result.body).toContain('class="squaring-battery"')
-    expect(result.body).toContain('Order 9 · 33 × 32 · simple · perfect')
+    expect(result.body).toContain('Order 9 | 33 × 32 | simple | perfect')
     expect(result.body).not.toContain('class="squaring-block"')
   })
 
@@ -141,7 +141,7 @@ describe('squaring renderer', () => {
     const overlay = await render(compound)
     expect(overlay.body).toContain('data-view="overlay"')
     expect(overlay.body).toContain('class="squaring-block" data-squares="9"')
-    expect(overlay.body).toContain('compound (1 block outlined) · perfect')
+    expect(overlay.body).toContain('compound (1 block outlined) | perfect')
     expect(overlay.body).toContain('data-overlay="true"')
 
     const plain = await render('.view rectangle\n.labels none\nrectangle 3 x 2\n2 1 1')

@@ -93,6 +93,12 @@ const TRN_NORMALIZATION = capability(
   ['Four relationship-zone branch colors adapt to the selected appearance and adjacent zones never share a color.'],
 )
 
+const SQUARING_NORMALIZATION = capability(
+  'squaring-semantic-1',
+  'semantic',
+  ['Voltage bands for squares and nodes, wires, and block outlines use dedicated light and dark palettes.'],
+)
+
 const PROFILE_BY_ENGINE = Object.freeze({
   graphviz: GRAPHVIZ_NORMALIZATION,
   dbml: GRAPHVIZ_NORMALIZATION,
@@ -110,7 +116,7 @@ const PROFILE_BY_ENGINE = Object.freeze({
   nwdiag: NEUTRAL_SVG_NORMALIZATION,
   packetdiag: NEUTRAL_SVG_NORMALIZATION,
   rackdiag: NEUTRAL_SVG_NORMALIZATION,
-  squaring: NEUTRAL_SVG_NORMALIZATION,
+  squaring: SQUARING_NORMALIZATION,
   bytefield: NEUTRAL_SVG_NORMALIZATION,
   mermaid: NEUTRAL_SVG_NORMALIZATION,
   bpmn: NEUTRAL_SVG_NORMALIZATION,
@@ -145,7 +151,7 @@ const VERSION_PATTERNS = Object.freeze({
   nwdiag: /(?:nwdiag@)?3\.0\.0/,
   packetdiag: /(?:packetdiag@)?3\.0\.0/,
   rackdiag: /(?:rackdiag@)?3\.0\.0/,
-  squaring: /diagramzip-squaring@1/,
+  squaring: /diagramzip-squaring@2/,
   bytefield: /bytefield-svg@1\.11\.0/,
   mermaid: /mermaid@11\.17\.0/,
   bpmn: /(?:bpmn-js@18\.25\.1|diagramzip-bpmn-svg@1)/,
@@ -711,9 +717,34 @@ function resolveSiblingTextContrast(root) {
         })
         if (owner?.role.startsWith('accent-')) child.attributes.set('data-dz-fill', 'on-accent')
         else if (owner?.role.startsWith('surface-')) child.attributes.set('data-dz-fill', 'ink')
-        else if (owner !== null && owner !== undefined) child.attributes.delete('data-dz-fill')
+        else if (owner !== null && owner !== undefined && !(child.attributes.get('data-dz-fill') ?? '').startsWith('squaring-')) child.attributes.delete('data-dz-fill')
       }
     }
+    for (const child of node.children) visit(child)
+  }
+  visit(root)
+}
+
+function applySquaringProfile(root) {
+  applyNeutralSvgProfile(root, 'squaring')
+  const visit = node => {
+    if (node.type === 'text') return
+    const classes = classNames(node)
+    const band = node.attributes.get('data-band') ?? '0'
+    if (classes.has('squaring-square-fill')) {
+      node.attributes.set('data-dz-fill', `squaring-square-${band}`)
+      node.attributes.set('data-dz-stroke', 'squaring-edge')
+    }
+    if (classes.has('squaring-node-dot')) node.attributes.set('data-dz-fill', `squaring-node-${band}`)
+    if (classes.has('squaring-node-rung')) node.attributes.set('data-dz-stroke', `squaring-node-${band}`)
+    if (classes.has('squaring-square-label')) node.attributes.set('data-dz-fill', 'squaring-label')
+    if (classes.has('squaring-wire-path')) node.attributes.set('data-dz-stroke', 'squaring-wire')
+    if (classes.has('squaring-wire-arrow')) node.attributes.set('data-dz-fill', 'squaring-wire')
+    if (classes.has('squaring-wire-label') || classes.has('squaring-summary')) node.attributes.set('data-dz-fill', 'ink-muted')
+    if (classes.has('squaring-node-label') || classes.has('squaring-title')) node.attributes.set('data-dz-fill', 'ink')
+    if (classes.has('squaring-panel-title')) node.attributes.set('data-dz-fill', 'ink-muted')
+    if (classes.has('squaring-frame')) node.attributes.set('data-dz-stroke', 'line-muted')
+    if (classes.has('squaring-block')) node.attributes.set('data-dz-stroke', 'squaring-block')
     for (const child of node.children) visit(child)
   }
   visit(root)
@@ -769,6 +800,7 @@ function applyProfile(root, capability, engine) {
   }
   else if (capability.profile === 'authored-neutral-semantic-1') applyNeutralSvgProfile(root, engine)
   else if (capability.profile === 'trn-semantic-4') applyTrnProfile(root)
+  else if (capability.profile === 'squaring-semantic-1') applySquaringProfile(root)
   if (capability.conformance !== 'presentation-only') resolveSiblingTextContrast(root)
 }
 
@@ -1009,6 +1041,30 @@ const TRN_LIGHT_BRANCH_PALETTE = Object.freeze({
   accent1: '#dbeafe', accent2: '#fef3c7', accent3: '#ede9fe', accent4: '#ccfbf1', onAccent: '#0f172a',
 })
 
+const SQUARING_LIGHT_PALETTE = Object.freeze({
+  squares: ['#93c5fd', '#b3d1fb', '#cddaf2', '#e2e4e8', '#f1d6d2', '#fbbfba', '#fca5a5', '#f87171'],
+  nodes: ['#2563eb', '#3b6fe0', '#4f74c8', '#6b7280', '#b45454', '#d13b3b', '#dc2626', '#b91c1c'],
+  edge: '#1e293b', label: '#0f172a', wire: '#1e293b', block: '#db2777',
+})
+const SQUARING_DARK_PALETTE = Object.freeze({
+  squares: ['#1e40af', '#2d55b8', '#3f5f9f', '#4f5b73', '#7f414d', '#a23a3f', '#c12f33', '#dc2626'],
+  nodes: ['#60a5fa', '#7cb0f5', '#93b7e8', '#a8b0c4', '#d6a3a3', '#f38f8f', '#f87171', '#ef4444'],
+  edge: '#0b1220', label: '#f8fafc', wire: '#a5b4fc', block: '#f472b6',
+})
+
+function squaringPaletteVariables(palette) {
+  const bands = palette.squares.map((value, index) => `--dz-sq-square-${index}:${value};--dz-sq-node-${index}:${palette.nodes[index]};`).join('')
+  return `${bands}--dz-sq-edge:${palette.edge};--dz-sq-label:${palette.label};--dz-sq-wire:${palette.wire};--dz-sq-block:${palette.block};`
+}
+
+function squaringRoleCss(themed) {
+  const scope = `${themed}[data-dz-profile="squaring-semantic-1"]`
+  const bands = SQUARING_LIGHT_PALETTE.squares.map((_, index) =>
+    `${scope} [data-dz-fill="squaring-square-${index}"]{fill:var(--dz-sq-square-${index})!important}${scope} [data-dz-fill="squaring-node-${index}"]{fill:var(--dz-sq-node-${index})!important}${scope} [data-dz-stroke="squaring-node-${index}"]{stroke:var(--dz-sq-node-${index})!important}`,
+  ).join('')
+  return `${bands}${scope} [data-dz-stroke="squaring-edge"]{stroke:var(--dz-sq-edge)!important}${scope} [data-dz-fill="squaring-label"]{fill:var(--dz-sq-label)!important}${scope} [data-dz-stroke="squaring-wire"]{stroke:var(--dz-sq-wire)!important}${scope} [data-dz-fill="squaring-wire"]{fill:var(--dz-sq-wire)!important}${scope} [data-dz-stroke="squaring-block"]{stroke:var(--dz-sq-block)!important}`
+}
+
 function paletteVariables(palette) {
   return `--dz-canvas:${palette.canvas};--dz-surface-1:${palette.surface1};--dz-surface-2:${palette.surface2};--dz-surface-3:${palette.surface3};--dz-ink:${palette.ink};--dz-ink-muted:${palette.inkMuted};--dz-line:${palette.line};--dz-line-muted:${palette.lineMuted};--dz-accent-1:${palette.accent1};--dz-accent-2:${palette.accent2};--dz-accent-3:${palette.accent3};--dz-accent-4:${palette.accent4};--dz-on-accent:${palette.onAccent};--dz-frame:${palette.frame};`
 }
@@ -1025,10 +1081,14 @@ function materializerCss() {
   const trnLight = ':root[data-dz-profile="trn-semantic-4"][data-dz-appearance^="light-"]'
   const trnAutomatic = ':root[data-dz-profile="trn-semantic-4"][data-dz-appearance^="auto-"]'
   const variables = `${light}{${paletteVariables(LIGHT_PALETTE)}}${dark}{${paletteVariables(DARK_PALETTE)}}${automatic}{${paletteVariables(LIGHT_PALETTE)}}@media(prefers-color-scheme:dark){${automatic}{${paletteVariables(DARK_PALETTE)}}}`
+  const squaringLight = ':root[data-dz-profile="squaring-semantic-1"][data-dz-appearance^="light-"]'
+  const squaringDark = ':root[data-dz-profile="squaring-semantic-1"][data-dz-appearance^="dark-"]'
+  const squaringAutomatic = ':root[data-dz-profile="squaring-semantic-1"][data-dz-appearance^="auto-"]'
+  const squaringVariables = `${squaringLight}{${squaringPaletteVariables(SQUARING_LIGHT_PALETTE)}}${squaringDark}{${squaringPaletteVariables(SQUARING_DARK_PALETTE)}}${squaringAutomatic}{${squaringPaletteVariables(SQUARING_LIGHT_PALETTE)}}@media(prefers-color-scheme:dark){${squaringAutomatic}{${squaringPaletteVariables(SQUARING_DARK_PALETTE)}}}`
   const trnVariables = `${trnLight}{${branchPaletteVariables(TRN_LIGHT_BRANCH_PALETTE)}}${trnAutomatic}{${branchPaletteVariables(TRN_LIGHT_BRANCH_PALETTE)}}@media(prefers-color-scheme:dark){${trnAutomatic}{${branchPaletteVariables(DARK_PALETTE)}}}`
   const materializerVisibility = `:root[data-dz-appearance="raw"] [data-dz-owned="materializer"],:root[data-dz-appearance$="-transparent"] [data-dz-owned="materializer"]{display:none!important}`
   const roles = `${themed} [data-dz-role="canvas"]:not([data-dz-owned="materializer"]){display:none!important}${themed} [data-dz-fill="none"]{fill:none!important}${themed} [data-dz-fill="surface-1"]{fill:var(--dz-surface-1)!important}${themed} [data-dz-fill="surface-2"]{fill:var(--dz-surface-2)!important}${themed} [data-dz-fill="surface-3"]{fill:var(--dz-surface-3)!important}${themed} [data-dz-fill="ink"]{fill:var(--dz-ink)!important;color:var(--dz-ink)!important}${themed} [data-dz-fill="ink-muted"]{fill:var(--dz-ink-muted)!important;color:var(--dz-ink-muted)!important}${themed} [data-dz-fill="line"]{fill:var(--dz-line)!important}${themed} [data-dz-fill="accent-1"]{fill:var(--dz-accent-1)!important}${themed} [data-dz-fill="accent-2"]{fill:var(--dz-accent-2)!important}${themed} [data-dz-fill="accent-3"]{fill:var(--dz-accent-3)!important}${themed} [data-dz-fill="accent-4"]{fill:var(--dz-accent-4)!important}${themed} [data-dz-fill="on-accent"]{fill:var(--dz-on-accent)!important;color:var(--dz-on-accent)!important}${themed} [data-dz-stroke="line"]{stroke:var(--dz-line)!important}${themed} [data-dz-stroke="line-muted"]{stroke:var(--dz-line-muted)!important}${themed} [data-dz-stroke="accent-1"]{stroke:var(--dz-accent-1)!important}${themed} [data-dz-stroke="accent-2"]{stroke:var(--dz-accent-2)!important}${themed} [data-dz-stroke="accent-3"]{stroke:var(--dz-accent-3)!important}${themed} [data-dz-stroke="accent-4"]{stroke:var(--dz-accent-4)!important}`
-  return `${variables}${trnVariables}${materializerVisibility}${roles}`
+  return `${variables}${trnVariables}${squaringVariables}${materializerVisibility}${roles}${squaringRoleCss(themed)}`
 }
 
 function canonicalBounds(root) {

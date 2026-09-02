@@ -98,7 +98,7 @@ const versions: Record<EngineId, string> = {
   nwdiag: 'nwdiag@3.0.0/python-worker-1',
   packetdiag: 'packetdiag@3.0.0/python-worker-1',
   rackdiag: 'rackdiag@3.0.0/python-worker-1',
-  squaring: 'diagramzip-squaring@1',
+  squaring: 'diagramzip-squaring@2',
   graphviz: 'graphviz@15.1.1/edge-wasm-2',
   dbml: 'dbml@1.0.31+graphviz@15.1.1/edge-wasm-2',
   pikchr: 'pikchr@85e65b9686/edge-wasm-1',
