@@ -67,3 +67,4 @@ export function materializePresentation(
 
 export type SvgAppearance = typeof APPEARANCES[number]
 export function materializeSvg(canonical: string, appearance: SvgAppearance): string
+export function supportedAppearances(canonical: string): readonly SvgAppearance[]
