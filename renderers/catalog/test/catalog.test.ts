@@ -14,7 +14,7 @@ describe('engine catalog', () => {
     for (const engine of ENGINE_CATALOG) {
       expect(engine.normalization).toMatchObject({
         schema: '1',
-        normalizer: 'svg-normalizer-3',
+        normalizer: 'svg-normalizer-4',
       })
       expect(engine.normalization.profile).not.toBe('safe-raw-1')
       if (presentationOnly.has(engine.id)) {

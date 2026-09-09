@@ -316,7 +316,7 @@ The [renderer catalog](https://diagram.zip/render/v1/catalog) reports every engi
 | Contract | Example identifier | Changes when |
 | --- | --- | --- |
 | Canonical schema | `1` | The canonical SVG structure changes incompatibly. |
-| Normalizer | `svg-normalizer-3` | Sanitization, annotation, or serialization behavior changes. |
+| Normalizer | `svg-normalizer-4` | Sanitization, annotation, or serialization behavior changes. |
 | Profile | `neutral-svg-semantic-2` | Renderer recognition or role assignment changes. |
 | Palette | `diagramzip-palette-2` | Materialized role colors change. |
 | Materializer | `svg-materializer-4` | Appearance rules, padding, frame, or output assembly changes. |
@@ -348,7 +348,7 @@ Normalized elements may also use `data-dz-fill`, `data-dz-stroke`, and `data-dz-
 ```xml
 <svg
   data-dz-schema="1"
-  data-dz-normalizer="svg-normalizer-3"
+  data-dz-normalizer="svg-normalizer-4"
   data-dz-engine="mermaid"
   data-dz-profile="neutral-svg-semantic-2"
   data-dz-palette="renderer"

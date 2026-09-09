@@ -11,7 +11,7 @@ const SAFE_DATA_FONT = /^data:(?:font\/(?:woff2?|opentype|truetype)|application\
 
 export const SVG_SCHEMA = '1'
 export const EDITABLE_SVG_SCHEMA = '1'
-export const NORMALIZER_BUILD = 'svg-normalizer-3'
+export const NORMALIZER_BUILD = 'svg-normalizer-4'
 export const MATERIALIZER_BUILD = 'svg-materializer-4'
 export const PALETTE_BUILD = 'diagramzip-palette-2'
 export const RAW_PROFILE = 'safe-raw-1'
@@ -639,12 +639,13 @@ function applyWavedromProfile(root) {
 }
 
 function applyNeutralRendererDetails(root, engine) {
-  const visit = (node, marker = '') => {
+  const visit = (node, marker = '', context = '') => {
     if (node.type === 'text') return
     const name = localName(node)
     const classes = classNames(node)
     const fill = ownPaint(node, 'fill')
     const nextMarker = engine === 'mermaid' && name === 'marker' ? node.attributes.get('id') ?? '' : marker
+    const nextContext = classes.has('cluster') ? 'cluster' : classes.has('edgeLabel') ? 'edge-label' : classes.has('cluster-label') ? '' : context
     if (engine === 'mermaid') {
       if (classes.has('label-container')) {
         node.attributes.set('data-dz-fill', 'surface-1')
@@ -668,6 +669,10 @@ function applyNeutralRendererDetails(root, engine) {
         node.attributes.set('data-dz-fill', 'line')
         node.attributes.set('data-dz-stroke', 'line')
       }
+      if (name === 'rect' && (nextContext === 'cluster' || (nextContext === 'edge-label' && classes.has('background')))
+        && neutralPaint(node, 'fill', new Set(['', 'none', 'white', '#fff', '#ffffff']))) {
+        node.attributes.set('data-dz-fill', 'surface-2')
+      }
     }
     if (engine === 'blockdiag' && SHAPE_ELEMENTS.has(name) && (fill === '#dbeafe' || fill === 'rgb(219,234,254)')) {
       node.attributes.set('data-dz-fill', 'surface-2')
@@ -676,7 +681,7 @@ function applyNeutralRendererDetails(root, engine) {
       node.attributes.set('data-dz-fill', 'line')
       node.attributes.set('data-dz-stroke', 'line')
     }
-    for (const child of node.children) visit(child, engine === 'mermaid' ? nextMarker : marker)
+    for (const child of node.children) visit(child, engine === 'mermaid' ? nextMarker : marker, engine === 'mermaid' ? nextContext : context)
   }
   visit(root)
 }

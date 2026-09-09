@@ -41,7 +41,7 @@ test('produces deterministic, idempotent raw canonical SVG', () => {
 
   assert.equal(first, repeated)
   assert.equal(first, normalizedAgain)
-  assert.match(first, /data-dz-normalizer="svg-normalizer-3"/)
+  assert.match(first, /data-dz-normalizer="svg-normalizer-4"/)
   assert.match(first, /data-dz-profile="safe-raw-1"/)
   assert.match(first, /data-dz-palette="renderer"/)
   assert.match(first, /data-dz-conformance="raw"/)
@@ -59,7 +59,7 @@ test('recomputes stale semantic annotations when upgrading the normalizer build'
   const stale = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" data-dz-schema="1" data-dz-normalizer="svg-normalizer-1" data-dz-profile="graphviz-15-semantic-1" data-dz-materializer="svg-materializer-1"><style data-dz-owned="materializer">stale</style><rect data-dz-owned="materializer" data-dz-role="canvas" width="100" height="50"></rect><rect data-dz-owned="normalizer" data-dz-role="object-surface" data-dz-fill="surface-1" width="10" height="10"></rect><g class="node"><ellipse fill="none" stroke="black" stroke-width="0" cx="50" cy="25" rx="40" ry="20" data-dz-fill="surface-1"></ellipse><rect x="20" y="10" width="60" height="30" fill="white" stroke="black" data-renderer-id="kept" data-dz-fill="surface-3"></rect></g></svg>'
   const upgraded = canonicalizeSvg(stale, metadata, 'dbml', 'dbml@1.0.31+graphviz@15.1.1')
 
-  assert.match(upgraded, /data-dz-normalizer="svg-normalizer-3"/)
+  assert.match(upgraded, /data-dz-normalizer="svg-normalizer-4"/)
   assert.doesNotMatch(upgraded, /data-dz-owned=/)
   assert.doesNotMatch(upgraded, /<ellipse[^>]*data-dz-/)
   assert.match(upgraded, /data-renderer-id="kept" data-dz-fill="surface-1" data-dz-stroke="line"/)
@@ -83,7 +83,7 @@ test('exposes structured normalization failures to both callers', () => {
   )
 })
 
-const semanticCanonical = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10" data-dz-schema="1" data-dz-normalizer="svg-normalizer-3" data-dz-profile="fixture-semantic-1" data-dz-palette="renderer" data-dz-engine="fixture" data-dz-appearance="raw" data-dz-conformance="semantic" data-dz-bounds="0 0 10 10" data-dz-appearances="auto-transparent light-transparent dark-transparent auto-framed light-framed dark-framed"><rect x="1" y="1" width="8" height="8" fill="white" stroke="black" data-dz-fill="surface-1" data-dz-stroke="line"></rect><text x="5" y="6" fill="black" data-dz-fill="ink">A</text></svg>'
+const semanticCanonical = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10" data-dz-schema="1" data-dz-normalizer="svg-normalizer-4" data-dz-profile="fixture-semantic-1" data-dz-palette="renderer" data-dz-engine="fixture" data-dz-appearance="raw" data-dz-conformance="semantic" data-dz-bounds="0 0 10 10" data-dz-appearances="auto-transparent light-transparent dark-transparent auto-framed light-framed dark-framed"><rect x="1" y="1" width="8" height="8" fill="white" stroke="black" data-dz-fill="surface-1" data-dz-stroke="line"></rect><text x="5" y="6" fill="black" data-dz-fill="ink">A</text></svg>'
 
 test('materializes explicit and automatic palettes without changing diagram geometry', () => {
   const light = materializeSvg(semanticCanonical, 'light-transparent')
@@ -302,13 +302,21 @@ test('recognizes nested D2 and WaveDrom canvases while leaving masks renderer-de
 
 test('normalizes CSS-driven Mermaid and BPMN neutral structures', () => {
   const mermaid = canonicalizeSvg(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 40"><defs><marker id="diagramzip-sequence-arrowhead"><path class="arrowMarkerPath" d="M0 0L5 2L0 4Z"></path></marker></defs><path class="flowchart-link" d="M20 20L80 20"></path><g class="node default"><rect class="basic label-container" x="2" y="2" width="36" height="24"></rect><foreignObject><div xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Idea</span></div></foreignObject></g></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 40"><defs><marker id="diagramzip-sequence-arrowhead"><path class="arrowMarkerPath" d="M0 0L5 2L0 4Z"></path></marker></defs><path class="flowchart-link" d="M20 20L80 20"></path><g class="clusters"><g class="cluster"><rect style="" x="1" y="1" width="98" height="38"></rect><g class="cluster-label"><rect class="background" style=""></rect></g></g></g><g class="edgeLabels"><g class="edgeLabel"><g class="label"><g><rect class="background" style="" x="20" y="10" width="20" height="10"></rect></g></g></g></g><g class="node default"><rect class="basic label-container" x="2" y="2" width="36" height="24"></rect><foreignObject><div xmlns="http://www.w3.org/1999/xhtml"><span class="nodeLabel">Idea</span></div></foreignObject></g></svg>',
     metadata, 'mermaid', 'mermaid@11.17.0',
   )
   assert.match(mermaid, /class="arrowMarkerPath"[^>]*data-dz-fill="line"[^>]*data-dz-stroke="line"/)
   assert.match(mermaid, /id="diagramzip-sequence-arrowhead"[^>]*>.*data-dz-fill="line"[^>]*data-dz-stroke="line"/)
   assert.match(mermaid, /class="flowchart-link"[^>]*data-dz-stroke="line"/)
   assert.match(mermaid, /class="basic label-container"[^>]*data-dz-fill="surface-1"[^>]*data-dz-stroke="line"/)
+  assert.match(mermaid, /class="cluster"[^>]*>[\s\S]*?<rect style=""[^>]*data-dz-fill="surface-2"/)
+  assert.match(mermaid, /class="edgeLabel"[^>]*>[\s\S]*?class="background"[^>]*data-dz-fill="surface-2"/)
+  assert.doesNotMatch(mermaid.match(/class="cluster-label"[\s\S]*?<rect[^>]*>/)?.[0] ?? '', /data-dz-fill/)
+  const authoredCluster = canonicalizeSvg(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g class="cluster"><rect fill="#ffffde" x="1" y="1" width="18" height="18"></rect></g></svg>',
+    metadata, 'mermaid', 'mermaid@11.17.0',
+  )
+  assert.doesNotMatch(authoredCluster, /fill="#ffffde"[^>]*data-dz-fill/)
   assert.match(mermaid, /class="nodeLabel"[^>]*data-dz-fill="ink"/)
   const sequence = canonicalizeSvg(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 40"><rect class="actor actor-top" x="2" y="2" width="36" height="24" fill="#eaeaea"></rect><text class="actor actor-box"><tspan>Owner</tspan></text><line class="actor-line" x1="20" y1="26" x2="20" y2="40"></line><line class="messageLine0" x1="20" y1="30" x2="80" y2="30"></line><rect class="labelBox" x="60" y="2" width="36" height="24"></rect></svg>',
