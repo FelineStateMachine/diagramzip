@@ -1,4 +1,4 @@
-import { canonicalizeSvg, SvgNormalizationError, normalizationFor } from '../../shared/svg/index.js'
+import { canonicalizeSvg, NORMALIZER_BUILD, SvgNormalizationError, normalizationFor } from '../../shared/svg/index.js'
 
 const CACHE_MAX_AGE = 1_800
 const CACHE_SCHEMA = '1'
@@ -151,7 +151,7 @@ async function cacheKey(request: RenderRequest, descriptor: BrowserUnitDescripto
   let binary = ''
   for (const byte of new Uint8Array(digest)) binary += String.fromCharCode(byte)
   const encoded = btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
-  return new Request(`https://diagramzip-browser-unit-cache.invalid/${CACHE_SCHEMA}/${descriptor.id}/${descriptor.build}/${encoded}`)
+  return new Request(`https://diagramzip-browser-unit-cache.invalid/${CACHE_SCHEMA}/${NORMALIZER_BUILD}/${descriptor.id}/${descriptor.build}/${encoded}`)
 }
 
 function identityHeaders(descriptor: BrowserUnitDescriptor, cache: 'HIT' | 'MISS'): Headers {

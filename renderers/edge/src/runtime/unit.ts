@@ -2,7 +2,7 @@ import { RenderError, RequestError } from './errors'
 import { canonicalizeSvg } from './svg'
 import type { EngineId, RendererAdapter, RenderRequest } from './types'
 import { parseUnitRenderRequest } from './validation'
-import { normalizationFor } from '../../../../shared/svg/index.js'
+import { NORMALIZER_BUILD, normalizationFor } from '../../../../shared/svg/index.js'
 
 const CACHE_MAX_AGE = 1_800
 const CACHE_SCHEMA = '2'
@@ -59,7 +59,7 @@ function base64Url(bytes: Uint8Array): string {
 
 async function cacheRequestFor(request: RenderRequest, build: string): Promise<Request> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalRequest(request)))
-  return new Request(`https://diagramzip-unit-cache.invalid/${CACHE_SCHEMA}/${encodeURIComponent(request.engine)}/${encodeURIComponent(build)}/${base64Url(new Uint8Array(digest))}`)
+  return new Request(`https://diagramzip-unit-cache.invalid/${CACHE_SCHEMA}/${encodeURIComponent(NORMALIZER_BUILD)}/${encodeURIComponent(request.engine)}/${encodeURIComponent(build)}/${base64Url(new Uint8Array(digest))}`)
 }
 
 function responseWithCacheStatus(response: Response, status: 'HIT' | 'MISS'): Response {
