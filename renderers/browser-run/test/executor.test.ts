@@ -25,7 +25,7 @@ describe('browser page executor', () => {
     }
     const result = await createPageExecutor(page).render({ engine: 'mermaid', requestId: 'r', source: 'graph TD' })
     expect(result.ok).toBe(true)
-    expect(navigated).toEqual(['https://mermaid.render.diagram.zip/index.html?v=1'])
+  expect(navigated).toEqual(['https://mermaid.render.diagram.zip/index.html?v=2'])
   })
 
   it('rejects output above the hard limit', async () => {
