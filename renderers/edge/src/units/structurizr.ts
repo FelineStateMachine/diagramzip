@@ -1,6 +1,7 @@
 import { parseStructurizr, lowerStructurizr } from '../languages/structurizr'
 import { RenderError, RequestError } from '../runtime/errors'
 import { parseUnitRenderRequest } from '../runtime/validation'
+import { NORMALIZER_BUILD } from '../../../../shared/svg/index.js'
 
 const UNIT_ID = 'structurizr'
 const VERSION = 'structurizr@6.2.2/plantuml@1.2026.6-translation-1'
@@ -21,11 +22,11 @@ function errorResponse(error: unknown): Response {
   return json({ error: { code: 'internal_error', message: 'The Structurizr diagram could not be rendered.' } }, { status: 500 })
 }
 
-async function cacheKey(input: unknown, build: string): Promise<Request> {
+export async function cacheKey(input: unknown, build: string): Promise<Request> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(input)))
   let binary = ''; for (const byte of new Uint8Array(digest)) binary += String.fromCharCode(byte)
   const hash = btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
-  return new Request(`https://diagramzip-structurizr-cache.invalid/${encodeURIComponent(build)}/${hash}`)
+  return new Request(`https://diagramzip-structurizr-cache.invalid/${encodeURIComponent(NORMALIZER_BUILD)}/${encodeURIComponent(build)}/${hash}`)
 }
 
 export default {

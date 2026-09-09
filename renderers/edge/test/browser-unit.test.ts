@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { createBrowserRendererUnit } from '../../shared/browser-unit'
+import { cacheKey, createBrowserRendererUnit } from '../../shared/browser-unit'
+import { NORMALIZER_BUILD } from '../../../shared/svg/index.js'
 
-const unit = createBrowserRendererUnit({
+const descriptor = {
   id: 'mermaid',
   kind: 'render',
   version: 'mermaid@11.17.0',
@@ -9,7 +10,8 @@ const unit = createBrowserRendererUnit({
   pipeline: ['mermaid'],
   frame: '/index.html?v=1',
   knownLosses: [],
-})
+} as const
+const unit = createBrowserRendererUnit(descriptor)
 const fetchUnit = unit.fetch!
 const context = {
   waitUntil() {},
@@ -46,6 +48,11 @@ function renderRequest(source: string): Request {
 }
 
 describe('browser-backed renderer unit', () => {
+  it('names the normalizer build in its cache namespace', async () => {
+    const key = await cacheKey({ engine: 'mermaid', source: 'graph TD', format: 'svg', options: {}, metadata: { title: '', description: '' }, presentation: { background: '', padding: 0, frame: false } }, descriptor)
+    expect(new URL(key.url).pathname).toContain(`/${NORMALIZER_BUILD}/mermaid/`)
+  })
+
   it('serves the renderer frame outside the public API namespace', async () => {
     const response = await fetchUnit(
       new Request('https://mermaid.render.diagram.zip/index.html') as Parameters<typeof fetchUnit>[0],

@@ -57,7 +57,7 @@ function base64Url(bytes: Uint8Array): string {
   return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '')
 }
 
-async function cacheRequestFor(request: RenderRequest, build: string): Promise<Request> {
+export async function cacheRequestFor(request: RenderRequest, build: string): Promise<Request> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalRequest(request)))
   return new Request(`https://diagramzip-unit-cache.invalid/${CACHE_SCHEMA}/${encodeURIComponent(NORMALIZER_BUILD)}/${encodeURIComponent(request.engine)}/${encodeURIComponent(build)}/${base64Url(new Uint8Array(digest))}`)
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createRendererUnit, createRendererUnitGroup } from '../src/runtime/unit'
+import { cacheRequestFor, createRendererUnit, createRendererUnitGroup } from '../src/runtime/unit'
+import { NORMALIZER_BUILD } from '../../../shared/svg/index.js'
 import type { EngineId, RendererAdapter } from '../src/runtime/types'
 
 const adapter: RendererAdapter = {
@@ -34,6 +35,11 @@ function request(body: unknown): Parameters<typeof fetchUnit>[0] {
 }
 
 describe('renderer unit protocol', () => {
+  it('names the normalizer build in its cache namespace', async () => {
+    const key = await cacheRequestFor({ engine: 'vegalite', source: '{}', format: 'svg', options: {}, metadata: { title: '', description: '' }, presentation: { background: '', padding: 0, frame: false } }, env.RENDERER_BUILD)
+    expect(new URL(key.url).pathname).toContain(`/${NORMALIZER_BUILD}/vegalite/`)
+  })
+
   it('assigns its own engine and exposes the explicit translation pipeline', async () => {
     const response = await fetchUnit(request({ source: '{"mark":"point"}' }), env, context)
     expect(response.status).toBe(200)

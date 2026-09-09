@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { lowerStructurizr, parseStructurizr } from '../src/languages/structurizr'
+import { cacheKey } from '../src/units/structurizr'
+import { NORMALIZER_BUILD } from '../../../shared/svg/index.js'
 import awsSource from './fixtures/structurizr/aws.structurizr?raw'
 import bigbankSource from './fixtures/structurizr/bigbank.structurizr?raw'
 import docsSource from './fixtures/structurizr/docs.structurizr?raw'
@@ -14,6 +16,13 @@ const fixtures = {
   'script.structurizr': scriptSource,
 }
 const fixture = (name: keyof typeof fixtures) => fixtures[name]
+
+describe('Structurizr cache namespace', () => {
+  it('names the normalizer build', async () => {
+    const key = await cacheKey({ source: 'workspace "A" {}', options: {}, metadata: { title: '', description: '' }, presentation: { background: '', padding: 0, frame: false } }, 'unit-test')
+    expect(new URL(key.url).pathname).toContain(`/${NORMALIZER_BUILD}/unit-test/`)
+  })
+})
 
 describe('bounded Structurizr lowering', () => {
   it('covers the gettingstarted and bigbank view families', () => {

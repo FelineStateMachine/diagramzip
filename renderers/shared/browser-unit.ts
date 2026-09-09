@@ -146,7 +146,7 @@ function canonicalRequest(request: RenderRequest): string {
   return JSON.stringify({ ...canonical, options: Object.fromEntries(Object.entries(request.options).sort(([a], [b]) => a.localeCompare(b))) })
 }
 
-async function cacheKey(request: RenderRequest, descriptor: BrowserUnitDescriptor): Promise<Request> {
+export async function cacheKey(request: RenderRequest, descriptor: BrowserUnitDescriptor): Promise<Request> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalRequest(request)))
   let binary = ''
   for (const byte of new Uint8Array(digest)) binary += String.fromCharCode(byte)
