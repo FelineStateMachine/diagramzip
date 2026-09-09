@@ -5,7 +5,7 @@ describe('browser-run render contract', () => {
   it('accepts only the two pinned engines and validates the source', () => {
     const request = validateRenderRequest({ engine: 'mermaid', requestId: 'r-1', source: 'graph TD' })
     expect(request.engine).toBe('mermaid')
-    expect(FRAME_URLS.mermaid).toBe('https://mermaid.render.diagram.zip/index.html?v=1')
+    expect(FRAME_URLS.mermaid).toBe('https://mermaid.render.diagram.zip/index.html?v=2')
   })
 
   it('rejects unknown engines, malformed ids, and oversized input', () => {

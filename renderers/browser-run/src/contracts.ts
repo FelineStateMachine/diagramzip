@@ -4,7 +4,7 @@ export const ENGINES = ['mermaid', 'diagramsnet'] as const
 export type Engine = (typeof ENGINES)[number]
 
 export const FRAME_URLS: Readonly<Record<Engine, string>> = Object.freeze({
-  mermaid: 'https://mermaid.render.diagram.zip/index.html?v=1',
+  mermaid: 'https://mermaid.render.diagram.zip/index.html?v=2',
   diagramsnet: 'https://diagramsnet.render.diagram.zip/index.html?v=1',
 })
 

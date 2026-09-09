@@ -3,12 +3,17 @@ import mermaid from 'mermaid'
 const CHANNEL = 'diagram.zip:renderer:v1'
 const ENGINE = 'mermaid'
 const VERSION = 'mermaid@11.17.0'
-const BUILD = 'mermaid-11.17.0-client-unit-1'
+const BUILD = 'mermaid-11.17.0-client-unit-2'
 const MAX_SOURCE_LENGTH = 100_000
 
 mermaid.initialize({
   startOnLoad: false,
   securityLevel: 'strict',
+  htmlLabels: false,
+  secure: [
+    'secure', 'securityLevel', 'startOnLoad', 'maxTextSize',
+    'suppressErrorRendering', 'maxEdges', 'htmlLabels',
+  ],
   suppressErrorRendering: true,
   maxTextSize: MAX_SOURCE_LENGTH,
   maxEdges: 5_000,
