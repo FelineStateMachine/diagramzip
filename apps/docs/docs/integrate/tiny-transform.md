@@ -7,9 +7,10 @@ sidebar_position: 1
 
 # Tiny transform
 
-tinyrelay is a self-hosted Nostr relay with custom views. A view POSTs source events to a transform URL and stores the
-answer as static artifacts attached to the source event. Diagram.zip provides
-the diagram transform at this endpoint:
+tinyrelay is a self-hosted Nostr relay with custom views. A view POSTs the
+fenced snippets of a source event to a transform URL and stores the answer as
+static artifacts attached to that event. Diagram.zip provides the diagram
+transform at this endpoint:
 
 ```text
 POST https://diagram.zip/transform/tiny
@@ -23,22 +24,15 @@ it directly.
 
 ## Request
 
-Send a JSON body with the source event and the fenced blocks the relay found in
-its content:
+Send a JSON body with the fenced blocks the relay found in the event content.
+The body identifies the source event but never carries it:
 
 ```json
 {
   "relay": "https://relay.example",
   "view": "diagrams",
   "appearance": "auto-transparent",
-  "event": {
-    "id": "<hex>",
-    "kind": 30818,
-    "pubkey": "<hex>",
-    "created_at": 0,
-    "content": "...",
-    "tags": [["title", "Delivery flow"]]
-  },
+  "source": { "id": "<hex>", "kind": 30818 },
   "blocks": [
     { "index": 0, "lang": "mermaid", "source": "graph TD; a-->b" },
     { "index": 1, "lang": "python", "source": "print(1)" }
@@ -51,10 +45,13 @@ its content:
 | `relay` | The relay origin. Informational. |
 | `view` | The view name. Informational. |
 | `appearance` | Optional. One of the seven SVG appearances. The default is `auto-transparent`. |
-| `event` | The source event. A `title` tag becomes the SVG title. |
+| `source` | Optional. The id and kind of the source event, kept as metadata. The endpoint reads nothing else from it. |
 | `blocks[].index` | The block position in the event content. It is echoed back on each artifact. |
 | `blocks[].lang` | The fence language. Blocks whose language is not a renderer are skipped. |
 | `blocks[].source` | The diagram source. |
+
+A body that includes an `event` field is rejected with `400`. The endpoint
+never receives event content, and this rule keeps that boundary visible.
 
 Send these headers with the request:
 
@@ -146,7 +143,7 @@ The endpoint rejects a request with a JSON error in these cases:
 | Body larger than 1 MiB | `413` |
 | More than 32 blocks | `413` |
 | A block source longer than 512 KiB | `413` |
-| Unknown appearance, invalid JSON, or a malformed block | `400` |
+| Unknown appearance, invalid JSON, a malformed block, or an `event` field | `400` |
 | Missing or wrong signature | `401` |
 | Secret not configured | `503` |
 

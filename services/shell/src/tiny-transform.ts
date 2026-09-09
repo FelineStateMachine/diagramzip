@@ -7,7 +7,6 @@ export const DEFAULT_APPEARANCE: SvgAppearance = 'auto-transparent'
 const MAX_BODY_BYTES = 1_048_576
 const MAX_BLOCKS = 32
 const MAX_BLOCK_SOURCE_LENGTH = 524_288
-const MAX_TITLE_LENGTH = 200
 const RENDER_TIMEOUT_MS = 20_000
 const RENDER_CONCURRENCY = 6
 const MAX_ERROR_DETAIL_LENGTH = 200
@@ -140,16 +139,6 @@ function objectValue(value: unknown, name: string): Record<string, unknown> {
   return value as Record<string, unknown>
 }
 
-function eventTitle(event: unknown): string {
-  if (event === undefined) return ''
-  const tags = objectValue(event, 'event').tags
-  if (!Array.isArray(tags)) return ''
-  for (const tag of tags) {
-    if (Array.isArray(tag) && tag[0] === 'title' && typeof tag[1] === 'string') return tag[1].slice(0, MAX_TITLE_LENGTH)
-  }
-  return ''
-}
-
 function parseBlock(value: unknown, position: number): TinyBlock {
   const block = objectValue(value, `blocks[${position}]`)
   const index = block.index ?? position
@@ -166,6 +155,8 @@ function parseTransformRequest(bytes: Uint8Array): TinyTransformRequest {
     throw new TransformError(400, 'invalid_json', 'Transform request is not valid JSON.')
   }
   const body = objectValue(input, 'request')
+  if ('event' in body) throw new TransformError(400, 'unexpected_field', 'The transform request must not include the source event; send source and blocks only.')
+  if (body.source !== undefined) objectValue(body.source, 'source')
   if (!Array.isArray(body.blocks)) throw new TransformError(400, 'invalid_request', 'blocks must be an array.')
   if (body.blocks.length > MAX_BLOCKS) throw new TransformError(413, 'too_many_blocks', `blocks cannot contain more than ${MAX_BLOCKS} entries.`)
   const appearance = body.appearance ?? DEFAULT_APPEARANCE
@@ -174,7 +165,7 @@ function parseTransformRequest(bytes: Uint8Array): TinyTransformRequest {
   }
   return {
     appearance: appearance as SvgAppearance,
-    metadata: { title: eventTitle(body.event), description: '' },
+    metadata: { title: '', description: '' },
     blocks: body.blocks.map(parseBlock),
   }
 }

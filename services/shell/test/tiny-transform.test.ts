@@ -36,7 +36,7 @@ function payload(blocks: Array<Record<string, unknown>>, extra: Record<string, u
   return JSON.stringify({
     relay: 'https://relay.example',
     view: 'diagrams',
-    event: { id: 'ab'.repeat(32), kind: 30818, pubkey: 'cd'.repeat(32), created_at: 0, content: '', tags: [['title', 'Delivery']] },
+    source: { id: 'ab'.repeat(32), kind: 30818 },
     blocks,
     ...extra,
   })
@@ -137,7 +137,7 @@ describe('POST /transform/tiny', () => {
       source: 'graph TD; a-->b',
       format: 'svg',
       options: {},
-      metadata: { title: 'Delivery', description: '' },
+      metadata: { title: '', description: '' },
       presentation: { background: '', padding: 0, frame: false },
     })
     expect(unit.calls[0].body).not.toHaveProperty('engine')
@@ -212,13 +212,33 @@ describe('POST /transform/tiny', () => {
   it('rejects unknown appearances and malformed requests', async () => {
     const appearance = await transform(payload([], { appearance: 'sepia' }))
     const blocks = await transform(payload([{ index: 0, lang: 'mermaid' }]))
+    const source = await transform(payload([], { source: 'not-an-object' }))
     const invalidJson = await transform('{')
 
     expect(appearance.status).toBe(400)
     expect((await appearance.json() as { error: { code: string } }).error.code).toBe('invalid_appearance')
     expect(blocks.status).toBe(400)
+    expect(source.status).toBe(400)
     expect(invalidJson.status).toBe(400)
     expect((await invalidJson.json() as { error: { code: string } }).error.code).toBe('invalid_json')
+  })
+
+  it('rejects a body that carries the source event', async () => {
+    const fetchSpy = vi.fn()
+    vi.stubGlobal('fetch', fetchSpy)
+    const response = await transform(payload([{ index: 0, lang: 'mermaid', source: 'graph TD; a-->b' }], { event: { id: 'ab'.repeat(32), kind: 30818, content: 'secret' } }))
+
+    expect(response.status).toBe(400)
+    expect((await response.json() as { error: { code: string } }).error.code).toBe('unexpected_field')
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('accepts a body without source metadata', async () => {
+    unitFetch(() => svgResponse(MERMAID_CANONICAL))
+    const response = await transform(JSON.stringify({ blocks: [{ index: 0, lang: 'mermaid', source: 'graph TD; a-->b' }] }))
+
+    expect(response.status).toBe(200)
+    expect((await response.json() as { artifacts: unknown[] }).artifacts).toHaveLength(1)
   })
 
   it('enforces the body, block count and block source limits', async () => {
