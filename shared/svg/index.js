@@ -671,7 +671,11 @@ function applyNeutralRendererDetails(root, engine) {
       }
       if (name === 'rect' && (nextContext === 'cluster' || (nextContext === 'edge-label' && classes.has('background')))
         && neutralPaint(node, 'fill', new Set(['', 'none', 'white', '#fff', '#ffffff']))) {
-        node.attributes.set('data-dz-fill', 'surface-2')
+        node.attributes.set('data-dz-fill', nextContext === 'cluster' ? 'surface-2' : 'surface-1')
+        if (nextContext === 'cluster'
+          && neutralPaint(node, 'stroke', new Set(['', 'none', 'gray', 'grey', '#aaa', '#aaaaaa', '#aaaa33']))) {
+          node.attributes.set('data-dz-stroke', 'line-muted')
+        }
       }
     }
     if (engine === 'blockdiag' && SHAPE_ELEMENTS.has(name) && (fill === '#dbeafe' || fill === 'rgb(219,234,254)')) {

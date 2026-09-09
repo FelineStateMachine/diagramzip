@@ -309,8 +309,8 @@ test('normalizes CSS-driven Mermaid and BPMN neutral structures', () => {
   assert.match(mermaid, /id="diagramzip-sequence-arrowhead"[^>]*>.*data-dz-fill="line"[^>]*data-dz-stroke="line"/)
   assert.match(mermaid, /class="flowchart-link"[^>]*data-dz-stroke="line"/)
   assert.match(mermaid, /class="basic label-container"[^>]*data-dz-fill="surface-1"[^>]*data-dz-stroke="line"/)
-  assert.match(mermaid, /class="cluster"[^>]*>[\s\S]*?<rect style=""[^>]*data-dz-fill="surface-2"/)
-  assert.match(mermaid, /class="edgeLabel"[^>]*>[\s\S]*?class="background"[^>]*data-dz-fill="surface-2"/)
+  assert.match(mermaid, /class="cluster"[^>]*>[\s\S]*?<rect style=""[^>]*data-dz-fill="surface-2"[^>]*data-dz-stroke="line-muted"/)
+  assert.match(mermaid, /class="edgeLabel"[^>]*>[\s\S]*?class="background"[^>]*data-dz-fill="surface-1"/)
   assert.doesNotMatch(mermaid.match(/class="cluster-label"[\s\S]*?<rect[^>]*>/)?.[0] ?? '', /data-dz-fill/)
   const authoredCluster = canonicalizeSvg(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g class="cluster"><rect fill="#ffffde" x="1" y="1" width="18" height="18"></rect></g></svg>',
