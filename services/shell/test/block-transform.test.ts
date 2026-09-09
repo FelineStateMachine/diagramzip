@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { canonicalizeSvg } from '../../../shared/svg/index.js'
 import { ENGINE_IDS } from '../../../renderers/shared/engines'
 import worker from '../src/index'
-import { engineForLang, renderUnitUrl, signBody } from '../src/tiny-transform'
+import { engineForLang, renderUnitUrl, signBody } from '../src/block-transform'
 
 const SECRET = 'tiny-test-secret'
 const ORIGIN_PATTERN = 'https://{engine}.units.test'
@@ -45,17 +45,27 @@ function payload(blocks: Array<Record<string, unknown>>, extra: Record<string, u
 async function transform(body: string, options: { secret?: string | null; signature?: string; env?: Record<string, string> } = {}): Promise<Response> {
   const bytes = new TextEncoder().encode(body)
   const signature = options.signature ?? await signBody(SECRET, bytes)
-  const request = new Request('https://diagram.zip/transform/tiny', {
+  const request = new Request('https://diagram.zip/transform/blocks', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-tiny-view': 'diagrams', 'x-tiny-relay': 'https://relay.example', 'x-tiny-signature': signature },
+    headers: { 'content-type': 'application/json', 'x-transform-view': 'diagrams', 'x-transform-relay': 'https://relay.example', 'x-transform-signature': signature },
     body: bytes,
   })
   const secret = options.secret === undefined ? SECRET : options.secret
-  const testEnv = { ...env, RENDER_UNIT_ORIGIN_PATTERN: ORIGIN_PATTERN, ...(secret === null ? {} : { TINY_TRANSFORM_SECRET: secret }), ...options.env } as Env
+  const testEnv = { ...env, RENDER_UNIT_ORIGIN_PATTERN: ORIGIN_PATTERN, ...(secret === null ? {} : { BLOCK_TRANSFORM_SECRET: secret }), ...options.env } as Env
   return worker.fetch(request as Parameters<typeof worker.fetch>[0], testEnv)
 }
 
-describe('tiny transform aliases', () => {
+async function legacyTransform(body: string): Promise<Response> {
+  const bytes = new TextEncoder().encode(body)
+  const request = new Request('https://diagram.zip/transform/tiny', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-tiny-signature': await signBody(SECRET, bytes) },
+    body: bytes,
+  })
+  return worker.fetch(request as Parameters<typeof worker.fetch>[0], { ...env, RENDER_UNIT_ORIGIN_PATTERN: ORIGIN_PATTERN, TINY_TRANSFORM_SECRET: SECRET } as Env)
+}
+
+describe('block transform aliases', () => {
   it('maps every engine id to itself', () => {
     for (const engine of ENGINE_IDS) expect(engineForLang(engine)).toBe(engine)
   })
@@ -84,20 +94,39 @@ describe('tiny transform aliases', () => {
   })
 })
 
-describe('POST /transform/tiny', () => {
+describe('POST /transform/blocks', () => {
   afterEach(() => { vi.unstubAllGlobals() })
+
+  it('keeps the legacy tiny route and headers working', async () => {
+    unitFetch(() => svgResponse(MERMAID_CANONICAL))
+    const response = await legacyTransform(payload([{ index: 0, lang: 'mermaid', source: 'graph TD; a-->b' }]))
+    expect(response.status).toBe(200)
+    expect((await response.json() as { artifacts: unknown[] }).artifacts).toHaveLength(1)
+  })
+
+  it('does not accept a legacy signature on the canonical route', async () => {
+    const body = payload([])
+    const bytes = new TextEncoder().encode(body)
+    const request = new Request('https://diagram.zip/transform/blocks', {
+      method: 'POST',
+      headers: { 'x-tiny-signature': await signBody(SECRET, bytes) },
+      body: bytes,
+    })
+    const response = await worker.fetch(request as Parameters<typeof worker.fetch>[0], { ...env, BLOCK_TRANSFORM_SECRET: SECRET } as Env)
+    expect(response.status).toBe(401)
+  })
 
   it('answers 503 when the transform secret is not configured', async () => {
     const response = await transform(payload([]), { secret: null })
 
     expect(response.status).toBe(503)
     expect(response.headers.get('content-type')).toContain('application/json')
-    expect(await response.json()).toEqual({ error: { code: 'transform_unavailable', message: 'TINY_TRANSFORM_SECRET is not configured.' } })
+    expect(await response.json()).toEqual({ error: { code: 'transform_unavailable', message: 'BLOCK_TRANSFORM_SECRET is not configured.' } })
   })
 
   it('is routed ahead of the GET and HEAD only check', async () => {
-    const response = await SELF.fetch('https://diagram.zip/transform/tiny', { method: 'POST', body: payload([]) })
-    const get = await SELF.fetch('https://diagram.zip/transform/tiny')
+    const response = await SELF.fetch('https://diagram.zip/transform/blocks', { method: 'POST', body: payload([]) })
+    const get = await SELF.fetch('https://diagram.zip/transform/blocks')
 
     expect(response.status).toBe(503)
     expect(get.status).toBe(405)
@@ -113,7 +142,7 @@ describe('POST /transform/tiny', () => {
 
     for (const response of [missing, wrong, otherSecret, short]) {
       expect(response.status).toBe(401)
-      expect(await response.json()).toEqual({ error: { code: 'invalid_signature', message: 'X-Tiny-Signature does not match the request body.' } })
+      expect(await response.json()).toEqual({ error: { code: 'invalid_signature', message: 'X-Transform-Signature does not match the request body.' } })
     }
   })
 

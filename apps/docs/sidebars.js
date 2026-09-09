@@ -29,7 +29,7 @@ const sidebars = {
     {
       type: 'category',
       label: 'Integrate',
-      items: ['integrate/tiny-transform'],
+      items: ['integrate/block-transform'],
     },
   ],
 }

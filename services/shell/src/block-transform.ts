@@ -1,6 +1,7 @@
 import { APPEARANCES, materializeSvg, SvgNormalizationError, supportedAppearances, type SvgAppearance } from '../../../shared/svg/index.js'
 import { ENGINE_IDS, type EngineId } from '../../../renderers/shared/engines'
 
+export const BLOCK_TRANSFORM_PATH = '/transform/blocks'
 export const TINY_TRANSFORM_PATH = '/transform/tiny'
 export const DEFAULT_RENDER_UNIT_ORIGIN_PATTERN = 'https://{engine}.render.diagram.zip'
 export const DEFAULT_APPEARANCE: SvgAppearance = 'auto-transparent'
@@ -24,18 +25,19 @@ const LANG_ALIASES: ReadonlyMap<string, EngineId> = new Map<string, EngineId>([
   ['drawio', 'diagramsnet'],
 ])
 
-export interface TinyTransformEnv {
+export interface BlockTransformEnv {
+  BLOCK_TRANSFORM_SECRET?: string
   TINY_TRANSFORM_SECRET?: string
   RENDER_UNIT_ORIGIN_PATTERN?: string
 }
 
-export interface TinyBlock {
+export interface Block {
   index: number
   lang: string
   source: string
 }
 
-export interface TinyArtifact {
+export interface BlockArtifact {
   block: number
   engine: EngineId
   type: 'image/svg+xml'
@@ -43,16 +45,16 @@ export interface TinyArtifact {
   appearance: SvgAppearance
 }
 
-export interface TinyBlockError {
+export interface BlockError {
   block: number
   engine: EngineId
   error: string
 }
 
-interface TinyTransformRequest {
+interface BlockTransformRequest {
   appearance: SvgAppearance
   metadata: { title: string; description: string }
-  blocks: TinyBlock[]
+  blocks: Block[]
 }
 
 class TransformError extends Error {
@@ -76,7 +78,7 @@ function json(value: unknown, status = 200, headers: Record<string, string> = {}
 
 function errorResponse(error: unknown): Response {
   if (error instanceof TransformError) return json({ error: { code: error.code, message: error.message } }, error.status)
-  console.error(JSON.stringify({ message: 'tiny transform error', error: error instanceof Error ? error.message : String(error) }))
+  console.error(JSON.stringify({ message: 'block transform error', error: error instanceof Error ? error.message : String(error) }))
   return json({ error: { code: 'internal_error', message: 'The transform could not be completed.' } }, 500)
 }
 
@@ -125,12 +127,12 @@ export async function signBody(secret: string, body: BufferSource): Promise<stri
   return `${SIGNATURE_PREFIX}${Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('')}`
 }
 
-async function verifySignature(secret: string, body: Uint8Array, header: string | null): Promise<void> {
+async function verifySignature(secret: string, body: Uint8Array, header: string | null, headerName: string): Promise<void> {
   const presented = header?.trim() ?? ''
   const provided = presented.toLowerCase().startsWith(SIGNATURE_PREFIX) ? hexBytes(presented.slice(SIGNATURE_PREFIX.length)) : undefined
   const expected = hexBytes((await signBody(secret, body)).slice(SIGNATURE_PREFIX.length))
   if (provided === undefined || expected === undefined || provided.byteLength !== expected.byteLength || !crypto.subtle.timingSafeEqual(provided, expected)) {
-    throw new TransformError(401, 'invalid_signature', 'X-Tiny-Signature does not match the request body.')
+    throw new TransformError(401, 'invalid_signature', `${headerName} does not match the request body.`)
   }
 }
 
@@ -139,7 +141,7 @@ function objectValue(value: unknown, name: string): Record<string, unknown> {
   return value as Record<string, unknown>
 }
 
-function parseBlock(value: unknown, position: number): TinyBlock {
+function parseBlock(value: unknown, position: number): Block {
   const block = objectValue(value, `blocks[${position}]`)
   const index = block.index ?? position
   if (!Number.isInteger(index) || Number(index) < 0) throw new TransformError(400, 'invalid_request', `blocks[${position}].index must be a non-negative integer.`)
@@ -149,7 +151,7 @@ function parseBlock(value: unknown, position: number): TinyBlock {
   return { index: Number(index), lang: block.lang, source: block.source }
 }
 
-function parseTransformRequest(bytes: Uint8Array): TinyTransformRequest {
+function parseTransformRequest(bytes: Uint8Array): BlockTransformRequest {
   let input: unknown
   try { input = JSON.parse(new TextDecoder('utf-8', { fatal: true, ignoreBOM: false }).decode(bytes)) } catch {
     throw new TransformError(400, 'invalid_json', 'Transform request is not valid JSON.')
@@ -185,7 +187,7 @@ function chooseAppearance(canonical: string, requested: SvgAppearance): SvgAppea
   return (supportedAppearances(canonical) as readonly string[]).includes(requested) ? requested : 'raw'
 }
 
-async function renderBlock(block: TinyBlock, engine: EngineId, request: TinyTransformRequest, env: TinyTransformEnv): Promise<TinyArtifact | TinyBlockError> {
+async function renderBlock(block: Block, engine: EngineId, request: BlockTransformRequest, env: BlockTransformEnv): Promise<BlockArtifact | BlockError> {
   try {
     const response = await fetch(renderUnitUrl(engine, env.RENDER_UNIT_ORIGIN_PATTERN), {
       method: 'POST',
@@ -213,12 +215,12 @@ async function renderBlock(block: TinyBlock, engine: EngineId, request: TinyTran
   }
 }
 
-async function renderAll(request: TinyTransformRequest, env: TinyTransformEnv): Promise<Array<TinyArtifact | TinyBlockError>> {
+async function renderAll(request: BlockTransformRequest, env: BlockTransformEnv): Promise<Array<BlockArtifact | BlockError>> {
   const jobs = request.blocks.flatMap(block => {
     const engine = engineForLang(block.lang)
     return engine === undefined ? [] : [{ block, engine }]
   })
-  const results = new Array<TinyArtifact | TinyBlockError>(jobs.length)
+  const results = new Array<BlockArtifact | BlockError>(jobs.length)
   let next = 0
   const worker = async (): Promise<void> => {
     while (next < jobs.length) {
@@ -232,17 +234,19 @@ async function renderAll(request: TinyTransformRequest, env: TinyTransformEnv): 
   return results
 }
 
-export async function tinyTransform(request: Request, env: TinyTransformEnv): Promise<Response> {
+export async function blockTransform(request: Request, env: BlockTransformEnv, legacy = false): Promise<Response> {
   try {
-    if (request.method !== 'POST') return json({ error: { code: 'method_not_allowed', message: 'Use POST for the transform endpoint.' } }, 405, { allow: 'POST' })
-    const secret = env.TINY_TRANSFORM_SECRET
-    if (typeof secret !== 'string' || secret === '') return json({ error: { code: 'transform_unavailable', message: 'TINY_TRANSFORM_SECRET is not configured.' } }, 503)
+    if (request.method !== 'POST') return json({ error: { code: 'method_not_allowed', message: 'Use POST for the block transform endpoint.' } }, 405, { allow: 'POST' })
+    const secretName = legacy ? 'TINY_TRANSFORM_SECRET' : 'BLOCK_TRANSFORM_SECRET'
+    const secret = legacy ? (env.TINY_TRANSFORM_SECRET ?? env.BLOCK_TRANSFORM_SECRET) : env.BLOCK_TRANSFORM_SECRET
+    if (typeof secret !== 'string' || secret === '') return json({ error: { code: 'transform_unavailable', message: `${secretName} is not configured.` } }, 503)
     const bytes = await bodyBytes(request)
-    await verifySignature(secret, bytes, request.headers.get('x-tiny-signature'))
+    const signatureHeader = legacy ? 'X-Tiny-Signature' : 'X-Transform-Signature'
+    await verifySignature(secret, bytes, request.headers.get(legacy ? 'x-tiny-signature' : 'x-transform-signature'), signatureHeader)
     const results = await renderAll(parseTransformRequest(bytes), env)
     return json({
-      artifacts: results.filter((result): result is TinyArtifact => 'body' in result),
-      errors: results.filter((result): result is TinyBlockError => 'error' in result),
+      artifacts: results.filter((result): result is BlockArtifact => 'body' in result),
+      errors: results.filter((result): result is BlockError => 'error' in result),
     })
   } catch (error) {
     return errorResponse(error)

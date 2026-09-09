@@ -11,7 +11,7 @@ const SAFE_DATA_FONT = /^data:(?:font\/(?:woff2?|opentype|truetype)|application\
 
 export const SVG_SCHEMA = '1'
 export const EDITABLE_SVG_SCHEMA = '1'
-export const NORMALIZER_BUILD = 'svg-normalizer-2'
+export const NORMALIZER_BUILD = 'svg-normalizer-3'
 export const MATERIALIZER_BUILD = 'svg-materializer-4'
 export const PALETTE_BUILD = 'diagramzip-palette-2'
 export const RAW_PROFILE = 'safe-raw-1'
@@ -639,14 +639,28 @@ function applyWavedromProfile(root) {
 }
 
 function applyNeutralRendererDetails(root, engine) {
-  const visit = node => {
+  const visit = (node, marker = '') => {
     if (node.type === 'text') return
     const name = localName(node)
     const classes = classNames(node)
     const fill = ownPaint(node, 'fill')
+    const nextMarker = engine === 'mermaid' && name === 'marker' ? node.attributes.get('id') ?? '' : marker
     if (engine === 'mermaid') {
       if (classes.has('label-container')) {
         node.attributes.set('data-dz-fill', 'surface-1')
+        node.attributes.set('data-dz-stroke', 'line')
+      }
+      // Sequence diagrams use stylesheet-driven actor and label boxes. Their
+      // literal fills are light Mermaid presentation values, so leaving them
+      // unannotated makes dark appearances put light text on pale boxes.
+      if (SHAPE_ELEMENTS.has(name) && (classes.has('actor') || classes.has('labelBox'))) {
+        node.attributes.set('data-dz-fill', 'surface-1')
+        node.attributes.set('data-dz-stroke', 'line')
+      }
+      if (classes.has('actor-line')) node.attributes.set('data-dz-stroke', 'line-muted')
+      if (classes.has('messageLine0') || classes.has('messageLine1')) node.attributes.set('data-dz-stroke', 'line')
+      if (name === 'path' && (nextMarker.endsWith('-arrowhead') || nextMarker.endsWith('-crosshead'))) {
+        node.attributes.set('data-dz-fill', nextMarker.endsWith('-arrowhead') ? 'line' : 'none')
         node.attributes.set('data-dz-stroke', 'line')
       }
       if (classes.has('flowchart-link')) node.attributes.set('data-dz-stroke', 'line')
@@ -662,7 +676,7 @@ function applyNeutralRendererDetails(root, engine) {
       node.attributes.set('data-dz-fill', 'line')
       node.attributes.set('data-dz-stroke', 'line')
     }
-    for (const child of node.children) visit(child)
+    for (const child of node.children) visit(child, engine === 'mermaid' ? nextMarker : marker)
   }
   visit(root)
 }

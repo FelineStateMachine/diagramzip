@@ -134,7 +134,7 @@ Schema 1 uses the following root attributes:
 ```xml
 <svg
   data-dz-schema="1"
-  data-dz-normalizer="svg-normalizer-2"
+  data-dz-normalizer="svg-normalizer-3"
   data-dz-engine="example"
   data-dz-profile="semantic-markup-2"
   data-dz-palette="renderer"

@@ -1,5 +1,5 @@
 import { attachEditableDocument, extractEditableDocument } from '../../../shared/svg/index.js'
-import { TINY_TRANSFORM_PATH, tinyTransform, type TinyTransformEnv } from './tiny-transform'
+import { BLOCK_TRANSFORM_PATH, TINY_TRANSFORM_PATH, blockTransform, type BlockTransformEnv } from './block-transform'
 
 const ALIAS_PATH = /^\/d\/[A-Za-z0-9_-]{16}$/
 const PACKED_SVG_PATH = /^\/svg\/([A-Za-z0-9_-]+)$/
@@ -85,7 +85,8 @@ export default {
   async fetch(request, env): Promise<Response> {
     const url = new URL(request.url)
 
-    if (url.pathname === TINY_TRANSFORM_PATH) return tinyTransform(request, env)
+    if (url.pathname === BLOCK_TRANSFORM_PATH) return blockTransform(request, env)
+    if (url.pathname === TINY_TRANSFORM_PATH) return blockTransform(request, env, true)
 
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return textResponse('Not found', 404, request.method)
@@ -104,4 +105,4 @@ export default {
 
     return textResponse('Not found', 404, request.method)
   },
-} satisfies ExportedHandler<Env & TinyTransformEnv>
+} satisfies ExportedHandler<Env & BlockTransformEnv>
