@@ -26,6 +26,11 @@ const sidebars = {
         'collaboration/working-and-saved-state',
       ],
     },
+    {
+      type: 'category',
+      label: 'Integrate',
+      items: ['integrate/tiny-transform'],
+    },
   ],
 }
 
